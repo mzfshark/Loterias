@@ -60,6 +60,25 @@ jobs:
             echo "RPC_URL=${{ secrets.RPC_URL_opBNB_TESTNET }}" >> $GITHUB_ENV
           fi
 
+      - name: Set NATIVE_TOKEN
+        id: set-native-token
+        run: |
+          if [ "${{ github.event.inputs.network }}" == "mainnet" ]; then
+            echo "NATIVE_TOKEN=${{ secrets.NATIVE_TOKEN_MAINNET }}" >> $GITHUB_ENV
+          elif [ "${{ github.event.inputs.network }}" == "sepolia" ]; then
+            echo "NATIVE_TOKEN=${{ secrets.NATIVE_TOKEN_SEPOLIA }}" >> $GITHUB_ENV
+          elif [ "${{ github.event.inputs.network }}" == "harmony" ]; then
+            echo "NATIVE_TOKEN=${{ secrets.NATIVE_TOKEN_HARMONY }}" >> $GITHUB_ENV
+          elif [ "${{ github.event.inputs.network }}" == "bsc" ]; then
+            echo "NATIVE_TOKEN=${{ secrets.NATIVE_TOKEN_BSC }}" >> $GITHUB_ENV
+          elif [ "${{ github.event.inputs.network }}" == "bsc_testnet" ]; then
+            echo "NATIVE_TOKEN=${{ secrets.NATIVE_TOKEN_BSC_TESTNET }}" >> $GITHUB_ENV
+          elif [ "${{ github.event.inputs.network }}" == "opBNB" ]; then
+            echo "NATIVE_TOKEN=${{ secrets.NATIVE_TOKEN_opBNB }}" >> $GITHUB_ENV
+          elif [ "${{ github.event.inputs.network }}" == "opBNB_testnet" ]; then
+            echo "NATIVE_TOKEN=${{ secrets.NATIVE_TOKEN_opBNB_TESTNET }}" >> $GITHUB_ENV
+          fi
+
   test:
     name: Run Tests
     runs-on: ubuntu-latest
@@ -100,12 +119,12 @@ jobs:
       - name: Run Deployment Script
         env:
           DEPLOYER_PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
-          ONE_TOKEN_ADDRESS: ${{ secrets.ONE_TOKEN_ADDRESS }}
+          NATIVE_TOKEN: ${{ env.NATIVE_TOKEN }}
           VRF_COORDINATOR_ADDRESS: ${{ secrets.VRF_COORDINATOR_ADDRESS }}
           KEY_HASH: ${{ secrets.KEY_HASH }}
           SUBSCRIPTION_ID: ${{ secrets.SUBSCRIPTION_ID }}
           PROJECT_FUNDS: ${{ secrets.PROJECT_FUNDS }}
           GRANT_FUND: ${{ secrets.GRANT_FUND }}
-          OTHER_OPERATION_INVESTMENTS: ${{ secrets.OTHER_OPERATION_INVESTMENTS }}
+          OPERATION_FUND: ${{ secrets.OPERATION_FUND }}
           RPC_URL: ${{ env.RPC_URL }}
         run: npx hardhat run scripts/deploy.js --network ${{ github.event.inputs.network }}

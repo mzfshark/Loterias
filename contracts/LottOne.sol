@@ -26,11 +26,6 @@ contract LottOne is VRFConsumerBaseV2 {
     uint256[] public randomWords;
     uint256 public requestId;
 
-    // New state variables
-    uint256 public projectFunds;
-    uint256 public grantFund;
-    uint256 public otherOperationInvestments;
-
     struct Ticket {
         address player;
         uint8[] chosenNumbers;
@@ -49,15 +44,7 @@ contract LottOne is VRFConsumerBaseV2 {
     event AgentCommissionPaid(address indexed agent, uint256 amount);
     event RandomWordsRequested(uint256 requestId);
 
-    constructor(
-        address _oneToken,
-        address _vrfCoordinator,
-        bytes32 _keyHash,
-        uint64 _subscriptionId,
-        uint256 _projectFunds,
-        uint256 _grantFund,
-        uint256 _otherOperationInvestments
-    ) 
+    constructor(address _oneToken, address _vrfCoordinator, bytes32 _keyHash, uint64 _subscriptionId, uint256 _projectFund, uint256 _grantFund, uint256 _operationFund) 
         VRFConsumerBaseV2(_vrfCoordinator) 
     {
         oneToken = IERC20(_oneToken);
@@ -66,9 +53,9 @@ contract LottOne is VRFConsumerBaseV2 {
         lastDrawTime = block.timestamp;
         keyHash = _keyHash;
         subscriptionId = _subscriptionId;
-        projectFunds = _projectFunds;
+        projectFund = _projectFund;
         grantFund = _grantFund;
-        otherOperationInvestments = _otherOperationInvestments;
+        operationFund = _operationFund;
     }
 
     modifier onlyOwner() {
@@ -131,16 +118,16 @@ contract LottOne is VRFConsumerBaseV2 {
         // Calculate distributions according to the revised breakdown
         uint256 grossPrize = prizePool * 4335 / 10000; // 43.35%
         uint256 agentsCommissionTotal = prizePool * 861 / 10000; // 8.61%
-        uint256 developmentFund = grantFund; // Updated to use grantFund
-        uint256 operationalExpenses = otherOperationInvestments; // Updated to use otherOperationInvestments
+        uint256 developmentFund = prizePool * 95 / 10000; // 0.95%
+        uint256 operationalExpenses = prizePool * 957 / 10000; // 9.57%
 
         // Calculate remaining amount
         uint256 remainingAmount = prizePool - (grossPrize + agentsCommissionTotal + developmentFund + operationalExpenses);
 
         // Further breakdown of the remaining amount
-        uint256 projectFund = remainingAmount * 75 / 100; // 75% of remaining
+        uint256 projectFunds = remainingAmount * 75 / 100; // 75% of remaining
         uint256 grantFund = remainingAmount * 20 / 100; // 20% of remaining
-        uint256 otherOperationInvestments = remainingAmount * 5 / 100; // 5% of remaining
+        uint256 operationFund = remainingAmount * 5 / 100; // 5% of remaining
 
         // Example prize pool distribution
         uint256 jackpotShare = grossPrize * 50 / 100; // 50% for jackpot
@@ -162,10 +149,8 @@ contract LottOne is VRFConsumerBaseV2 {
                 matched14++;
                 winnings[tickets[i].player] += significantShare / matched14;
             } else if (matchCount >= 11) {
-                if (matched13 + matched12 + matched11 > 0) {
-                    uint256 prize = smallerPrizePool / (matched13 + matched12 + matched11);
-                    winnings[tickets[i].player] += prize;
-                }
+                uint256 prize = smallerPrizePool / (matched13 + matched12 + matched11);
+                winnings[tickets[i].player] += prize;
             }
         }
 
