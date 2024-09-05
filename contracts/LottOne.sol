@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.7;
 
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@chainlink/contracts/src/v0.8/VRFConsumerBaseV2.sol";
-import "@chainlink/contracts/src/v0.8/interfaces/VRFCoordinatorV2Interface.sol";
+import "https://raw.githubusercontent.com/OpenZeppelin/openzeppelin-contracts/master/contracts/token/ERC20/IERC20.sol";
+import "https://raw.githubusercontent.com/smartcontractkit/chainlink/develop/contracts/src/v0.8/vrf/VRFConsumerBaseV2.sol";
+import "https://raw.githubusercontent.com/smartcontractkit/chainlink/develop/contracts/src/v0.8/vrf/interfaces/VRFCoordinatorV2Interface.sol";
 
 contract LottOne is VRFConsumerBaseV2 {
     IERC20 public oneToken;
