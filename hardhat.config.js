@@ -13,24 +13,24 @@ module.exports = {
     // }
     harmony: {
       url: `https://api.harmony.one`,
-      chainId: 1666600000,
-      accounts: [process.env.DEPLOYER_PRIVATE_KEY] 
+      chainId: 1666600000
+      //accounts: $INFURA_PROJECT_SECRET
     },
-    bsc: {
+    /*bsc: {
       url: `https://bsc-mainnet.infura.io/v3/554262fab79f49adb4fdba2db2587800`,
-      accounts: [process.env.DEPLOYER_PRIVATE_KEY]
+      accounts: ${{ secrets.INFURA_PROJECT_SECRET }}
     },
     bsc_testnet: {
       url: `https://bsc-testnet.infura.io/v3/554262fab79f49adb4fdba2db2587800`,
-      accounts: [process.env.DEPLOYER_PRIVATE_KEY]
+      accounts: ${{ secrets.INFURA_PROJECT_SECRET }}
     },
     opBNB: {
       url: `https://opbnb-mainnet.infura.io/v3/554262fab79f49adb4fdba2db2587800`,
-      accounts: [process.env.DEPLOYER_PRIVATE_KEY]
+      accounts: ${{ secrets.INFURA_PROJECT_SECRET }}
     },
     opBNB_testnet: {
       url: `https://opbnb-testnet.infura.io/v3/554262fab79f49adb4fdba2db2587800`,
-      accounts: [process.env.DEPLOYER_PRIVATE_KEY]
-    },
+      accounts: ${{ secrets.INFURA_PROJECT_SECRET }}
+    },*/
   },
 };
