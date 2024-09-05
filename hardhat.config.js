@@ -12,6 +12,7 @@ module.exports = {
     // }
     harmony: {
       url: `https://api.harmony.one`,
+      chainId: 1666600000
       accounts: [process.env.DEPLOYER_PRIVATE_KEY]
     },
     bsc: {
