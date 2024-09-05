@@ -1,6 +1,5 @@
 Here's a comprehensive `README.md` for the `LottOne` Solidity contract, suitable for a GitHub repository:
 
-```markdown
 # LottOne - A Decentralized Lottery Contract
 
 ## Overview
@@ -115,8 +114,8 @@ MIT License. See `LICENSE` file for details.
 
 ## Contact
 
-For any questions or issues, please open an issue on GitHub or contact [your-email@example.com](mailto:your-email@example.com).
+For any questions or issues, please open an issue on GitHub or contact [contact@axodus.finance](mailto:contact@axodus.finance).
 
-```
+
 
 Feel free to adjust the links, email address, and installation steps according to your specific setup and repository details.
