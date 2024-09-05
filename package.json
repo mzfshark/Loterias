@@ -1,7 +1,7 @@
 {
   "devDependencies": {
-    "@chainlink/contracts": "^1.2.0",
-    "@openzeppelin/contracts": "^5.0.2",
+    "@chainlink/contracts": "^1.0.0",
+    "@openzeppelin/contracts": "^4.9.3",
     "@nomiclabs/hardhat-ethers": "^2.2.3",
     "ethers": "^5.0.0",
     "hardhat": "^2.22.10"
