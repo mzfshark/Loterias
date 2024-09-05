@@ -2,7 +2,7 @@ Here's a comprehensive `README.md` for the `LottOne` Solidity contract, suitable
 
 # LottOne - A Decentralized Lottery Contract
 
-## Overview
+## Overview [![CI/CD Pipeline](https://github.com/Axodus/LottOne/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/Axodus/LottOne/actions/workflows/ci-cd.yml)
 
 `LottOne` is a Solidity smart contract that implements a decentralized lottery system on the Ethereum blockchain. It utilizes Chainlink's Verifiable Random Function (VRF) to securely generate random numbers and ERC20 tokens for ticket purchases and prize payouts.
 
