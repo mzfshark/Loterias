@@ -5,7 +5,7 @@ require('dotenv').config();
 const { INFURA_PROJECT_ID, INFURA_PROJECT_SECRET, DEPLOYER_PRIVATE_KEY } = process.env;
 
 // Validate environment variables
-if (!DEPLOYER_PRIVATE_KEY || DEPLOYER_PRIVATE_KEY.length !== 64) {
+if (!DEPLOYER_PRIVATE_KEY || DEPLOYER_PRIVATE_KEY.length !== 32) {
   throw new Error("Invalid DEPLOYER_PRIVATE_KEY: Ensure it is set and 64 characters long.");
 }
 if (!INFURA_PROJECT_ID) {
