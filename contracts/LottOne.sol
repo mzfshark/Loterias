@@ -12,7 +12,7 @@ contract LottOne is VRFConsumerBaseV2 {
     uint8 public totalNumbers = 25;
     uint8 public minNumbers = 15;
     uint8 public maxNumbers = 20;
-    uint256 public drawInterval = 7 days; // Weekly draw interval
+    uint256 public drawInterval = 4 days; // Weekly draw interval
     uint256 public lastDrawTime;
     uint256 public prizePool;
 
