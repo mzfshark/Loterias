@@ -1,4 +1,4 @@
-name: CI/CD Pipeline
+name: CI/CD Harmony
 
 on:
   push:
@@ -7,6 +7,22 @@ on:
   pull_request:
     branches:
       - main
+  workflow_dispatch:
+    inputs:
+      network:
+        description: 'The network to deploy to'
+        required: true
+        default: 'mainnet'
+        type: choice
+        options:
+          - mainnet
+          - sepolia
+          - harmony
+          - bsc
+          - bsc_testnet
+          - opBNB
+          - opBNB_testnet
+          # Add more networks if needed
 
 jobs:
   setup:
@@ -24,6 +40,25 @@ jobs:
 
       - name: Install Dependencies
         run: npm install
+
+      - name: Set RPC URL
+        id: set-rpc
+        run: |
+          if [ "${{ github.event.inputs.network }}" == "mainnet" ]; then
+            echo "RPC_URL=${{ secrets.RPC_URL_MAINNET }}" >> $GITHUB_ENV
+          elif [ "${{ github.event.inputs.network }}" == "sepolia" ]; then
+            echo "RPC_URL=${{ secrets.RPC_URL_SEPOLIA }}" >> $GITHUB_ENV
+          elif [ "${{ github.event.inputs.network }}" == "harmony" ]; then
+            echo "RPC_URL=${{ secrets.RPC_URL_HARMONY }}" >> $GITHUB_ENV
+          elif [ "${{ github.event.inputs.network }}" == "bsc" ]; then
+            echo "RPC_URL=${{ secrets.RPC_URL_BSC }}" >> $GITHUB_ENV
+          elif [ "${{ github.event.inputs.network }}" == "bsc_testnet" ]; then
+            echo "RPC_URL=${{ secrets.RPC_URL_BSC_TESTNET }}" >> $GITHUB_ENV
+          elif [ "${{ github.event.inputs.network }}" == "opBNB" ]; then
+            echo "RPC_URL=${{ secrets.RPC_URL_opBNB }}" >> $GITHUB_ENV
+          elif [ "${{ github.event.inputs.network }}" == "opBNB_testnet" ]; then
+            echo "RPC_URL=${{ secrets.RPC_URL_opBNB_TESTNET }}" >> $GITHUB_ENV
+          fi
 
   test:
     name: Run Tests
@@ -48,8 +83,7 @@ jobs:
   deploy:
     name: Deploy Contract
     runs-on: ubuntu-latest
-    needs: test
-    if: github.ref == 'refs/heads/main'  # Only deploy on push to main
+    needs: [setup, test]
 
     steps:
       - name: Checkout Code
@@ -63,9 +97,15 @@ jobs:
       - name: Install Dependencies
         run: npm install
 
-      - name: Deploy Contract
+      - name: Run Deployment Script
         env:
-          INFURA_PROJECT_ID: ${{ secrets.INFURA_PROJECT_ID }}
-          INFURA_PROJECT_SECRET: ${{ secrets.INFURA_PROJECT_SECRET }}
           DEPLOYER_PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
-        run: npx hardhat run scripts/deploy.js --network harmony
+          ONE_TOKEN_ADDRESS: ${{ secrets.ONE_TOKEN_ADDRESS }}
+          VRF_COORDINATOR_ADDRESS: ${{ secrets.VRF_COORDINATOR_ADDRESS }}
+          KEY_HASH: ${{ secrets.KEY_HASH }}
+          SUBSCRIPTION_ID: ${{ secrets.SUBSCRIPTION_ID }}
+          PROJECT_FUNDS: ${{ secrets.PROJECT_FUNDS }}
+          GRANT_FUND: ${{ secrets.GRANT_FUND }}
+          OTHER_OPERATION_INVESTMENTS: ${{ secrets.OTHER_OPERATION_INVESTMENTS }}
+          RPC_URL: ${{ env.RPC_URL }}
+        run: npx hardhat run scripts/deploy.js --network ${{ github.event.inputs.network }}
