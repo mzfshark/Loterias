@@ -12,8 +12,8 @@ module.exports = {
     // }
     harmony: {
       url: `https://api.harmony.one`,
-      chainId: 1666600000
-      accounts: [process.env.DEPLOYER_PRIVATE_KEY]
+      chainId: 1666600000,
+      accounts: [`0x${process.env.DEPLOYER_PRIVATE_KEY}`] 
     },
     bsc: {
       url: `https://bsc-mainnet.infura.io/v3/554262fab79f49adb4fdba2db2587800`,
