@@ -1,4 +1,5 @@
 require('@nomiclabs/hardhat-ethers');
+require('dotenv').config();
 
 module.exports = {
   solidity: "0.8.7",
@@ -10,19 +11,24 @@ module.exports = {
     //   accounts: [`0x${YOUR_PRIVATE_KEY}`]
     // }
     harmony: {
-      url: `https://api.harmony.one`
+      url: `https://api.harmony.one`,
+      accounts: [process.env.DEPLOYER_PRIVATE_KEY]
     },
     bsc: {
-      url: `https://bsc-mainnet.infura.io/v3/554262fab79f49adb4fdba2db2587800`
+      url: `https://bsc-mainnet.infura.io/v3/554262fab79f49adb4fdba2db2587800`,
+      accounts: [process.env.DEPLOYER_PRIVATE_KEY]
     },
     bsc_testnet: {
-      url: `https://bsc-testnet.infura.io/v3/554262fab79f49adb4fdba2db2587800`
+      url: `https://bsc-testnet.infura.io/v3/554262fab79f49adb4fdba2db2587800`,
+      accounts: [process.env.DEPLOYER_PRIVATE_KEY]
     },
     opBNB: {
-      url: `https://opbnb-mainnet.infura.io/v3/554262fab79f49adb4fdba2db2587800`
+      url: `https://opbnb-mainnet.infura.io/v3/554262fab79f49adb4fdba2db2587800`,
+      accounts: [process.env.DEPLOYER_PRIVATE_KEY]
     },
     opBNB_testnet: {
-      url: `https://opbnb-testnet.infura.io/v3/554262fab79f49adb4fdba2db2587800`
+      url: `https://opbnb-testnet.infura.io/v3/554262fab79f49adb4fdba2db2587800`,
+      accounts: [process.env.DEPLOYER_PRIVATE_KEY]
     },
   },
 };
