@@ -24,6 +24,7 @@ CryptoDraw is a strategic lottery game where players select a set of numbers in 
 
 CryptoDraw offers a tiered prize structure, ensuring rewards across multiple levels of matching numbers. The prize pool is distributed as follows:
 
+### Arrecadation split
 **Numerical Prognostics** | **Percentage**
 --- | ---
 Gross Prize | 43.35%
@@ -37,7 +38,7 @@ Operation Fund (accumulate to final 0 draw) | 4.93%
 
 ### Prize Tiers
 
-- **Jackpot (15 Matches)**: 43.35% of the total prize pool is allocated to jackpot winners.
+- **Jackpot (15 Matches)**: 75% of the total Gross prize pool is allocated to jackpot winners.
 - **14 Matches**: 14% of the prize pool.
 - **13 Matches**: 5% of the prize pool.
 - **12 Matches**: 3% of the prize pool.
