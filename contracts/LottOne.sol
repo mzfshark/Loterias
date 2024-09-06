@@ -117,11 +117,14 @@ contract LottOne is VRFConsumerBaseV2, Ownable {
         // Calculate distributions according to the revised breakdown
         uint256 grossPrize = (prizePool * 4335) / 10000; // 43.35% of the prize pool for the total prize money
         uint256 agentsCommissionTotal = (prizePool * 861) / 10000; // 8.61% for agents' commission
-        uint256 developmentFund = (prizePool * 195) / 10000; // 1.95% for lottery development fund (FDL)
+        uint256 developmentFund = (prizePool * 95) / 10000; // 0.95% for lottery development fund (FDL)
         uint256 operationalExpenses = (prizePool * 957) / 10000; // 9.57% for operational expenses
         uint256 chainHealthInvestment = (prizePool * 2496) / 10000; // 24.96% for Chain Health Investment Program
         uint256 grantFund = (prizePool * 772) / 10000; // 7.72% for grant fund
         uint256 operationFund = (prizePool * 493) / 10000; // 4.93% for operation fund
+
+        // Deduct total agent commissions from the prize pool
+        uint256 adjustedPrizePool = prizePool - agentsCommissionTotal;
 
         // Calculate prize distribution for winners
         uint256 jackpotShare = (grossPrize * 7600) / 10000; // 76% for jackpot winners
@@ -152,23 +155,61 @@ contract LottOne is VRFConsumerBaseV2, Ownable {
             }
         }
 
+        // Distribute agent commissions
+        for (uint256 i = 0; i < tickets.length; i++) {
+            if (tickets[i].agent != address(0)) {
+                uint256 commission = agentCommissions[tickets[i].agent];
+                if (commission > 0) {
+                    agentCommissions[tickets[i].agent] = 0; // Reset commission after payout
+                    require(oneToken.transfer(tickets[i].agent, commission), "Token transfer failed.");
+                    emit AgentCommissionPaid(tickets[i].agent, commission);
+                }
+            }
+        }
+
         // Distribute prizes proportionally among winners
         for (uint256 i = 0; i < tickets.length; i++) {
             uint8 matchCount = getMatchCount(tickets[i].chosenNumbers);
             if (matchCount == 15) {
-                winnings[tickets[i].player] += jackpotShare / matched15;
+                if (matched15 > 0) {
+                    uint256 prizeAmount = jackpotShare / matched15;
+                    winnings[tickets[i].player] += prizeAmount;
+                    require(oneToken.transfer(tickets[i].player, prizeAmount), "Token transfer failed.");
+                    emit PrizeClaimed(tickets[i].player, prizeAmount);
+                }
             } else if (matchCount == 14) {
-                winnings[tickets[i].player] += shareMatched14 / matched14;
+                if (matched14 > 0) {
+                    uint256 prizeAmount = shareMatched14 / matched14;
+                    winnings[tickets[i].player] += prizeAmount;
+                    require(oneToken.transfer(tickets[i].player, prizeAmount), "Token transfer failed.");
+                    emit PrizeClaimed(tickets[i].player, prizeAmount);
+                }
             } else if (matchCount == 13) {
-                winnings[tickets[i].player] += shareMatched13 / matched13;
+                if (matched13 > 0) {
+                    uint256 prizeAmount = shareMatched13 / matched13;
+                    winnings[tickets[i].player] += prizeAmount;
+                    require(oneToken.transfer(tickets[i].player, prizeAmount), "Token transfer failed.");
+                    emit PrizeClaimed(tickets[i].player, prizeAmount);
+                }
             } else if (matchCount == 12) {
-                winnings[tickets[i].player] += shareMatched12 / matched12;
+                if (matched12 > 0) {
+                    uint256 prizeAmount = shareMatched12 / matched12;
+                    winnings[tickets[i].player] += prizeAmount;
+                    require(oneToken.transfer(tickets[i].player, prizeAmount), "Token transfer failed.");
+                    emit PrizeClaimed(tickets[i].player, prizeAmount);
+                }
             } else if (matchCount == 11) {
-                winnings[tickets[i].player] += shareMatched11 / matched11;
+                if (matched11 > 0) {
+                    uint256 prizeAmount = shareMatched11 / matched11;
+                    winnings[tickets[i].player] += prizeAmount;
+                    require(oneToken.transfer(tickets[i].player, prizeAmount), "Token transfer failed.");
+                    emit PrizeClaimed(tickets[i].player, prizeAmount);
+                }
             }
         }
 
-        prizePool = 0; // Reset prize pool after distribution
+        // Reset the prize pool after distribution
+        prizePool = 0;
     }
 
     function getMatchCount(uint8[] memory _chosenNumbers) internal view returns (uint8) {
