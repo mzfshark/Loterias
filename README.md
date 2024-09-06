@@ -1,6 +1,3 @@
-Here's a sample `README.md` for your project, renamed to **CryptoDraw**. This README provides an overview of the project, installation instructions, and usage details.
-
-
 # CryptoDraw
 
 CryptoDraw is a decentralized, blockchain-based lottery system built on Ethereum and compatible networks. Utilizing Chainlink VRF (Verifiable Random Function) for secure and transparent random number generation, CryptoDraw offers a fair and verifiable lottery experience. The platform allows users to purchase tickets with their chosen numbers and participate in regular draws to win various prizes, including jackpots.
