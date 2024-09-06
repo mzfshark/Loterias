@@ -12,7 +12,7 @@ on:
       network:
         description: 'The network to deploy to'
         required: true
-        default: 'mainnet'
+        default: 'sepolia'
         type: choice
         options:
           - mainnet
