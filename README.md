@@ -1,94 +1,84 @@
 # CryptoDraw
 
-CryptoDraw is a decentralized, blockchain-based lottery system built on Ethereum and compatible networks. Utilizing Chainlink VRF (Verifiable Random Function) for secure and transparent random number generation, CryptoDraw offers a fair and verifiable lottery experience. The platform allows users to purchase tickets with their chosen numbers and participate in regular draws to win various prizes, including jackpots.
+CryptoDraw is a decentralized, blockchain-powered lottery game that offers participants a fair, transparent, and exciting way to win substantial rewards. Built on Ethereum-compatible networks, CryptoDraw uses smart contracts and Chainlink's Verifiable Random Function (VRF) to ensure the integrity of each draw.
+
+## Game Overview
+
+CryptoDraw is a strategic lottery game where players select a set of numbers in hopes of matching them with the randomly drawn winning numbers. The game is designed to reward both jackpot winners and those who come close, with multiple prize tiers ensuring that even near misses are recognized.
+
+### How to Play
+
+1. **Select Your Numbers**: Choose between 15 and 20 numbers from a pool of 25 possible numbers.
+2. **Purchase a Ticket**: The ticket price is dynamically calculated based on the number of chosen numbers. The base price is 1 ONE token per ticket.
+3. **Wait for the Draw**: Draws occur every 4 days, and the winning numbers are generated using Chainlink VRF.
+4. **Match to Win**: Your ticket is evaluated based on how many of your chosen numbers match the winning numbers.
+5. **Claim Your Prize**: If your numbers match enough of the winning numbers, you can claim your prize directly from the smart contract.
+
+### Strategic Considerations
+
+- **Number Selection**: Selecting more numbers increases your chances of winning but also increases the ticket cost. Choose wisely to balance cost and potential rewards.
+- **Timing**: With draws occurring every 4 days, timing your ticket purchase can be crucial, especially as the prize pool grows.
+- **Agent Sales**: Agents who sell tickets receive commissions, with additional bonuses for electronic sales, incentivizing widespread ticket distribution.
+
+## Prize Breakdown
+
+CryptoDraw offers a tiered prize structure, ensuring rewards across multiple levels of matching numbers. The prize pool is distributed as follows:
+
+### Prize Tiers
+
+- **Jackpot (15 Matches)**: 43.35% of the total prize pool is allocated to jackpot winners.
+- **14 Matches**: 14% of the prize pool.
+- **13 Matches**: 5% of the prize pool.
+- **12 Matches**: 3% of the prize pool.
+- **11 Matches**: 2% of the prize pool.
+
+### Additional Fund Allocations
+
+- **Agent Commissions**: 8.61% of the total prize pool goes to agents, with an additional 4.00% for tickets sold electronically.
+- **Chain Health Investment**: 24.96% of the prize pool is reserved for long-term sustainability and growth of the blockchain network.
+- **Operational Expenses**: 9.57% is allocated to covering operational costs.
+- **Grant Fund**: 7.72% is set aside for future project grants.
+- **Lottery Development Fund (FDL)**: 0.95% is allocated to ongoing development and improvements.
+
+### Prize Distribution Example
+
+For example, if the total prize pool is 1,000,000 ONE tokens:
+
+- **Jackpot Winners (15 Matches)**: 433,500 ONE tokens are shared among those who match all 15 numbers.
+- **14 Matches**: 140,000 ONE tokens are shared among those who match 14 numbers.
+- **13 Matches**: 50,000 ONE tokens are shared among those who match 13 numbers.
+- **12 Matches**: 30,000 ONE tokens are shared among those who match 12 numbers.
+- **11 Matches**: 20,000 ONE tokens are shared among those who match 11 numbers.
 
 ## Key Features
 
-- **Decentralized Lottery System**: Fully decentralized and powered by smart contracts, ensuring transparency and fairness.
-- **Chainlink VRF Integration**: Uses Chainlink's Verifiable Random Function (VRF) to ensure that the winning numbers are provably random.
-- **Agent Commission System**: Allows agents to sell tickets and earn commissions based on sales volume.
-- **Secure and Efficient**: Built using Solidity and audited libraries such as OpenZeppelin for robust security.
-- **Multi-Network Support**: Deployable on multiple networks like Ethereum Mainnet, Sepolia, Harmony, BSC, and more.
+- **Chainlink VRF**: Ensures that the number selection is provably fair and cannot be tampered with.
+- **Decentralized**: All transactions and processes are conducted on-chain, providing transparency and security.
+- **Dynamic Ticket Pricing**: The cost of participation scales with the number of selected numbers, offering strategic depth.
 
-## Smart Contract Overview
+## Technical Overview
 
-- **LottoChain**: The main contract that manages ticket purchases, draws, random number generation, and prize distribution.
-- **IERC20**: Interface for ERC20 token interactions, used for ticket purchases and prize payouts.
-- **VRFConsumerBaseV2**: Chainlink's contract for VRF integration, ensuring secure and random number generation.
-- **Ownable**: Provides ownership control over the contract functions, allowing only the contract owner to modify key parameters.
+CryptoDraw is implemented in Solidity and deployed on Ethereum-compatible networks. Key technologies include:
 
-## Installation
-
-To get started with CryptoDraw, clone the repository and install the dependencies:
-
-```bash
-git clone https://github.com/your-repo/CryptoDraw.git
-cd CryptoDraw
-npm install
-```
+- **Solidity**: For smart contract development.
+- **Chainlink VRF**: For verifiable random number generation.
+- **OpenZeppelin Contracts**: Providing secure token and access control implementations.
+- **Hardhat**: For local development, testing, and deployment of the smart contracts.
 
 ## Deployment
 
-1. **Configure Environment Variables**: Set up your environment variables in a `.env` file. Ensure you have the following variables configured:
+CryptoDraw can be deployed on various EVM-compatible networks, including:
 
-    ```plaintext
-    DEPLOYER_PRIVATE_KEY=<your_private_key>
-    RPC_URL_<NETWORK_NAME>=<your_rpc_url>
-    VRF_COORDINATOR_ADDRESS=<chainlink_vrf_coordinator_address>
-    KEY_HASH=<your_key_hash>
-    SUBSCRIPTION_ID=<your_subscription_id>
-    NATIVE_TOKEN_<NETWORK_NAME>=<token_address>
-    PROJECT_FUNDS=<project_fund_allocation>
-    GRANT_FUND=<grant_fund_allocation>
-    OPERATION_FUND=<operation_fund_allocation>
-    ```
-
-2. **Deploy Smart Contracts**: Deploy the contracts using Hardhat by running:
-
-    ```bash
-    npx hardhat run scripts/deploy.js --network <network_name>
-    ```
-
-## Usage
-
-- **Purchase a Ticket**: Users can purchase a ticket by choosing their numbers and paying the ticket price in the designated token.
-- **Draw Execution**: The contract automatically checks if a draw is due using Chainlink Keepers and executes the draw using Chainlink VRF for random number generation.
-- **Prize Distribution**: Winners are automatically rewarded based on the number of matches with the drawn numbers. Agents receive their commissions for ticket sales.
-
-## Security
-
-CryptoDraw uses audited libraries and implements several safety checks to ensure the integrity of the lottery system:
-
-- Chainlink VRF for secure and unbiased random number generation.
-- Use of OpenZeppelin's contracts for safe and standardized smart contract functions.
-- Regular updates and checks to maintain security best practices.
-
-## Testing
-
-Run the tests to ensure that everything is working as expected:
-
-```bash
-npx hardhat test
-```
+- Ethereum Mainnet
+- Sepolia
+- Harmony
+- Binance Smart Chain (BSC)
+- opBNB
 
 ## Contributing
 
-Contributions are welcome! Please fork the repository and create a pull request with your improvements. Make sure to adhere to the project's coding standards and include relevant tests.
+We welcome contributions to the CryptoDraw project. Please submit issues or pull requests to suggest improvements or report bugs.
 
 ## License
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
-
-## Contact
-
-For any questions or support, please reach out to [your_email@example.com](mailto:your_email@example.com).
-
----
-
-Enjoy participating in a fair, transparent, and decentralized lottery with CryptoDraw!
-
-This `README.md` provides a comprehensive introduction to the CryptoDraw project, outlines its core functionality, and guides users on how to install, deploy, and use the project. It also includes sections on security, testing, contributing, and licensing.
-
-
-
-Feel free to adjust the links, email address, and installation steps according to your specific setup and repository details.
+CryptoDraw is open-source and available under the MIT License.
