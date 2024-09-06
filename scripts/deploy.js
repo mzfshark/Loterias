@@ -1,24 +1,52 @@
-const hre = require("hardhat");
+const { ethers, network } = require("hardhat");
 
 async function main() {
-  // Get the contract factory
-  const LottOne = await hre.ethers.getContractFactory("LottOne");
+    // Fetch environment variables
+    const deployerPrivateKey = process.env.DEPLOYER_PRIVATE_KEY;
+    const vrfCoordinatorAddress = process.env.VRF_COORDINATOR_ADDRESS;
+    const keyHash = process.env.KEY_HASH;
+    const subscriptionId = process.env.SUBSCRIPTION_ID;
+    const projectFunds = process.env.PROJECT_FUNDS;
+    const grantFund = process.env.GRANT_FUND;
+    const operationFund = process.env.OPERATION_FUND;
 
-  // Define constructor arguments
-  const oneTokenAddress = "0xf59de020d650e69ef0755bf37f3d16b80ee132f5"; // Replace with the actual ONE token address
-  const vrfCoordinatorAddress = "0x..."; // Replace with the actual VRF Coordinator address
-  const keyHash = "0x..."; // Replace with the actual keyHash
-  const subscriptionId = 1; // Replace with the actual subscription ID
+    if (!deployerPrivateKey || !vrfCoordinatorAddress || !keyHash || !subscriptionId || !projectFunds || !grantFund || !operationFund) {
+        console.error("Missing required environment variables.");
+        process.exit(1);
+    }
 
-  // Deploy the contract
-  const lottOne = await LottOne.deploy(oneTokenAddress, vrfCoordinatorAddress, keyHash, subscriptionId);
+    // Set up deployer
+    const [deployer] = await ethers.getSigners();
+    console.log("Deploying contracts with account:", deployer.address);
 
-  await lottOne.deployed();
+    // Contract factory
+    const LottOneFactory = await ethers.getContractFactory("LottOne");
 
-  console.log("LottOne deployed to:", lottOne.address);
+    // Deployment parameters
+    const oneTokenAddress = "YOUR_ERC20_TOKEN_ADDRESS"; // Replace with actual token address
+    const networkId = network.config.chainId;
+    console.log(`Deploying to network ID: ${networkId}`);
+
+    // Deploy the contract
+    const lottOne = await LottOneFactory.deploy(
+        oneTokenAddress,
+        vrfCoordinatorAddress,
+        keyHash,
+        subscriptionId,
+        projectFunds,
+        grantFund,
+        operationFund
+    );
+
+    console.log("Deploying contract...");
+    await lottOne.deployed();
+
+    console.log("LottOne deployed to:", lottOne.address);
 }
 
-main().catch((error) => {
-  console.error(error);
-  process.exitCode = 1;
-});
+main()
+    .then(() => process.exit(0))
+    .catch((error) => {
+        console.error(error);
+        process.exit(1);
+    });
