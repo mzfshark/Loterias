@@ -9,7 +9,7 @@ CryptoDraw is a strategic lottery game where players select a set of numbers in 
 ### How to Play
 
 1. **Select Your Numbers**: Choose between 15 and 20 numbers from a pool of 25 possible numbers.
-2. **Purchase a Ticket**: The ticket price is dynamically calculated based on the number of chosen numbers. The base price is 1 ONE token per ticket.
+2. **Purchase a Ticket**: The ticket price is dynamically calculated based on the number of chosen numbers. The base price is (tbd) token per ticket.
 3. **Wait for the Draw**: Draws occur every 4 days, and the winning numbers are generated using Chainlink VRF.
 4. **Match to Win**: Your ticket is evaluated based on how many of your chosen numbers match the winning numbers.
 5. **Claim Your Prize**: If your numbers match enough of the winning numbers, you can claim your prize directly from the smart contract.
@@ -23,6 +23,17 @@ CryptoDraw is a strategic lottery game where players select a set of numbers in 
 ## Prize Breakdown
 
 CryptoDraw offers a tiered prize structure, ensuring rewards across multiple levels of matching numbers. The prize pool is distributed as follows:
+
+**Numerical Prognostics** | **Percentage**
+--- | ---
+Gross Prize | 43.35%
+Lottery Agents' Commission* | 8.61%
+Lottery Development Fund (FDL) | 1.95%
+Operational Expense Costs | 9.57%
+Chain Health Investment Program | 24.96%
+Grant Fund | 7.72%
+Operation Fund (accumulate to final 0 draw) | 4.93%
+**Total** | **100%**
 
 ### Prize Tiers
 
@@ -42,13 +53,13 @@ CryptoDraw offers a tiered prize structure, ensuring rewards across multiple lev
 
 ### Prize Distribution Example
 
-For example, if the total prize pool is 1,000,000 ONE tokens:
+For example, if the total prize pool is 1,000,000 tokens:
 
-- **Jackpot Winners (15 Matches)**: 433,500 ONE tokens are shared among those who match all 15 numbers.
-- **14 Matches**: 140,000 ONE tokens are shared among those who match 14 numbers.
-- **13 Matches**: 50,000 ONE tokens are shared among those who match 13 numbers.
-- **12 Matches**: 30,000 ONE tokens are shared among those who match 12 numbers.
-- **11 Matches**: 20,000 ONE tokens are shared among those who match 11 numbers.
+- **Jackpot Winners (15 Matches)**: 433,500 tokens are shared among those who match all 15 numbers.
+- **14 Matches**: 140,000 tokens are shared among those who match 14 numbers.
+- **13 Matches**: 50,000 tokens are shared among those who match 13 numbers.
+- **12 Matches**: 30,000 tokens are shared among those who match 12 numbers.
+- **11 Matches**: 20,000 tokens are shared among those who match 11 numbers.
 
 ## Key Features
 
