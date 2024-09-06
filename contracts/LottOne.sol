@@ -5,8 +5,9 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@chainlink/contracts/src/v0.8/vrf/VRFConsumerBaseV2.sol";
 import "@chainlink/contracts/src/v0.8/vrf/interfaces/VRFCoordinatorV2Interface.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@chainlink/contracts/src/v0.8/interfaces/KeeperCompatibleInterface.sol";
 
-contract LottOne is VRFConsumerBaseV2, Ownable {
+contract LottOne is VRFConsumerBaseV2, Ownable, KeeperCompatibleInterface {
     IERC20 public oneToken;
     uint256 public ticketPrice = 1 * 10 ** 18; // Base price in ONE tokens (adjust as necessary)
     uint8 public totalNumbers = 25;
@@ -81,8 +82,13 @@ contract LottOne is VRFConsumerBaseV2, Ownable {
         emit TicketPurchased(msg.sender, _chosenNumbers, _agent, _isElectronic);
     }
 
-    function draw() external onlyOwner {
+    function checkUpkeep(bytes calldata) external view override returns (bool upkeepNeeded, bytes memory) {
+        upkeepNeeded = (block.timestamp >= lastDrawTime + drawInterval) && (prizePool > 0);
+    }
+
+    function performUpkeep(bytes calldata) external override {
         require(block.timestamp >= lastDrawTime + drawInterval, "Draw interval not met.");
+        require(prizePool > 0, "No prize pool available.");
 
         // Request random words from Chainlink VRF
         requestId = COORDINATOR.requestRandomWords(
