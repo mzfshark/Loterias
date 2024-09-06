@@ -56,7 +56,7 @@ Operation Fund (accumulate to final 0 draw) | 4.93%
 
 For example, if the total prize pool is 1,000,000 tokens:
 
-- **Jackpot Winners (15 Matches)**: 433,500 tokens are shared among those who match all 15 numbers.
+- **Jackpot Winners (15 Matches)**: 750,000 tokens are shared among those who match all 15 numbers.
 - **14 Matches**: 140,000 tokens are shared among those who match 14 numbers.
 - **13 Matches**: 50,000 tokens are shared among those who match 13 numbers.
 - **12 Matches**: 30,000 tokens are shared among those who match 12 numbers.
