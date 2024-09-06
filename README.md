@@ -46,7 +46,7 @@ Operation Fund (accumulate to final 0 draw) | 4.93%
 
 ### Additional Fund Allocations
 
-- **Agent Commissions**: 8.61% of the total prize pool goes to agents, with an additional 4.00% for tickets sold electronically.
+- **Agent Commissions**: 8.61% of the total prize pool goes to agents.
 - **Chain Health Investment**: 24.96% of the prize pool is reserved for long-term sustainability and growth of the blockchain network.
 - **Operational Expenses**: 9.57% is allocated to covering operational costs.
 - **Grant Fund**: 7.72% is set aside for future project grants.
