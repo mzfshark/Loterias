@@ -7,7 +7,7 @@ import "@chainlink/contracts/src/v0.8/vrf/interfaces/VRFCoordinatorV2Interface.s
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@chainlink/contracts/src/v0.8/interfaces/KeeperCompatibleInterface.sol";
 
-contract LottOne is VRFConsumerBaseV2, Ownable, KeeperCompatibleInterface {
+contract LottoChain is VRFConsumerBaseV2, Ownable, KeeperCompatibleInterface {
     IERC20 public oneToken;
     uint256 public ticketPrice = 1 * 10 ** 18; // Base price in ONE tokens (adjust as necessary)
     uint8 public totalNumbers = 25;
@@ -50,17 +50,23 @@ contract LottOne is VRFConsumerBaseV2, Ownable, KeeperCompatibleInterface {
     event AgentCommissionPaid(address indexed agent, uint256 amount);
     event RandomWordsRequested(uint256 requestId);
 
-    constructor(address _oneToken, address _vrfCoordinator, bytes32 _keyHash, uint64 _subscriptionId, uint256 _projectFund, uint256 _grantFund, uint256 _operationFund) 
-        VRFConsumerBaseV2(_vrfCoordinator) 
-    {
+    constructor(
+        address _oneToken, 
+        address _vrfCoordinator, 
+        bytes32 _keyHash, 
+        uint64 _subscriptionId, 
+        uint256 _projectFund, 
+        uint256 _grantFund, 
+        uint256 _operationFund
+    ) VRFConsumerBaseV2(_vrfCoordinator) {
         oneToken = IERC20(_oneToken);
         COORDINATOR = VRFCoordinatorV2Interface(_vrfCoordinator);
-        lastDrawTime = block.timestamp;
         keyHash = _keyHash;
         subscriptionId = _subscriptionId;
         projectFund = _projectFund;
         grantFund = _grantFund;
         operationFund = _operationFund;
+        lastDrawTime = block.timestamp;
     }
 
     function purchaseTicket(uint8[] memory _chosenNumbers, bool _isElectronic, address _agent) external {
@@ -176,37 +182,38 @@ contract LottOne is VRFConsumerBaseV2, Ownable, KeeperCompatibleInterface {
         // Distribute prizes proportionally among winners
         for (uint256 i = 0; i < tickets.length; i++) {
             uint8 matchCount = getMatchCount(tickets[i].chosenNumbers);
+            uint256 prizeAmount;
             if (matchCount == 15) {
                 if (matched15 > 0) {
-                    uint256 prizeAmount = jackpotShare / matched15;
+                    prizeAmount = jackpotShare / matched15;
                     winnings[tickets[i].player] += prizeAmount;
                     require(oneToken.transfer(tickets[i].player, prizeAmount), "Token transfer failed.");
                     emit PrizeClaimed(tickets[i].player, prizeAmount);
                 }
             } else if (matchCount == 14) {
                 if (matched14 > 0) {
-                    uint256 prizeAmount = shareMatched14 / matched14;
+                    prizeAmount = shareMatched14 / matched14;
                     winnings[tickets[i].player] += prizeAmount;
                     require(oneToken.transfer(tickets[i].player, prizeAmount), "Token transfer failed.");
                     emit PrizeClaimed(tickets[i].player, prizeAmount);
                 }
             } else if (matchCount == 13) {
                 if (matched13 > 0) {
-                    uint256 prizeAmount = shareMatched13 / matched13;
+                    prizeAmount = shareMatched13 / matched13;
                     winnings[tickets[i].player] += prizeAmount;
                     require(oneToken.transfer(tickets[i].player, prizeAmount), "Token transfer failed.");
                     emit PrizeClaimed(tickets[i].player, prizeAmount);
                 }
             } else if (matchCount == 12) {
                 if (matched12 > 0) {
-                    uint256 prizeAmount = shareMatched12 / matched12;
+                    prizeAmount = shareMatched12 / matched12;
                     winnings[tickets[i].player] += prizeAmount;
                     require(oneToken.transfer(tickets[i].player, prizeAmount), "Token transfer failed.");
                     emit PrizeClaimed(tickets[i].player, prizeAmount);
                 }
             } else if (matchCount == 11) {
                 if (matched11 > 0) {
-                    uint256 prizeAmount = shareMatched11 / matched11;
+                    prizeAmount = shareMatched11 / matched11;
                     winnings[tickets[i].player] += prizeAmount;
                     require(oneToken.transfer(tickets[i].player, prizeAmount), "Token transfer failed.");
                     emit PrizeClaimed(tickets[i].player, prizeAmount);
