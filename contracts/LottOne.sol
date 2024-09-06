@@ -4,10 +4,10 @@ pragma solidity ^0.8.7;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@chainlink/contracts/src/v0.8/vrf/VRFConsumerBaseV2.sol";
 import "@chainlink/contracts/src/v0.8/vrf/interfaces/VRFCoordinatorV2Interface.sol";
+import "@openzeppelin/contracts/access/Ownable.sol"; // Import Ownable contract
 
-contract LottOne is VRFConsumerBaseV2 {
+contract LottOne is VRFConsumerBaseV2, Ownable { // Inherit from Ownable
     IERC20 public oneToken;
-    address public owner;
     uint256 public ticketPrice = 1 * 10 ** 18; // Base price in ONE tokens (adjust as necessary)
     uint8 public totalNumbers = 25;
     uint8 public minNumbers = 15;
@@ -15,6 +15,11 @@ contract LottOne is VRFConsumerBaseV2 {
     uint256 public drawInterval = 4 days; // Weekly draw interval
     uint256 public lastDrawTime;
     uint256 public prizePool;
+
+    // Project funds variables
+    uint256 public projectFund;
+    uint256 public grantFund;
+    uint256 public operationFund;
 
     // Chainlink VRF Variables
     VRFCoordinatorV2Interface COORDINATOR;
@@ -44,23 +49,27 @@ contract LottOne is VRFConsumerBaseV2 {
     event AgentCommissionPaid(address indexed agent, uint256 amount);
     event RandomWordsRequested(uint256 requestId);
 
-    constructor(address _oneToken, address _vrfCoordinator, bytes32 _keyHash, uint64 _subscriptionId, uint256 _projectFund, uint256 _grantFund, uint256 _operationFund) 
+    constructor(
+        address _oneToken, 
+        address _vrfCoordinator, 
+        bytes32 _keyHash, 
+        uint64 _subscriptionId, 
+        uint256 _projectFund, 
+        uint256 _grantFund, 
+        uint256 _operationFund
+    ) 
         VRFConsumerBaseV2(_vrfCoordinator) 
     {
         oneToken = IERC20(_oneToken);
         COORDINATOR = VRFCoordinatorV2Interface(_vrfCoordinator);
-        owner = msg.sender;
         lastDrawTime = block.timestamp;
         keyHash = _keyHash;
         subscriptionId = _subscriptionId;
+
+        // Initialize project funds
         projectFund = _projectFund;
         grantFund = _grantFund;
         operationFund = _operationFund;
-    }
-
-    modifier onlyOwner() {
-        require(msg.sender == owner, "Only owner can call this function.");
-        _;
     }
 
     function purchaseTicket(uint8[] memory _chosenNumbers, bool _isElectronic, address _agent) external {
@@ -195,6 +204,6 @@ contract LottOne is VRFConsumerBaseV2 {
     }
 
     function withdrawFunds(uint256 _amount) external onlyOwner {
-        require(oneToken.transfer(owner, _amount), "Token transfer failed.");
+        require(oneToken.transfer(owner(), _amount), "Token transfer failed."); // Updated to use owner() from Ownable
     }
 }
