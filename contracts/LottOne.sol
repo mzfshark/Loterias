@@ -4,9 +4,9 @@ pragma solidity ^0.8.7;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@chainlink/contracts/src/v0.8/vrf/VRFConsumerBaseV2.sol";
 import "@chainlink/contracts/src/v0.8/vrf/interfaces/VRFCoordinatorV2Interface.sol";
-import "@openzeppelin/contracts/access/Ownable.sol"; // Import Ownable contract
+import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract LottOne is VRFConsumerBaseV2, Ownable { // Inherit from Ownable
+contract LottOne is VRFConsumerBaseV2, Ownable {
     IERC20 public oneToken;
     uint256 public ticketPrice = 1 * 10 ** 18; // Base price in ONE tokens (adjust as necessary)
     uint8 public totalNumbers = 25;
@@ -15,11 +15,6 @@ contract LottOne is VRFConsumerBaseV2, Ownable { // Inherit from Ownable
     uint256 public drawInterval = 4 days; // Weekly draw interval
     uint256 public lastDrawTime;
     uint256 public prizePool;
-
-    // Project funds variables
-    uint256 public projectFund;
-    uint256 public grantFund;
-    uint256 public operationFund;
 
     // Chainlink VRF Variables
     VRFCoordinatorV2Interface COORDINATOR;
@@ -30,6 +25,11 @@ contract LottOne is VRFConsumerBaseV2, Ownable { // Inherit from Ownable
     uint32 numWords = 15; // Number of random numbers needed (15 winning numbers)
     uint256[] public randomWords;
     uint256 public requestId;
+
+    // Funds for various uses
+    uint256 public projectFund;
+    uint256 public grantFund;
+    uint256 public operationFund;
 
     struct Ticket {
         address player;
@@ -49,15 +49,7 @@ contract LottOne is VRFConsumerBaseV2, Ownable { // Inherit from Ownable
     event AgentCommissionPaid(address indexed agent, uint256 amount);
     event RandomWordsRequested(uint256 requestId);
 
-    constructor(
-        address _oneToken, 
-        address _vrfCoordinator, 
-        bytes32 _keyHash, 
-        uint64 _subscriptionId, 
-        uint256 _projectFund, 
-        uint256 _grantFund, 
-        uint256 _operationFund
-    ) 
+    constructor(address _oneToken, address _vrfCoordinator, bytes32 _keyHash, uint64 _subscriptionId, uint256 _projectFund, uint256 _grantFund, uint256 _operationFund) 
         VRFConsumerBaseV2(_vrfCoordinator) 
     {
         oneToken = IERC20(_oneToken);
@@ -65,8 +57,6 @@ contract LottOne is VRFConsumerBaseV2, Ownable { // Inherit from Ownable
         lastDrawTime = block.timestamp;
         keyHash = _keyHash;
         subscriptionId = _subscriptionId;
-
-        // Initialize project funds
         projectFund = _projectFund;
         grantFund = _grantFund;
         operationFund = _operationFund;
@@ -125,23 +115,20 @@ contract LottOne is VRFConsumerBaseV2, Ownable { // Inherit from Ownable
 
     function distributePrizes() internal {
         // Calculate distributions according to the revised breakdown
-        uint256 grossPrize = prizePool * 4335 / 10000; // 43.35%
-        uint256 agentsCommissionTotal = prizePool * 861 / 10000; // 8.61%
-        uint256 developmentFund = prizePool * 95 / 10000; // 0.95%
-        uint256 operationalExpenses = prizePool * 957 / 10000; // 9.57%
+        uint256 grossPrize = (prizePool * 4335) / 10000; // 43.35% of the prize pool for the total prize money
+        uint256 agentsCommissionTotal = (prizePool * 861) / 10000; // 8.61% for agents' commission
+        uint256 developmentFund = (prizePool * 195) / 10000; // 1.95% for lottery development fund (FDL)
+        uint256 operationalExpenses = (prizePool * 957) / 10000; // 9.57% for operational expenses
+        uint256 chainHealthInvestment = (prizePool * 2496) / 10000; // 24.96% for Chain Health Investment Program
+        uint256 grantFund = (prizePool * 772) / 10000; // 7.72% for grant fund
+        uint256 operationFund = (prizePool * 493) / 10000; // 4.93% for operation fund
 
-        // Calculate remaining amount
-        uint256 remainingAmount = prizePool - (grossPrize + agentsCommissionTotal + developmentFund + operationalExpenses);
-
-        // Further breakdown of the remaining amount
-        uint256 projectFunds = remainingAmount * 75 / 100; // 75% of remaining
-        uint256 grantFund = remainingAmount * 20 / 100; // 20% of remaining
-        uint256 operationFund = remainingAmount * 5 / 100; // 5% of remaining
-
-        // Example prize pool distribution
-        uint256 jackpotShare = grossPrize * 50 / 100; // 50% for jackpot
-        uint256 significantShare = grossPrize * 30 / 100; // 30% for significant prize
-        uint256 smallerPrizePool = grossPrize * 20 / 100; // 20% for smaller prizes
+        // Calculate prize distribution for winners
+        uint256 jackpotShare = (grossPrize * 7600) / 10000; // 76% for jackpot winners
+        uint256 shareMatched14 = (grossPrize * 1400) / 10000; // 14% for 14 matches
+        uint256 shareMatched13 = (grossPrize * 500) / 10000; // 5% for 13 matches
+        uint256 shareMatched12 = (grossPrize * 300) / 10000; // 3% for 12 matches
+        uint256 shareMatched11 = (grossPrize * 200) / 10000; // 2% for 11 matches
 
         uint256 matched15 = 0;
         uint256 matched14 = 0;
@@ -149,17 +136,35 @@ contract LottOne is VRFConsumerBaseV2, Ownable { // Inherit from Ownable
         uint256 matched12 = 0;
         uint256 matched11 = 0;
 
+        // Count matches for each prize level
         for (uint256 i = 0; i < tickets.length; i++) {
             uint8 matchCount = getMatchCount(tickets[i].chosenNumbers);
             if (matchCount == 15) {
                 matched15++;
-                winnings[tickets[i].player] += jackpotShare / matched15;
             } else if (matchCount == 14) {
                 matched14++;
-                winnings[tickets[i].player] += significantShare / matched14;
-            } else if (matchCount >= 11) {
-                uint256 prize = smallerPrizePool / (matched13 + matched12 + matched11);
-                winnings[tickets[i].player] += prize;
+            } else if (matchCount == 13) {
+                matched13++;
+            } else if (matchCount == 12) {
+                matched12++;
+            } else if (matchCount == 11) {
+                matched11++;
+            }
+        }
+
+        // Distribute prizes proportionally among winners
+        for (uint256 i = 0; i < tickets.length; i++) {
+            uint8 matchCount = getMatchCount(tickets[i].chosenNumbers);
+            if (matchCount == 15) {
+                winnings[tickets[i].player] += jackpotShare / matched15;
+            } else if (matchCount == 14) {
+                winnings[tickets[i].player] += shareMatched14 / matched14;
+            } else if (matchCount == 13) {
+                winnings[tickets[i].player] += shareMatched13 / matched13;
+            } else if (matchCount == 12) {
+                winnings[tickets[i].player] += shareMatched12 / matched12;
+            } else if (matchCount == 11) {
+                winnings[tickets[i].player] += shareMatched11 / matched11;
             }
         }
 
@@ -204,6 +209,19 @@ contract LottOne is VRFConsumerBaseV2, Ownable { // Inherit from Ownable
     }
 
     function withdrawFunds(uint256 _amount) external onlyOwner {
-        require(oneToken.transfer(owner(), _amount), "Token transfer failed."); // Updated to use owner() from Ownable
+        require(oneToken.transfer(owner(), _amount), "Token transfer failed.");
+    }
+
+    // Additional owner functions to update funds
+    function updateProjectFund(uint256 _newAmount) external onlyOwner {
+        projectFund = _newAmount;
+    }
+
+    function updateGrantFund(uint256 _newAmount) external onlyOwner {
+        grantFund = _newAmount;
+    }
+
+    function updateOperationFund(uint256 _newAmount) external onlyOwner {
+        operationFund = _newAmount;
     }
 }
