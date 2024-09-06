@@ -44,6 +44,21 @@ Operation Fund (accumulate to final 0 draw) | 4.93%
 - **12 Matches**: 3% of the prize pool.
 - **11 Matches**: 2% of the prize pool.
 
+### Chances of win (1 in:)* 
+**Probability**
+
+| Prize Tiers | Simple Bets | | | | | |
+| --- | --- | --- | --- | --- | --- | --- |
+|  | 15 Numbers (1 bet) | 16 Numbers (16 bets) | 17 Numbers (136 bets) | 18 Numbers (816 bets) | 19 Numbers (3,876 bets) | 20 Numbers (15,504 bets) |
+| **15 Matches** | 3,268,760 | 204,298 | 24,035 | 4,006 | 843 | 211 |
+| **14 Matches** | 21,792 | 3,027 | 601 | 153 | 47 | 17 |
+| **13 Matches** | 692 | 162 | 49 | 18 | 8 | 4.2 |
+| **12 Matches** | 60 | 21 | 9 | 5 | 3.2 | 2.6 |
+| **11 Matches** | 11 | 6 | 4 | 3 | 2.9 | 3.9 |
+| **PRICE TO PAY** | 1 x $3.00 = $3.00 | 16 x $3.00 = $48.00 | 136 x $3.00 = $408.00 | 816 x $3.00 = $2,448.00 | 3,876 x $3.00 = $11,628.00 | 15,504 x $3.00 = $46,512.00 |
+
+*note: Example considering ticket at price $3 usd worth
+
 ### Additional Fund Allocations
 
 - **Agent Commissions**: 8.61% of the total prize pool goes to agents.
