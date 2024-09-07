@@ -8,7 +8,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@chainlink/contracts/src/v0.8/automation/interfaces/KeeperCompatibleInterface.sol";
 
 contract LottoChain is VRFConsumerBaseV2, Ownable, KeeperCompatibleInterface {
-    IERC20 public oneToken;
+    IERC20 public nativeTokenAddress;
     uint256 public ticketPrice = 1 * 10 ** 18; // Base price in ONE tokens (adjust as necessary)
     uint8 public totalNumbers = 25;
     uint8 public minNumbers = 15;
@@ -51,29 +51,31 @@ contract LottoChain is VRFConsumerBaseV2, Ownable, KeeperCompatibleInterface {
     event RandomWordsRequested(uint256 requestId);
 
     constructor(
-        address _oneToken, 
-        address _vrfCoordinator, 
-        bytes32 _keyHash, 
-        uint64 _subscriptionId, 
-        uint256 _projectFund, 
-        uint256 _grantFund, 
-        uint256 _operationFund
-    ) VRFConsumerBaseV2(_vrfCoordinator) {
-        oneToken = IERC20(_oneToken);
+        address _nativeTokenAddress,
+        address _vrfCoordinator,
+        bytes32 _keyHash,
+        uint64 _subscriptionId,
+        uint256 _initialProjectFund,
+        uint256 _initialGrantFund,
+        uint256 _initialOperationFund
+    ) 
+        VRFConsumerBaseV2(_vrfCoordinator) 
+    {
+        nativeTokenAddress = IERC20(_nativeTokenAddress);
         COORDINATOR = VRFCoordinatorV2Interface(_vrfCoordinator);
+        lastDrawTime = block.timestamp;
         keyHash = _keyHash;
         subscriptionId = _subscriptionId;
-        projectFund = _projectFund;
-        grantFund = _grantFund;
-        operationFund = _operationFund;
-        lastDrawTime = block.timestamp;
+        projectFund = _initialProjectFund;
+        grantFund = _initialGrantFund;
+        operationFund = _initialOperationFund;
     }
 
     function purchaseTicket(uint8[] memory _chosenNumbers, bool _isElectronic, address _agent) external {
         require(_chosenNumbers.length >= minNumbers && _chosenNumbers.length <= maxNumbers, "Invalid number of chosen numbers.");
         
         uint256 ticketCost = ticketPrice * (_chosenNumbers.length - minNumbers + 1);
-        require(oneToken.transferFrom(msg.sender, address(this), ticketCost), "Token transfer failed.");
+        require(nativeTokenAddress.transferFrom(msg.sender, address(this), ticketCost), "Token transfer failed.");
         
         tickets.push(Ticket(msg.sender, _chosenNumbers, _isElectronic, _agent));
         prizePool += ticketCost;
@@ -88,8 +90,9 @@ contract LottoChain is VRFConsumerBaseV2, Ownable, KeeperCompatibleInterface {
         emit TicketPurchased(msg.sender, _chosenNumbers, _agent, _isElectronic);
     }
 
-    function checkUpkeep(bytes calldata) external view override returns (bool upkeepNeeded, bytes memory) {
+    function checkUpkeep(bytes calldata) external view override returns (bool upkeepNeeded, bytes memory performData) {
         upkeepNeeded = (block.timestamp >= lastDrawTime + drawInterval) && (prizePool > 0);
+        performData = ""; // Return an empty byte array
     }
 
     function performUpkeep(bytes calldata) external override {
@@ -126,46 +129,9 @@ contract LottoChain is VRFConsumerBaseV2, Ownable, KeeperCompatibleInterface {
     }
 
     function distributePrizes() internal {
-        // Calculate distributions according to the revised breakdown
+        // Calculate prize distribution based on breakdowns
         uint256 grossPrize = (prizePool * 4335) / 10000; // 43.35% of the prize pool for the total prize money
         uint256 agentsCommissionTotal = (prizePool * 861) / 10000; // 8.61% for agents' commission
-        uint256 developmentFund = (prizePool * 95) / 10000; // 0.95% for lottery development fund (FDL)
-        uint256 operationalExpenses = (prizePool * 957) / 10000; // 9.57% for operational expenses
-        uint256 chainHealthInvestment = (prizePool * 2496) / 10000; // 24.96% for Chain Health Investment Program
-        uint256 grantFund = (prizePool * 772) / 10000; // 7.72% for grant fund
-        uint256 operationFund = (prizePool * 493) / 10000; // 4.93% for operation fund
-
-        // Deduct total agent commissions from the prize pool
-        uint256 adjustedPrizePool = prizePool - agentsCommissionTotal;
-
-        // Calculate prize distribution for winners
-        uint256 jackpotShare = (grossPrize * 7600) / 10000; // 76% for jackpot winners
-        uint256 shareMatched14 = (grossPrize * 1400) / 10000; // 14% for 14 matches
-        uint256 shareMatched13 = (grossPrize * 500) / 10000; // 5% for 13 matches
-        uint256 shareMatched12 = (grossPrize * 300) / 10000; // 3% for 12 matches
-        uint256 shareMatched11 = (grossPrize * 200) / 10000; // 2% for 11 matches
-
-        uint256 matched15 = 0;
-        uint256 matched14 = 0;
-        uint256 matched13 = 0;
-        uint256 matched12 = 0;
-        uint256 matched11 = 0;
-
-        // Count matches for each prize level
-        for (uint256 i = 0; i < tickets.length; i++) {
-            uint8 matchCount = getMatchCount(tickets[i].chosenNumbers);
-            if (matchCount == 15) {
-                matched15++;
-            } else if (matchCount == 14) {
-                matched14++;
-            } else if (matchCount == 13) {
-                matched13++;
-            } else if (matchCount == 12) {
-                matched12++;
-            } else if (matchCount == 11) {
-                matched11++;
-            }
-        }
 
         // Distribute agent commissions
         for (uint256 i = 0; i < tickets.length; i++) {
@@ -173,50 +139,8 @@ contract LottoChain is VRFConsumerBaseV2, Ownable, KeeperCompatibleInterface {
                 uint256 commission = agentCommissions[tickets[i].agent];
                 if (commission > 0) {
                     agentCommissions[tickets[i].agent] = 0; // Reset commission after payout
-                    require(oneToken.transfer(tickets[i].agent, commission), "Token transfer failed.");
+                    require(nativeTokenAddress.transfer(tickets[i].agent, commission), "Token transfer failed.");
                     emit AgentCommissionPaid(tickets[i].agent, commission);
-                }
-            }
-        }
-
-        // Distribute prizes proportionally among winners
-        for (uint256 i = 0; i < tickets.length; i++) {
-            uint8 matchCount = getMatchCount(tickets[i].chosenNumbers);
-            uint256 prizeAmount;
-            if (matchCount == 15) {
-                if (matched15 > 0) {
-                    prizeAmount = jackpotShare / matched15;
-                    winnings[tickets[i].player] += prizeAmount;
-                    require(oneToken.transfer(tickets[i].player, prizeAmount), "Token transfer failed.");
-                    emit PrizeClaimed(tickets[i].player, prizeAmount);
-                }
-            } else if (matchCount == 14) {
-                if (matched14 > 0) {
-                    prizeAmount = shareMatched14 / matched14;
-                    winnings[tickets[i].player] += prizeAmount;
-                    require(oneToken.transfer(tickets[i].player, prizeAmount), "Token transfer failed.");
-                    emit PrizeClaimed(tickets[i].player, prizeAmount);
-                }
-            } else if (matchCount == 13) {
-                if (matched13 > 0) {
-                    prizeAmount = shareMatched13 / matched13;
-                    winnings[tickets[i].player] += prizeAmount;
-                    require(oneToken.transfer(tickets[i].player, prizeAmount), "Token transfer failed.");
-                    emit PrizeClaimed(tickets[i].player, prizeAmount);
-                }
-            } else if (matchCount == 12) {
-                if (matched12 > 0) {
-                    prizeAmount = shareMatched12 / matched12;
-                    winnings[tickets[i].player] += prizeAmount;
-                    require(oneToken.transfer(tickets[i].player, prizeAmount), "Token transfer failed.");
-                    emit PrizeClaimed(tickets[i].player, prizeAmount);
-                }
-            } else if (matchCount == 11) {
-                if (matched11 > 0) {
-                    prizeAmount = shareMatched11 / matched11;
-                    winnings[tickets[i].player] += prizeAmount;
-                    require(oneToken.transfer(tickets[i].player, prizeAmount), "Token transfer failed.");
-                    emit PrizeClaimed(tickets[i].player, prizeAmount);
                 }
             }
         }
@@ -243,7 +167,7 @@ contract LottoChain is VRFConsumerBaseV2, Ownable, KeeperCompatibleInterface {
         require(amount > 0, "No winnings to claim.");
 
         winnings[msg.sender] = 0;
-        require(oneToken.transfer(msg.sender, amount), "Token transfer failed.");
+        require(nativeTokenAddress.transfer(msg.sender, amount), "Token transfer failed.");
 
         emit PrizeClaimed(msg.sender, amount);
     }
@@ -253,7 +177,7 @@ contract LottoChain is VRFConsumerBaseV2, Ownable, KeeperCompatibleInterface {
         require(amount > 0, "No commission to claim.");
 
         agentCommissions[msg.sender] = 0;
-        require(oneToken.transfer(msg.sender, amount), "Token transfer failed.");
+        require(nativeTokenAddress.transfer(msg.sender, amount), "Token transfer failed.");
 
         emit AgentCommissionPaid(msg.sender, amount);
     }
@@ -263,19 +187,6 @@ contract LottoChain is VRFConsumerBaseV2, Ownable, KeeperCompatibleInterface {
     }
 
     function withdrawFunds(uint256 _amount) external onlyOwner {
-        require(oneToken.transfer(owner(), _amount), "Token transfer failed.");
-    }
-
-    // Additional owner functions to update funds
-    function updateProjectFund(uint256 _newAmount) external onlyOwner {
-        projectFund = _newAmount;
-    }
-
-    function updateGrantFund(uint256 _newAmount) external onlyOwner {
-        grantFund = _newAmount;
-    }
-
-    function updateOperationFund(uint256 _newAmount) external onlyOwner {
-        operationFund = _newAmount;
+        require(nativeTokenAddress.transfer(msg.sender, _amount), "Token transfer failed.");
     }
 }

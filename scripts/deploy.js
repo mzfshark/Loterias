@@ -6,11 +6,14 @@ async function main() {
     const vrfCoordinatorAddress = process.env.VRF_COORDINATOR_ADDRESS;
     const keyHash = process.env.KEY_HASH;
     const subscriptionId = process.env.SUBSCRIPTION_ID;
-    const projectFunds = process.env.PROJECT_FUNDS;
-    const grantFund = process.env.GRANT_FUND;
-    const operationFund = process.env.OPERATION_FUND;
+    const initialProjectFund = process.env.INITIAL_PROJECT_FUND;
+    const initialGrantFund = process.env.INITIAL_GRANT_FUND;
+    const initialOperationFund = process.env.INITIAL_OPERATION_FUND;
+    const nativeTokenAddress = process.env.NATIVE_TOKEN_ADDRESS;
 
-    if (!deployerPrivateKey || !vrfCoordinatorAddress || !keyHash || !subscriptionId || !projectFunds || !grantFund || !operationFund) {
+    // Validate environment variables
+    if (!deployerPrivateKey || !vrfCoordinatorAddress || !keyHash || !subscriptionId || 
+        !initialProjectFund || !initialGrantFund || !initialOperationFund || !nativeTokenAddress) {
         console.error("Missing required environment variables.");
         process.exit(1);
     }
@@ -18,30 +21,30 @@ async function main() {
     // Set up deployer
     const [deployer] = await ethers.getSigners();
     console.log("Deploying contracts with account:", deployer.address);
+    console.log(`Account balance: ${(await deployer.getBalance()).toString()}`);
 
     // Contract factory
-    const LottOneFactory = await ethers.getContractFactory("LottOne");
+    const LottoChainFactory = await ethers.getContractFactory("LottoChain");
 
     // Deployment parameters
-    const oneTokenAddress = "YOUR_ERC20_TOKEN_ADDRESS"; // Replace with actual token address
     const networkId = network.config.chainId;
     console.log(`Deploying to network ID: ${networkId}`);
 
     // Deploy the contract
-    const lottOne = await LottOneFactory.deploy(
-        oneTokenAddress,
+    const lottoChain = await LottoChainFactory.deploy(
+        nativeTokenAddress,
         vrfCoordinatorAddress,
         keyHash,
         subscriptionId,
-        projectFunds,
-        grantFund,
-        operationFund
+        ethers.utils.parseUnits(initialProjectFund, "ether"),
+        ethers.utils.parseUnits(initialGrantFund, "ether"),
+        ethers.utils.parseUnits(initialOperationFund, "ether")
     );
 
     console.log("Deploying contract...");
-    await lottOne.deployed();
+    await lottoChain.deployed();
 
-    console.log("LottOne deployed to:", lottOne.address);
+    console.log("LottoChain deployed to:", lottoChain.address);
 }
 
 main()
