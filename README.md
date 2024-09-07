@@ -39,6 +39,7 @@ The draw itself is managed automatically through Chainlink Keepers, which ensure
 After the draw, the winning numbers are announced, and players can check their tickets to see if their numbers match the winning combination. If a player’s numbers align with the winning numbers, they can claim their prize directly through the CryptoDraw platform. The prize money is distributed from the prize pool, which accumulates from ticket sales. A significant portion of the prize pool is allocated to player winnings, while a percentage is set aside for agent commissions. Agents, who facilitate ticket sales, receive commissions based on their performance, ensuring their engagement and motivation.
 
 CryptoDraw’s design ensures a high level of security and transparency. The use of blockchain technology for ticket issuance and prize distribution minimizes risks and provides a clear, immutable record of all transactions. Players and agents can track their activities and earnings, fostering trust in the system. By integrating advanced technologies and adhering to rigorous security standards, CryptoDraw offers a modern and exciting lottery experience that aligns with the principles of fairness and transparency.
+
 ---
 
 ### **3. How It Works**
