@@ -89,7 +89,7 @@ contract TicketNFT is ERC721, Ownable, ERC721Burnable {
     function base64Encode(bytes memory input) internal pure returns (string memory) {
         uint256 inputLength = input.length;
         uint256 outputLength = 4 * ((inputLength + 2) / 3);
-        string memory result = new string(outputLength);
+        bytes memory result = new bytes(outputLength);
         bytes memory table = bytes(TABLE);
 
         uint256 i = 0;
@@ -110,6 +110,6 @@ contract TicketNFT is ERC721, Ownable, ERC721Burnable {
             result[j++] = index3 < 64 ? table[index3] : '=';
         }
 
-        return result;
+        return string(result);
     }
 }

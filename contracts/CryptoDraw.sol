@@ -96,7 +96,7 @@ contract CryptoDraw is VRFConsumerBaseV2, Ownable, KeeperCompatibleInterface, Re
         _setupRole(UPDATER_ROLE, msg.sender);
     }
 
-    modifier onlyRole(bytes32 role) override {
+    modifier onlyRole(bytes32 role) {
         require(hasRole(role, msg.sender), "AccessControl: caller does not have the appropriate role");
         _;
     }
@@ -219,19 +219,24 @@ contract CryptoDraw is VRFConsumerBaseV2, Ownable, KeeperCompatibleInterface, Re
         prizePool = 0; // Reset prize pool after distribution
     }
 
-    function getMatchCount(uint8[] memory _chosenNumbers, uint8[] memory _winningNumbers) internal pure returns (uint8) {
+    function getMatchCount(uint8[] memory _chosenNumbers) internal view returns (uint8) {
         uint8 matchCount = 0;
-        mapping(uint8 => bool) memory winningNumbersMap;
-        for (uint8 i = 0; i < _winningNumbers.length; i++) {
-            winningNumbersMap[_winningNumbers[i]] = true;
+        // Create a set of winning numbers
+        bool[26] memory winningNumbersSet; // Assumes max totalNumbers is 25
+
+        for (uint8 i = 0; i < winningNumbers.length; i++) {
+            winningNumbersSet[winningNumbers[i] - 1] = true;
         }
+
         for (uint8 i = 0; i < _chosenNumbers.length; i++) {
-            if (winningNumbersMap[_chosenNumbers[i]]) {
+            if (winningNumbersSet[_chosenNumbers[i] - 1]) {
                 matchCount++;
             }
         }
+
         return matchCount;
     }
+
 
     function claimPrize() external nonReentrant {
         uint256 totalWinnings = winnings[msg.sender];
