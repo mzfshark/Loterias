@@ -84,30 +84,32 @@ contract TicketNFT is ERC721, Ownable, ERC721Burnable {
     }
 
     // Base64 encoding of the JSON metadata
-    function base64Encode(bytes memory data) internal pure returns (string memory) {
-        string memory TABLE = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-        string memory PAD = "=";
+    string internal constant TABLE = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
-        uint256 encodedLen = 4 * ((data.length + 2) / 3);
-        bytes memory result = new bytes(encodedLen);
+    function encodeBase64(bytes memory input) internal pure returns (string memory) {
+        uint256 inputLength = input.length;
+        uint256 outputLength = 4 * ((inputLength + 2) / 3);
+        string memory result = new string(outputLength);
+        bytes memory table = bytes(TABLE);
 
-        uint256 i;
-        uint256 j;
-        for (i = 0; i < data.length; i += 3) {
-            uint256 input = uint8(data[i]) << 16;
-            if (i + 1 < data.length) {
-                input |= uint8(data[i + 1]) << 8;
-            }
-            if (i + 2 < data.length) {
-                input |= uint8(data[i + 2]);
-            }
+        uint256 i = 0;
+        uint256 j = 0;
+        while (i < inputLength) {
+            uint256 a = uint8(input[i++]);
+            uint256 b = i < inputLength ? uint8(input[i++]) : 0;
+            uint256 c = i < inputLength ? uint8(input[i++]) : 0;
 
-            result[j++] = bytes1(TABLE[(input >> 18) & 0x3F]);
-            result[j++] = bytes1(TABLE[(input >> 12) & 0x3F]);
-            result[j++] = i + 1 < data.length ? bytes1(TABLE[(input >> 6) & 0x3F]) : bytes1(PAD);
-            result[j++] = i + 2 < data.length ? bytes1(TABLE[input & 0x3F]) : bytes1(PAD);
+            uint256 index0 = a >> 2;
+            uint256 index1 = ((a & 0x03) << 4) | (b >> 4);
+            uint256 index2 = ((b & 0x0F) << 2) | (c >> 6);
+            uint256 index3 = c & 0x3F;
+
+            result[j++] = table[index0];
+            result[j++] = table[index1];
+            result[j++] = table[index2];
+            result[j++] = table[index3];
         }
 
-        return string(result);
+        return result;
     }
 }

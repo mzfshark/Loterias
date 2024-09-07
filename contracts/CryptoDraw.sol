@@ -96,7 +96,7 @@ contract CryptoDraw is VRFConsumerBaseV2, Ownable, KeeperCompatibleInterface, Re
         _setupRole(UPDATER_ROLE, msg.sender);
     }
 
-    modifier onlyRole(bytes32 role) {
+    modifier onlyRole(bytes32 role) override {
         require(hasRole(role, msg.sender), "AccessControl: caller does not have the appropriate role");
         _;
     }
