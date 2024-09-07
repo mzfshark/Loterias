@@ -6,8 +6,9 @@ import "@chainlink/contracts/src/v0.8/vrf/VRFConsumerBaseV2.sol";
 import "@chainlink/contracts/src/v0.8/vrf/interfaces/VRFCoordinatorV2Interface.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@chainlink/contracts/src/v0.8/automation/interfaces/KeeperCompatibleInterface.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
-contract LottoChain is VRFConsumerBaseV2, Ownable, KeeperCompatibleInterface {
+contract LottoChain is VRFConsumerBaseV2, Ownable, KeeperCompatibleInterface, ReentrancyGuard {
     IERC20 public nativeTokenAddress;
     uint256 public ticketPrice = 1 * 10 ** 18; // Base price in ONE tokens (adjust as necessary)
     uint8 public totalNumbers = 25;
@@ -71,11 +72,11 @@ contract LottoChain is VRFConsumerBaseV2, Ownable, KeeperCompatibleInterface {
         operationFund = _initialOperationFund;
     }
 
-    function purchaseTicket(uint8[] memory _chosenNumbers, bool _isElectronic, address _agent) external {
+    function purchaseTicket(uint8[] memory _chosenNumbers, bool _isElectronic, address _agent) external nonReentrant {
         require(_chosenNumbers.length >= minNumbers && _chosenNumbers.length <= maxNumbers, "Invalid number of chosen numbers.");
         
         uint256 ticketCost = ticketPrice * (_chosenNumbers.length - minNumbers + 1);
-        require(nativeTokenAddress.transferFrom(msg.sender, address(this), ticketCost), "Token transfer failed.");
+        safeTransferFrom(nativeTokenAddress, msg.sender, address(this), ticketCost);
         
         tickets.push(Ticket(msg.sender, _chosenNumbers, _isElectronic, _agent));
         prizePool += ticketCost;
@@ -139,7 +140,7 @@ contract LottoChain is VRFConsumerBaseV2, Ownable, KeeperCompatibleInterface {
                 uint256 commission = agentCommissions[tickets[i].agent];
                 if (commission > 0) {
                     agentCommissions[tickets[i].agent] = 0; // Reset commission after payout
-                    require(nativeTokenAddress.transfer(tickets[i].agent, commission), "Token transfer failed.");
+                    safeTransfer(nativeTokenAddress, tickets[i].agent, commission);
                     emit AgentCommissionPaid(tickets[i].agent, commission);
                 }
             }
@@ -162,22 +163,22 @@ contract LottoChain is VRFConsumerBaseV2, Ownable, KeeperCompatibleInterface {
         return matchCount;
     }
 
-    function claimPrize() external {
+    function claimPrize() external nonReentrant {
         uint256 amount = winnings[msg.sender];
         require(amount > 0, "No winnings to claim.");
 
         winnings[msg.sender] = 0;
-        require(nativeTokenAddress.transfer(msg.sender, amount), "Token transfer failed.");
+        safeTransfer(nativeTokenAddress, msg.sender, amount);
 
         emit PrizeClaimed(msg.sender, amount);
     }
 
-    function claimAgentCommission() external {
+    function claimAgentCommission() external nonReentrant {
         uint256 amount = agentCommissions[msg.sender];
         require(amount > 0, "No commission to claim.");
 
         agentCommissions[msg.sender] = 0;
-        require(nativeTokenAddress.transfer(msg.sender, amount), "Token transfer failed.");
+        safeTransfer(nativeTokenAddress, msg.sender, amount);
 
         emit AgentCommissionPaid(msg.sender, amount);
     }
@@ -186,7 +187,15 @@ contract LottoChain is VRFConsumerBaseV2, Ownable, KeeperCompatibleInterface {
         ticketPrice = _newPrice;
     }
 
-    function withdrawFunds(uint256 _amount) external onlyOwner {
-        require(nativeTokenAddress.transfer(msg.sender, _amount), "Token transfer failed.");
+    function withdrawFunds(uint256 _amount) external onlyOwner nonReentrant {
+        safeTransfer(nativeTokenAddress, msg.sender, _amount);
+    }
+
+    function safeTransfer(IERC20 token, address to, uint256 amount) internal {
+        require(token.transfer(to, amount), "Token transfer failed");
+    }
+
+    function safeTransferFrom(IERC20 token, address from, address to, uint256 amount) internal {
+        require(token.transferFrom(from, to, amount), "Token transferFrom failed");
     }
 }
