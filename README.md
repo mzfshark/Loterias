@@ -1,121 +1,111 @@
-Here's a comprehensive `README.md` for the `LottOne` Solidity contract, suitable for a GitHub repository:
+# CryptoDraw
 
-# LottOne - A Decentralized Lottery Contract
+CryptoDraw is a decentralized, blockchain-powered lottery game that offers participants a fair, transparent, and exciting way to win substantial rewards. Built on Ethereum-compatible networks, CryptoDraw uses smart contracts and Chainlink's Verifiable Random Function (VRF) to ensure the integrity of each draw.
 
-## Overview [![CI/CD Pipeline](https://github.com/Axodus/LottOne/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/Axodus/LottOne/actions/workflows/ci-cd.yml)
+## Game Overview
 
-`LottOne` is a Solidity smart contract that implements a decentralized lottery system on the Ethereum blockchain. It utilizes Chainlink's Verifiable Random Function (VRF) to securely generate random numbers and ERC20 tokens for ticket purchases and prize payouts.
+CryptoDraw is a strategic lottery game where players select a set of numbers in hopes of matching them with the randomly drawn winning numbers. The game is designed to reward both jackpot winners and those who come close, with multiple prize tiers ensuring that even near misses are recognized.
 
-## Features
+### How to Play
 
-- **Decentralized Lottery**: Operates on the Ethereum blockchain with transparency and security.
-- **Chainlink VRF Integration**: Uses Chainlink VRF for secure and verifiable random number generation.
-- **ERC20 Token Integration**: Supports ticket purchases and prize payouts in ERC20 tokens.
-- **Dynamic Ticket Pricing**: Allows adjustment of ticket prices by the contract owner.
-- **Agent Commission**: Agents receive a commission for selling tickets, with higher commissions for electronic sales.
-- **Prize Distribution**: Automatically calculates and distributes prizes based on ticket matches.
+1. **Select Your Numbers**: Choose between 15 and 20 numbers from a pool of 25 possible numbers.
+2. **Purchase a Ticket**: The ticket price is dynamically calculated based on the number of chosen numbers. The base price is (tbd) token per ticket.
+3. **Wait for the Draw**: Draws occur every 4 days, and the winning numbers are generated using Chainlink VRF.
+4. **Match to Win**: Your ticket is evaluated based on how many of your chosen numbers match the winning numbers.
+5. **Claim Your Prize**: If your numbers match enough of the winning numbers, you can claim your prize directly from the smart contract.
 
-## Contract Details
+### Strategic Considerations
 
-### Contract: `LottOne`
+- **Number Selection**: Selecting more numbers increases your chances of winning but also increases the ticket cost. Choose wisely to balance cost and potential rewards.
+- **Timing**: With draws occurring every 4 days, timing your ticket purchase can be crucial, especially as the prize pool grows.
+- **Agent Sales**: Agents who sell tickets receive commissions, with additional bonuses for electronic sales, incentivizing widespread ticket distribution.
 
-#### State Variables
+## Prize Breakdown
 
-- `IERC20 public oneToken`: ERC20 token used for transactions.
-- `address public owner`: Address of the contract owner.
-- `uint256 public ticketPrice`: Price of a ticket in ONE tokens.
-- `uint8 public totalNumbers`: Total number of possible lottery numbers.
-- `uint8 public minNumbers`: Minimum numbers a ticket can choose.
-- `uint8 public maxNumbers`: Maximum numbers a ticket can choose.
-- `uint256 public drawInterval`: Time interval between lottery draws.
-- `uint256 public lastDrawTime`: Timestamp of the last draw.
-- `uint256 public prizePool`: Total prize pool accumulated from ticket sales.
+CryptoDraw offers a tiered prize structure, ensuring rewards across multiple levels of matching numbers. The prize pool is distributed as follows:
 
-#### Chainlink VRF Variables
+### Arrecadation split
+**Numerical Prognostics** | **Percentage**
+--- | ---
+Gross Prize | 43.35%
+Lottery Agents' Commission* | 8.61%
+Lottery Development Fund (FDL) | 1.95%
+Operational Expense Costs | 9.57%
+Chain Health Investment Program | 24.96%
+Grant Fund | 7.72%
+Operation Fund (accumulate to final 0 draw) | 4.93%
+**Total** | **100%**
 
-- `VRFCoordinatorV2Interface COORDINATOR`: Interface for Chainlink VRF Coordinator.
-- `uint64 public subscriptionId`: Chainlink VRF subscription ID.
-- `bytes32 public keyHash`: Key hash for Chainlink VRF.
-- `uint16 requestConfirmations`: Number of confirmations required from Chainlink VRF.
-- `uint32 callbackGasLimit`: Gas limit for VRF callback.
-- `uint32 numWords`: Number of random words requested from Chainlink VRF.
-- `uint256[] public randomWords`: Array of random words received from Chainlink VRF.
-- `uint256 public requestId`: ID of the VRF request.
+### Prize Tiers
 
-#### Structures
+- **Jackpot (15 Matches)**: 75% of the total Gross prize pool is allocated to jackpot winners.
+- **14 Matches**: 14% of the prize pool.
+- **13 Matches**: 5% of the prize pool.
+- **12 Matches**: 3% of the prize pool.
+- **11 Matches**: 2% of the prize pool.
 
-- `struct Ticket`: Represents a lottery ticket with player details, chosen numbers, and sales information.
+### Chances of win (1 in:)* 
+**Probability**
 
-#### Mappings
+| Prize Tiers | Simple Bets | | | | | |
+| --- | --- | --- | --- | --- | --- | --- |
+|  | 15 Numbers (1 bet) | 16 Numbers (16 bets) | 17 Numbers (136 bets) | 18 Numbers (816 bets) | 19 Numbers (3,876 bets) | 20 Numbers (15,504 bets) |
+| **15 Matches** | 3,268,760 | 204,298 | 24,035 | 4,006 | 843 | 211 |
+| **14 Matches** | 21,792 | 3,027 | 601 | 153 | 47 | 17 |
+| **13 Matches** | 692 | 162 | 49 | 18 | 8 | 4.2 |
+| **12 Matches** | 60 | 21 | 9 | 5 | 3.2 | 2.6 |
+| **11 Matches** | 11 | 6 | 4 | 3 | 2.9 | 3.9 |
+| **PRICE TO PAY** | 1 x $3.00 = $3.00 | 16 x $3.00 = $48.00 | 136 x $3.00 = $408.00 | 816 x $3.00 = $2,448.00 | 3,876 x $3.00 = $11,628.00 | 15,504 x $3.00 = $46,512.00 |
 
-- `mapping(address => uint256) public winnings`: Tracks player winnings.
-- `mapping(address => uint256) public agentCommissions`: Tracks commissions for agents.
+*note: Example considering ticket at price $3 usd worth
 
-#### Events
+### Additional Fund Allocations
 
-- `event TicketPurchased(address indexed player, uint8[] chosenNumbers, address agent, bool isElectronic)`: Emitted when a ticket is purchased.
-- `event DrawResult(uint8[] winningNumbers)`: Emitted when draw results are available.
-- `event PrizeClaimed(address indexed player, uint256 amount)`: Emitted when a player claims their prize.
-- `event AgentCommissionPaid(address indexed agent, uint256 amount)`: Emitted when an agent claims their commission.
-- `event RandomWordsRequested(uint256 requestId)`: Emitted when random words are requested from Chainlink VRF.
+- **Agent Commissions**: 8.61% of the total prize pool goes to agents.
+- **Chain Health Investment**: 24.96% of the prize pool is reserved for long-term sustainability and growth of the blockchain network.
+- **Operational Expenses**: 9.57% is allocated to covering operational costs.
+- **Grant Fund**: 7.72% is set aside for future project grants.
+- **Lottery Development Fund (FDL)**: 0.95% is allocated to ongoing development and improvements.
 
-### Functions
+### Prize Distribution Example
 
-- `purchaseTicket(uint8[] memory _chosenNumbers, bool _isElectronic, address _agent) external`: Allows users to purchase a lottery ticket.
-- `draw() external onlyOwner`: Initiates a lottery draw.
-- `fulfillRandomWords(uint256, uint256[] memory _randomWords) internal override`: Callback function from Chainlink VRF for processing random words.
-- `distributePrizes() internal`: Distributes the prize pool among winners and manages other allocations.
-- `getMatchCount(uint8[] memory _chosenNumbers) internal view returns (uint8)`: Calculates the number of matches between chosen numbers and winning numbers.
-- `claimPrize() external`: Allows players to claim their winnings.
-- `claimAgentCommission() external`: Allows agents to claim their commissions.
-- `updateTicketPrice(uint256 _newPrice) external onlyOwner`: Allows the owner to update the ticket price.
-- `withdrawFunds(uint256 _amount) external onlyOwner`: Allows the owner to withdraw funds from the contract.
+For example, if the total prize pool is 1,000,000 tokens:
 
-## Installation
+- **Jackpot Winners (15 Matches)**: 750,000 tokens are shared among those who match all 15 numbers.
+- **14 Matches**: 140,000 tokens are shared among those who match 14 numbers.
+- **13 Matches**: 50,000 tokens are shared among those who match 13 numbers.
+- **12 Matches**: 30,000 tokens are shared among those who match 12 numbers.
+- **11 Matches**: 20,000 tokens are shared among those who match 11 numbers.
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/your-username/lottone.git
-   cd lottone
-   ```
+## Key Features
 
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
+- **Chainlink VRF**: Ensures that the number selection is provably fair and cannot be tampered with.
+- **Decentralized**: All transactions and processes are conducted on-chain, providing transparency and security.
+- **Dynamic Ticket Pricing**: The cost of participation scales with the number of selected numbers, offering strategic depth.
 
-3. Compile the contract:
-   ```bash
-   npx hardhat compile
-   ```
+## Technical Overview
 
-4. Deploy the contract:
-   ```bash
-   npx hardhat run scripts/deploy.js --network yourNetwork
-   ```
+CryptoDraw is implemented in Solidity and deployed on Ethereum-compatible networks. Key technologies include:
 
-## Usage
+- **Solidity**: For smart contract development.
+- **Chainlink VRF**: For verifiable random number generation.
+- **OpenZeppelin Contracts**: Providing secure token and access control implementations.
+- **Hardhat**: For local development, testing, and deployment of the smart contracts.
 
-1. **Purchase Ticket**: Call `purchaseTicket` with chosen numbers, whether the ticket is electronic, and the agent's address.
-2. **Draw**: Call `draw` to initiate a lottery draw.
-3. **Claim Prize**: Call `claimPrize` to claim any winnings.
-4. **Claim Agent Commission**: Call `claimAgentCommission` to claim commissions as an agent.
-5. **Update Ticket Price**: Call `updateTicketPrice` to set a new ticket price.
-6. **Withdraw Funds**: Call `withdrawFunds` to withdraw funds as the owner.
+## Deployment
 
-## Security Considerations
+CryptoDraw can be deployed on various EVM-compatible networks, including:
 
-- Ensure proper testing and auditing of the contract before deployment.
-- Chainlink VRF provides secure random number generation, but always review integration for potential vulnerabilities.
+- Ethereum Mainnet
+- Sepolia
+- Harmony
+- Binance Smart Chain (BSC)
+- opBNB
+
+## Contributing
+
+We welcome contributions to the CryptoDraw project. Please submit issues or pull requests to suggest improvements or report bugs.
 
 ## License
 
-MIT License. See `LICENSE` file for details.
-
-## Contact
-
-For any questions or issues, please open an issue on GitHub or contact [contact@axodus.finance](mailto:contact@axodus.finance).
-
-
-
-Feel free to adjust the links, email address, and installation steps according to your specific setup and repository details.
+CryptoDraw is open-source and available under the MIT License.
