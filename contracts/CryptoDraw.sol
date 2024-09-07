@@ -29,7 +29,7 @@ contract CryptoDraw is VRFConsumerBaseV2, Ownable, KeeperCompatibleInterface, Re
     uint64 public subscriptionId;
     bytes32 public keyHash;
     uint16 requestConfirmations = 3;
-    uint32 callbackGasLimit = 100000; // Adjust according to your requirements
+    uint32 callbackGasLimit = 50000; // Adjust according to your requirements
     uint32 numWords = 15; // Number of random numbers needed (15 winning numbers)
     uint256[] public randomWords;
     uint256 public requestId;
@@ -42,7 +42,6 @@ contract CryptoDraw is VRFConsumerBaseV2, Ownable, KeeperCompatibleInterface, Re
     struct Ticket {
         address player;
         uint8[] chosenNumbers;
-        bool isElectronic; // True if the ticket was sold on an electronic channel
         address agent; // Agent who sold the ticket
     }
 
@@ -51,7 +50,7 @@ contract CryptoDraw is VRFConsumerBaseV2, Ownable, KeeperCompatibleInterface, Re
     mapping(address => uint256) public winnings;
     mapping(address => uint256) public agentCommissions; // Agent commissions tracking
 
-    event TicketPurchased(address indexed player, uint8[] chosenNumbers, address agent, bool isElectronic);
+    event TicketPurchased(address indexed player, uint8[] chosenNumbers, address agent);
     event DrawResult(uint8[] winningNumbers);
     event PrizeClaimed(address indexed player, uint256 amount);
     event AgentCommissionPaid(address indexed agent, uint256 amount);
@@ -90,26 +89,23 @@ contract CryptoDraw is VRFConsumerBaseV2, Ownable, KeeperCompatibleInterface, Re
         _;
     }
 
-    function purchaseTicket(uint8[] memory _chosenNumbers, bool _isElectronic, address _agent) external nonReentrant {
+    function purchaseTicket(uint8[] calldata _chosenNumbers, address _agent) external nonReentrant {
         require(_chosenNumbers.length >= minNumbers && _chosenNumbers.length <= maxNumbers, "Invalid number of chosen numbers.");
         
         uint256 ticketPriceInNativeToken = getTicketPriceInNativeToken();
         uint256 ticketCost = ticketPriceInNativeToken * (_chosenNumbers.length - minNumbers + 1);
         safeTransferFrom(nativeTokenAddress, msg.sender, address(this), ticketCost);
         
-        tickets.push(Ticket(msg.sender, _chosenNumbers, _isElectronic, _agent));
+        tickets.push(Ticket(msg.sender, _chosenNumbers, _agent));
         prizePool += ticketCost;
 
         // Calculate and assign agent's commission
         uint256 commission = ticketCost * 861 / 10000; // 8.61% base commission
-        if (_isElectronic) {
-            commission += ticketCost * 400 / 10000; // Additional 4.00% for electronic sales
-        }
         if (_agent != address(0)) {
             agentCommissions[_agent] += commission;
         }
 
-        emit TicketPurchased(msg.sender, _chosenNumbers, _agent, _isElectronic);
+        emit TicketPurchased(msg.sender, _chosenNumbers, _agent);
     }
 
     function getTicketPriceInNativeToken() public view returns (uint256) {
@@ -181,14 +177,20 @@ contract CryptoDraw is VRFConsumerBaseV2, Ownable, KeeperCompatibleInterface, Re
 
     function getMatchCount(uint8[] memory _chosenNumbers) internal view returns (uint8) {
         uint8 matchCount = 0;
+        mapping(uint8 => bool) memory winningNumbersMap;
+
+        // Store winning numbers in a mapping for faster lookup
+        for (uint8 i = 0; i < winningNumbers.length; i++) {
+            winningNumbersMap[winningNumbers[i]] = true;
+        }
+
+        // Check for matches
         for (uint8 i = 0; i < _chosenNumbers.length; i++) {
-            for (uint8 j = 0; j < winningNumbers.length; j++) {
-                if (_chosenNumbers[i] == winningNumbers[j]) {
-                    matchCount++;
-                    break;
-                }
+            if (winningNumbersMap[_chosenNumbers[i]]) {
+                matchCount++;
             }
         }
+
         return matchCount;
     }
 
@@ -229,10 +231,14 @@ contract CryptoDraw is VRFConsumerBaseV2, Ownable, KeeperCompatibleInterface, Re
     }
 
     function safeTransfer(IERC20 token, address to, uint256 amount) internal {
+        uint256 balance = token.balanceOf(address(this));
+        require(balance >= amount, "Insufficient balance");
         require(token.transfer(to, amount), "Token transfer failed");
     }
 
     function safeTransferFrom(IERC20 token, address from, address to, uint256 amount) internal {
+        uint256 balance = token.balanceOf(from);
+        require(balance >= amount, "Insufficient balance");
         require(token.transferFrom(from, to, amount), "Token transferFrom failed");
     }
 }
