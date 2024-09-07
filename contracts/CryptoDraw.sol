@@ -98,11 +98,6 @@ contract CryptoDraw is VRFConsumerBaseV2, Ownable, KeeperCompatibleInterface, Re
         _setupRole(UPDATER_ROLE, msg.sender);
     }
 
-    modifier onlyRole(bytes32 role) {
-        require(hasRole(role, msg.sender), "AccessControl: caller does not have the appropriate role");
-        _;
-    }
-
     modifier onlyAgent() {
         require(agents[msg.sender], "Caller is not a registered agent");
         _;
@@ -198,26 +193,23 @@ contract CryptoDraw is VRFConsumerBaseV2, Ownable, KeeperCompatibleInterface, Re
         emit RandomWordsRequested(requestId);
     }
 
-    // Callback function called by Chainlink VRF Coordinator
-    function fulfillRandomWords(uint256, uint256[] memory _randomWords) internal override {
+    function fulfillRandomWords(uint256 _requestId, uint256[] memory _randomWords) internal override {
+        require(_requestId == requestId, "Invalid request ID");
         randomWords = _randomWords;
-        delete winningNumbers;
+        lastDrawTime = block.timestamp;
 
-        // Generate winning numbers using the random words provided by VRF
-        for (uint8 i = 0; i < minNumbers; i++) {
-            uint8 winningNumber = uint8(_randomWords[i] % totalNumbers) + 1;
-            winningNumbers.push(winningNumber);
+        // Determine winning numbers
+        winningNumbers = new uint8[](numWords);
+        for (uint8 i = 0; i < numWords; i++) {
+            winningNumbers[i] = uint8(_randomWords[i] % totalNumbers + 1);
         }
 
-        lastDrawTime = block.timestamp;
         distributePrizes();
-
         emit DrawResult(winningNumbers);
     }
 
     function distributePrizes() internal {
-        // Calculate prize distribution based on breakdowns
-        uint256 grossPrize = (prizePool * 4335) / 10000; // 43.35% of the prize pool for the total prize money
+        uint256 grossPrize = (prizePool * 4335) / 10000; // 43.35% of the prize pool for total prize money
         uint256 agentsCommissionTotal = (prizePool * 861) / 10000; // 8.61% for agents' commission
 
         // Distribute agent commissions
@@ -239,17 +231,16 @@ contract CryptoDraw is VRFConsumerBaseV2, Ownable, KeeperCompatibleInterface, Re
 
     function getMatchCount(uint8[] memory _chosenNumbers) internal view returns (uint8) {
         uint8 matchCount = 0;
-        mapping(uint8 => bool) memory winningNumbersMap;
 
-        // Store winning numbers in a mapping for faster lookup
-        for (uint8 i = 0; i < winningNumbers.length; i++) {
-            winningNumbersMap[winningNumbers[i]] = true;
-        }
+        // Store winning numbers in an array for faster lookup
+        uint8[] memory winningNumbersArray = winningNumbers;
 
         // Check for matches
         for (uint8 i = 0; i < _chosenNumbers.length; i++) {
-            if (winningNumbersMap[_chosenNumbers[i]]) {
-                matchCount++;
+            for (uint8 j = 0; j < winningNumbersArray.length; j++) {
+                if (_chosenNumbers[i] == winningNumbersArray[j]) {
+                    matchCount++;
+                }
             }
         }
 
@@ -277,24 +268,8 @@ contract CryptoDraw is VRFConsumerBaseV2, Ownable, KeeperCompatibleInterface, Re
         emit AgentCommissionPaid(msg.sender, amount);
     }
 
-    function updateTicketPriceUSD(uint256 _newPriceUSD) external onlyRole(UPDATER_ROLE) {
-        ticketPriceUSD = _newPriceUSD;
-    }
-
     function withdrawFunds(uint256 _amount) external onlyRole(ADMIN_ROLE) nonReentrant {
         safeTransfer(nativeTokenAddress, msg.sender, _amount);
-    }
-
-    function grantRole(bytes32 role, address account) public onlyOwner {
-        _grantRole(role, account);
-    }
-
-    function revokeRole(bytes32 role, address account) public onlyOwner {
-        _revokeRole(role, account);
-    }
-
-    function getAgentTicketCount(address _agent) external view returns (uint256) {
-        return agentTicketCounts[_agent];
     }
 
     function safeTransfer(IERC20 token, address to, uint256 amount) internal {
