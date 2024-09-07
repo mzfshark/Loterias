@@ -7,10 +7,12 @@ import "@chainlink/contracts/src/v0.8/vrf/interfaces/VRFCoordinatorV2Interface.s
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@chainlink/contracts/src/v0.8/automation/interfaces/KeeperCompatibleInterface.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@chainlink/contracts/src/v0.8/shared/interfaces/AggregatorV3Interface.sol";
 
 contract LottoChain is VRFConsumerBaseV2, Ownable, KeeperCompatibleInterface, ReentrancyGuard {
     IERC20 public nativeTokenAddress;
-    uint256 public ticketPrice = 1 * 10 ** 18; // Base price in ONE tokens (adjust as necessary)
+    AggregatorV3Interface public priceFeed; // Chainlink Price Feed for USD/NativeToken price
+    uint256 public ticketPriceUSD = 1 * 10 ** 18; // Default ticket price in USD (1 USD)
     uint8 public totalNumbers = 25;
     uint8 public minNumbers = 15;
     uint8 public maxNumbers = 20;
@@ -56,6 +58,7 @@ contract LottoChain is VRFConsumerBaseV2, Ownable, KeeperCompatibleInterface, Re
         address _vrfCoordinator,
         bytes32 _keyHash,
         uint64 _subscriptionId,
+        address _priceFeedAddress,
         uint256 _initialProjectFund,
         uint256 _initialGrantFund,
         uint256 _initialOperationFund
@@ -64,6 +67,7 @@ contract LottoChain is VRFConsumerBaseV2, Ownable, KeeperCompatibleInterface, Re
     {
         nativeTokenAddress = IERC20(_nativeTokenAddress);
         COORDINATOR = VRFCoordinatorV2Interface(_vrfCoordinator);
+        priceFeed = AggregatorV3Interface(_priceFeedAddress);
         lastDrawTime = block.timestamp;
         keyHash = _keyHash;
         subscriptionId = _subscriptionId;
@@ -75,7 +79,8 @@ contract LottoChain is VRFConsumerBaseV2, Ownable, KeeperCompatibleInterface, Re
     function purchaseTicket(uint8[] memory _chosenNumbers, bool _isElectronic, address _agent) external nonReentrant {
         require(_chosenNumbers.length >= minNumbers && _chosenNumbers.length <= maxNumbers, "Invalid number of chosen numbers.");
         
-        uint256 ticketCost = ticketPrice * (_chosenNumbers.length - minNumbers + 1);
+        uint256 ticketPriceInNativeToken = getTicketPriceInNativeToken();
+        uint256 ticketCost = ticketPriceInNativeToken * (_chosenNumbers.length - minNumbers + 1);
         safeTransferFrom(nativeTokenAddress, msg.sender, address(this), ticketCost);
         
         tickets.push(Ticket(msg.sender, _chosenNumbers, _isElectronic, _agent));
@@ -86,9 +91,19 @@ contract LottoChain is VRFConsumerBaseV2, Ownable, KeeperCompatibleInterface, Re
         if (_isElectronic) {
             commission += ticketCost * 400 / 10000; // Additional 4.00% for electronic sales
         }
-        agentCommissions[_agent] += commission;
+        if (_agent != address(0)) {
+            agentCommissions[_agent] += commission;
+        }
 
         emit TicketPurchased(msg.sender, _chosenNumbers, _agent, _isElectronic);
+    }
+
+    function getTicketPriceInNativeToken() public view returns (uint256) {
+        (, int256 price, , ,) = priceFeed.latestRoundData();
+        require(price > 0, "Invalid price feed data");
+        // Convert USD price to nativeToken amount
+        uint256 priceInNativeToken = (ticketPriceUSD * 10 ** priceFeed.decimals()) / uint256(price);
+        return priceInNativeToken;
     }
 
     function checkUpkeep(bytes calldata) external view override returns (bool upkeepNeeded, bytes memory performData) {
@@ -183,8 +198,8 @@ contract LottoChain is VRFConsumerBaseV2, Ownable, KeeperCompatibleInterface, Re
         emit AgentCommissionPaid(msg.sender, amount);
     }
 
-    function updateTicketPrice(uint256 _newPrice) external onlyOwner {
-        ticketPrice = _newPrice;
+    function updateTicketPriceUSD(uint256 _newPriceUSD) external onlyOwner {
+        ticketPriceUSD = _newPriceUSD;
     }
 
     function withdrawFunds(uint256 _amount) external onlyOwner nonReentrant {
