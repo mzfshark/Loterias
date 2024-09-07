@@ -9,7 +9,7 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@chainlink/contracts/src/v0.8/automation/interfaces/KeeperCompatibleInterface.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@chainlink/contracts/src/v0.8/shared/interfaces/AggregatorV3Interface.sol";
-import "./TicketNFT.sol"; // Import the TicketNFT contract
+import "./TicketNFT.sol";
 
 contract CryptoDraw is VRFConsumerBaseV2, Ownable, KeeperCompatibleInterface, ReentrancyGuard, AccessControl {
     bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
@@ -17,7 +17,6 @@ contract CryptoDraw is VRFConsumerBaseV2, Ownable, KeeperCompatibleInterface, Re
 
     IERC20 public nativeTokenAddress;
     AggregatorV3Interface public priceFeed; // Chainlink Price Feed for USD/NativeToken price
-    TicketNFT public ticketNFT; // TicketNFT contract instance
     uint256 public ticketPriceUSD = 1 * 10 ** 18; // Default ticket price in USD (1 USD)
     uint8 public totalNumbers = 25;
     uint8 public minNumbers = 15;
@@ -25,6 +24,7 @@ contract CryptoDraw is VRFConsumerBaseV2, Ownable, KeeperCompatibleInterface, Re
     uint256 public drawInterval = 4 days; // Weekly draw interval
     uint256 public lastDrawTime;
     uint256 public prizePool;
+    uint256 public drawRound = 1; // Initialize draw round to 1
 
     // Chainlink VRF Variables
     VRFCoordinatorV2Interface COORDINATOR;
@@ -41,40 +41,39 @@ contract CryptoDraw is VRFConsumerBaseV2, Ownable, KeeperCompatibleInterface, Re
     uint256 public grantFund;
     uint256 public operationFund;
 
-    // Agents management
-    mapping(address => bool) public agents; // Mapping of valid agents
-    mapping(address => bool) public isSuspended; // Mapping to track suspended agents
-    mapping(address => uint256) public agentTicketCounts; // Count of tickets sold by each agent
+    // Contract state
+    bool public paused = false;
+    uint256 public pauseDuration = 2 hours; // 2 hours before the draw
 
     struct Ticket {
         address player;
         uint8[] chosenNumbers;
         address agent; // Agent who sold the ticket
+        uint256 round; // Draw round in which the ticket was purchased
+        bool valid; // Flag to indicate if the ticket is still valid
     }
 
     Ticket[] public tickets;
-    uint8[] public winningNumbers;
+    mapping(uint256 => uint8[]) public roundWinningNumbers; // Store winning numbers by round
     mapping(address => uint256) public winnings;
     mapping(address => uint256) public agentCommissions; // Agent commissions tracking
+    mapping(address => bool) public agentStatus; // Agent status tracking
+    mapping(address => mapping(uint256 => uint8)) public agentTicketsSold; // Tracking tickets sold by agents
 
-    event TicketPurchased(address indexed player, uint8[] chosenNumbers, address agent);
-    event DrawResult(uint8[] winningNumbers);
+    event TicketPurchased(address indexed player, uint8[] chosenNumbers, address agent, uint256 round);
+    event DrawResult(uint8[] winningNumbers, uint256 round);
     event PrizeClaimed(address indexed player, uint256 amount);
     event AgentCommissionPaid(address indexed agent, uint256 amount);
     event RandomWordsRequested(uint256 requestId);
-    event AgentAdded(address indexed agent);
-    event AgentRemoved(address indexed agent);
-    event AgentSuspended(address indexed agent);
-    event AgentUnsuspended(address indexed agent);
-    event DrawIntervalUpdated(uint256 newDrawInterval); // Event for draw interval update
+    event ContractPaused();
+    event ContractUnpaused();
 
     constructor(
         address _nativeTokenAddress,
         address _vrfCoordinator,
         bytes32 _keyHash,
         uint64 _subscriptionId,
-        address _priceFeedAddress, // Address of the Chainlink Price Feed contract
-        address _ticketNFTAddress, // Address of the TicketNFT contract
+        address _priceFeedAddress,
         uint256 _initialProjectFund,
         uint256 _initialGrantFund,
         uint256 _initialOperationFund
@@ -84,8 +83,7 @@ contract CryptoDraw is VRFConsumerBaseV2, Ownable, KeeperCompatibleInterface, Re
         nativeTokenAddress = IERC20(_nativeTokenAddress);
         COORDINATOR = VRFCoordinatorV2Interface(_vrfCoordinator);
         priceFeed = AggregatorV3Interface(_priceFeedAddress);
-        ticketNFT = TicketNFT(_ticketNFTAddress); // Initialize the TicketNFT contract
-        lastDrawTime = block.timestamp;
+        lastDrawTime = getNextDrawTime();
         keyHash = _keyHash;
         subscriptionId = _subscriptionId;
         projectFund = _initialProjectFund;
@@ -98,70 +96,49 @@ contract CryptoDraw is VRFConsumerBaseV2, Ownable, KeeperCompatibleInterface, Re
         _setupRole(UPDATER_ROLE, msg.sender);
     }
 
-    modifier onlyAgent() {
-        require(agents[msg.sender], "Caller is not a registered agent");
+    modifier onlyRole(bytes32 role) {
+        require(hasRole(role, msg.sender), "AccessControl: caller does not have the appropriate role");
         _;
     }
 
-    modifier notSuspended() {
-        require(!isSuspended[msg.sender], "Agent is suspended");
+    modifier whenNotPaused() {
+        require(!paused, "Contract is paused");
         _;
     }
 
-    function addAgent(address _agent) external onlyRole(ADMIN_ROLE) {
-        require(!agents[_agent], "Agent already added");
-        agents[_agent] = true;
-        isSuspended[_agent] = false; // Ensure agent is not suspended when added
-        emit AgentAdded(_agent);
+    function getNextDrawTime() public view returns (uint256) {
+        uint256 currentTime = block.timestamp;
+        uint256 secondsSinceStartOfDay = (currentTime % 1 days);
+        uint256 secondsUntilNextMidnight = (1 days - secondsSinceStartOfDay);
+        return currentTime + secondsUntilNextMidnight;
     }
 
-    function removeAgent(address _agent) external onlyRole(ADMIN_ROLE) {
-        require(agents[_agent], "Agent not found");
-        agents[_agent] = false;
-        isSuspended[_agent] = false; // Ensure agent is not suspended when removed
-        emit AgentRemoved(_agent);
-    }
-
-    function suspendAgent(address _agent) external onlyRole(ADMIN_ROLE) {
-        require(agents[_agent], "Agent not found");
-        isSuspended[_agent] = true;
-        emit AgentSuspended(_agent);
-    }
-
-    function unsuspendAgent(address _agent) external onlyRole(ADMIN_ROLE) {
-        require(agents[_agent], "Agent not found");
-        isSuspended[_agent] = false;
-        emit AgentUnsuspended(_agent);
-    }
-
-    function updateDrawInterval(uint256 _newDrawInterval) external onlyRole(ADMIN_ROLE) {
-        drawInterval = _newDrawInterval;
-        emit DrawIntervalUpdated(_newDrawInterval);
-    }
-
-    function purchaseTicket(uint8[] calldata _chosenNumbers, address _agent) external nonReentrant notSuspended {
-        require(agents[_agent], "Invalid agent address");
-        require(!isSuspended[_agent], "Agent is suspended");
+    function purchaseTicket(uint8[] calldata _chosenNumbers, address _agent) external nonReentrant whenNotPaused {
         require(_chosenNumbers.length >= minNumbers && _chosenNumbers.length <= maxNumbers, "Invalid number of chosen numbers.");
-        
+        require(agentStatus[_agent], "Agent is not active.");
+        require(block.timestamp < (getNextDrawTime() - pauseDuration), "Ticket purchases are paused.");
+
         uint256 ticketPriceInNativeToken = getTicketPriceInNativeToken();
         uint256 ticketCost = ticketPriceInNativeToken * (_chosenNumbers.length - minNumbers + 1);
         safeTransferFrom(nativeTokenAddress, msg.sender, address(this), ticketCost);
 
-        // Mint NFT for the ticket
-        uint256 tokenId = ticketNFT.mint(msg.sender, _chosenNumbers);
-
-        tickets.push(Ticket(msg.sender, _chosenNumbers, _agent));
-        agentTicketCounts[_agent] += 1; // Track tickets sold by the agent
+        tickets.push(Ticket({
+            player: msg.sender,
+            chosenNumbers: _chosenNumbers,
+            agent: _agent,
+            round: drawRound,
+            valid: true
+        }));
         prizePool += ticketCost;
 
         // Calculate and assign agent's commission
         uint256 commission = ticketCost * 861 / 10000; // 8.61% base commission
         if (_agent != address(0)) {
             agentCommissions[_agent] += commission;
+            agentTicketsSold[_agent][drawRound] += 1;
         }
 
-        emit TicketPurchased(msg.sender, _chosenNumbers, _agent);
+        emit TicketPurchased(msg.sender, _chosenNumbers, _agent, drawRound);
     }
 
     function getTicketPriceInNativeToken() public view returns (uint256) {
@@ -173,12 +150,12 @@ contract CryptoDraw is VRFConsumerBaseV2, Ownable, KeeperCompatibleInterface, Re
     }
 
     function checkUpkeep(bytes calldata) external view override returns (bool upkeepNeeded, bytes memory performData) {
-        upkeepNeeded = (block.timestamp >= lastDrawTime + drawInterval) && (prizePool > 0);
+        upkeepNeeded = (block.timestamp >= lastDrawTime) && (prizePool > 0);
         performData = ""; // Return an empty byte array
     }
 
     function performUpkeep(bytes calldata) external override {
-        require(block.timestamp >= lastDrawTime + drawInterval, "Draw interval not met.");
+        require(block.timestamp >= lastDrawTime, "Draw time not reached.");
         require(prizePool > 0, "No prize pool available.");
 
         // Request random words from Chainlink VRF
@@ -193,94 +170,122 @@ contract CryptoDraw is VRFConsumerBaseV2, Ownable, KeeperCompatibleInterface, Re
         emit RandomWordsRequested(requestId);
     }
 
-    function fulfillRandomWords(uint256 _requestId, uint256[] memory _randomWords) internal override {
-        require(_requestId == requestId, "Invalid request ID");
+    // Callback function called by Chainlink VRF Coordinator
+    function fulfillRandomWords(uint256, uint256[] memory _randomWords) internal override {
         randomWords = _randomWords;
-        lastDrawTime = block.timestamp;
+        delete roundWinningNumbers[drawRound];
 
-        // Determine winning numbers
-        winningNumbers = new uint8[](numWords);
-        for (uint8 i = 0; i < numWords; i++) {
-            winningNumbers[i] = uint8(_randomWords[i] % totalNumbers + 1);
+        // Generate winning numbers using the random words provided by VRF
+        for (uint8 i = 0; i < minNumbers; i++) {
+            uint8 winningNumber = uint8(_randomWords[i] % totalNumbers) + 1;
+            roundWinningNumbers[drawRound].push(winningNumber);
         }
 
+        lastDrawTime = getNextDrawTime(); // Schedule next draw
         distributePrizes();
-        emit DrawResult(winningNumbers);
+
+        emit DrawResult(roundWinningNumbers[drawRound], drawRound);
+
+        // Increment draw round for the next draw
+        drawRound++;
     }
 
     function distributePrizes() internal {
-        uint256 grossPrize = (prizePool * 4335) / 10000; // 43.35% of the prize pool for total prize money
+        uint256 grossPrize = (prizePool * 4335) / 10000; // 43.35% of the prize pool for the total prize money
         uint256 agentsCommissionTotal = (prizePool * 861) / 10000; // 8.61% for agents' commission
 
         // Distribute agent commissions
         for (uint256 i = 0; i < tickets.length; i++) {
-            address agent = tickets[i].agent;
-            if (agent != address(0) && !isSuspended[agent]) {
-                uint256 commission = agentCommissions[agent];
+            if (tickets[i].agent != address(0) && agentStatus[tickets[i].agent] && tickets[i].valid) {
+                uint256 commission = agentCommissions[tickets[i].agent];
                 if (commission > 0) {
-                    agentCommissions[agent] = 0; // Reset commission after payout
-                    safeTransfer(nativeTokenAddress, agent, commission);
-                    emit AgentCommissionPaid(agent, commission);
+                    agentCommissions[tickets[i].agent] = 0; // Reset commission after payout
+                    safeTransfer(nativeTokenAddress, tickets[i].agent, commission);
+                    emit AgentCommissionPaid(tickets[i].agent, commission);
                 }
             }
         }
 
-        // Reset the prize pool after distribution
-        prizePool = 0;
+        // Calculate and distribute prizes to players
+        for (uint256 i = 0; i < tickets.length; i++) {
+            if (tickets[i].player != address(0) && tickets[i].valid) {
+                uint8 matchCount = getMatchCount(tickets[i].chosenNumbers, roundWinningNumbers[drawRound]);
+                uint256 prize = (grossPrize * matchCount) / minNumbers; // Simplified prize calculation
+                if (prize > 0) {
+                    winnings[tickets[i].player] += prize;
+                }
+            }
+        }
+        prizePool = 0; // Reset prize pool after distribution
     }
 
-    function getMatchCount(uint8[] memory _chosenNumbers) internal view returns (uint8) {
+    function getMatchCount(uint8[] memory _chosenNumbers, uint8[] memory _winningNumbers) internal pure returns (uint8) {
         uint8 matchCount = 0;
-
-        // Store winning numbers in an array for faster lookup
-        uint8[] memory winningNumbersArray = winningNumbers;
-
-        // Check for matches
+        mapping(uint8 => bool) memory winningNumbersMap;
+        for (uint8 i = 0; i < _winningNumbers.length; i++) {
+            winningNumbersMap[_winningNumbers[i]] = true;
+        }
         for (uint8 i = 0; i < _chosenNumbers.length; i++) {
-            for (uint8 j = 0; j < winningNumbersArray.length; j++) {
-                if (_chosenNumbers[i] == winningNumbersArray[j]) {
-                    matchCount++;
-                }
+            if (winningNumbersMap[_chosenNumbers[i]]) {
+                matchCount++;
             }
         }
-
         return matchCount;
     }
 
     function claimPrize() external nonReentrant {
-        uint256 amount = winnings[msg.sender];
-        require(amount > 0, "No winnings to claim.");
+        uint256 totalWinnings = winnings[msg.sender];
+        require(totalWinnings > 0, "No winnings to claim.");
 
-        winnings[msg.sender] = 0;
-        safeTransfer(nativeTokenAddress, msg.sender, amount);
+        winnings[msg.sender] = 0; // Reset winnings
+        safeTransfer(nativeTokenAddress, msg.sender, totalWinnings);
 
-        emit PrizeClaimed(msg.sender, amount);
+        // Burn winning tickets
+        for (uint256 i = 0; i < tickets.length; i++) {
+            if (tickets[i].player == msg.sender && tickets[i].round < drawRound && tickets[i].valid) {
+                tickets[i].valid = false; // Invalidate the ticket
+            }
+        }
+
+        emit PrizeClaimed(msg.sender, totalWinnings);
     }
 
-    function claimAgentCommission() external nonReentrant {
-        uint256 amount = agentCommissions[msg.sender];
-        require(amount > 0, "No commission to claim.");
-        require(!isSuspended[msg.sender], "Agent is suspended");
-
-        agentCommissions[msg.sender] = 0;
-        safeTransfer(nativeTokenAddress, msg.sender, amount);
-
-        emit AgentCommissionPaid(msg.sender, amount);
+    function setDrawInterval(uint256 _interval) external onlyRole(ADMIN_ROLE) {
+        drawInterval = _interval;
     }
 
-    function withdrawFunds(uint256 _amount) external onlyRole(ADMIN_ROLE) nonReentrant {
-        safeTransfer(nativeTokenAddress, msg.sender, _amount);
+    function setTicketPrice(uint256 _priceUSD) external onlyRole(ADMIN_ROLE) {
+        ticketPriceUSD = _priceUSD * 10 ** 18; // Convert to 18 decimal places
+    }
+
+    function setAgentStatus(address _agent, bool _status) external onlyRole(ADMIN_ROLE) {
+        agentStatus[_agent] = _status;
+    }
+
+    function pauseContract() external onlyRole(ADMIN_ROLE) {
+        paused = true;
+        emit ContractPaused();
+    }
+
+    function unpauseContract() external onlyRole(ADMIN_ROLE) {
+        paused = false;
+        emit ContractUnpaused();
+    }
+
+    function getAgentCommission(address _agent) external view returns (uint256) {
+        return agentCommissions[_agent];
+    }
+
+    function getTicket(uint256 ticketId) external view returns (Ticket memory) {
+        require(ticketId < tickets.length, "Invalid ticket ID");
+        return tickets[ticketId];
     }
 
     function safeTransfer(IERC20 token, address to, uint256 amount) internal {
-        uint256 balance = token.balanceOf(address(this));
-        require(balance >= amount, "Insufficient balance");
-        require(token.transfer(to, amount), "Token transfer failed");
+        require(token.transfer(to, amount), "Transfer failed");
     }
 
     function safeTransferFrom(IERC20 token, address from, address to, uint256 amount) internal {
-        uint256 balance = token.balanceOf(from);
-        require(balance >= amount, "Insufficient balance");
-        require(token.transferFrom(from, to, amount), "Token transferFrom failed");
+        require(token.transferFrom(from, to, amount), "Transfer failed");
     }
 }

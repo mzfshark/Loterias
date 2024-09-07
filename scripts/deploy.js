@@ -24,14 +24,14 @@ async function main() {
     console.log(`Account balance: ${(await deployer.getBalance()).toString()}`);
 
     // Contract factory
-    const LottoChainFactory = await ethers.getContractFactory("LottoChain");
+    const CryptoDrawFactory = await ethers.getContractFactory("CryptoDraw");
 
     // Deployment parameters
     const networkId = network.config.chainId;
     console.log(`Deploying to network ID: ${networkId}`);
 
     // Deploy the contract
-    const lottoChain = await LottoChainFactory.deploy(
+    const CryptoDraw = await CryptoDrawFactory.deploy(
         nativeTokenAddress,
         vrfCoordinatorAddress,
         keyHash,
@@ -42,9 +42,9 @@ async function main() {
     );
 
     console.log("Deploying contract...");
-    await lottoChain.deployed();
+    await CryptoDraw.deployed();
 
-    console.log("LottoChain deployed to:", lottoChain.address);
+    console.log("CryptoDraw deployed to:", CryptoDraw.address);
 }
 
 main()
