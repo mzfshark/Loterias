@@ -5,11 +5,15 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@chainlink/contracts/src/v0.8/vrf/VRFConsumerBaseV2.sol";
 import "@chainlink/contracts/src/v0.8/vrf/interfaces/VRFCoordinatorV2Interface.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@chainlink/contracts/src/v0.8/automation/interfaces/KeeperCompatibleInterface.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@chainlink/contracts/src/v0.8/shared/interfaces/AggregatorV3Interface.sol";
 
-contract LottoChain is VRFConsumerBaseV2, Ownable, KeeperCompatibleInterface, ReentrancyGuard {
+contract CryptoDraw is VRFConsumerBaseV2, Ownable, KeeperCompatibleInterface, ReentrancyGuard, AccessControl {
+    bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
+    bytes32 public constant UPDATER_ROLE = keccak256("UPDATER_ROLE");
+
     IERC20 public nativeTokenAddress;
     AggregatorV3Interface public priceFeed; // Chainlink Price Feed for USD/NativeToken price
     uint256 public ticketPriceUSD = 1 * 10 ** 18; // Default ticket price in USD (1 USD)
@@ -63,7 +67,7 @@ contract LottoChain is VRFConsumerBaseV2, Ownable, KeeperCompatibleInterface, Re
         uint256 _initialGrantFund,
         uint256 _initialOperationFund
     ) 
-        VRFConsumerBaseV2(_vrfCoordinator) 
+        VRFConsumerBaseV2(_vrfCoordinator)
     {
         nativeTokenAddress = IERC20(_nativeTokenAddress);
         COORDINATOR = VRFCoordinatorV2Interface(_vrfCoordinator);
@@ -74,6 +78,16 @@ contract LottoChain is VRFConsumerBaseV2, Ownable, KeeperCompatibleInterface, Re
         projectFund = _initialProjectFund;
         grantFund = _initialGrantFund;
         operationFund = _initialOperationFund;
+
+        // Grant roles to the contract deployer
+        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _setupRole(ADMIN_ROLE, msg.sender);
+        _setupRole(UPDATER_ROLE, msg.sender);
+    }
+
+    modifier onlyRole(bytes32 role) {
+        require(hasRole(role, msg.sender), "AccessControl: caller does not have the appropriate role");
+        _;
     }
 
     function purchaseTicket(uint8[] memory _chosenNumbers, bool _isElectronic, address _agent) external nonReentrant {
@@ -198,12 +212,20 @@ contract LottoChain is VRFConsumerBaseV2, Ownable, KeeperCompatibleInterface, Re
         emit AgentCommissionPaid(msg.sender, amount);
     }
 
-    function updateTicketPriceUSD(uint256 _newPriceUSD) external onlyOwner {
+    function updateTicketPriceUSD(uint256 _newPriceUSD) external onlyRole(UPDATER_ROLE) {
         ticketPriceUSD = _newPriceUSD;
     }
 
-    function withdrawFunds(uint256 _amount) external onlyOwner nonReentrant {
+    function withdrawFunds(uint256 _amount) external onlyRole(ADMIN_ROLE) nonReentrant {
         safeTransfer(nativeTokenAddress, msg.sender, _amount);
+    }
+
+    function grantRole(bytes32 role, address account) public onlyOwner {
+        _grantRole(role, account);
+    }
+
+    function revokeRole(bytes32 role, address account) public onlyOwner {
+        _revokeRole(role, account);
     }
 
     function safeTransfer(IERC20 token, address to, uint256 amount) internal {
