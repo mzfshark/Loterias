@@ -9,6 +9,7 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@chainlink/contracts/src/v0.8/automation/interfaces/KeeperCompatibleInterface.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@chainlink/contracts/src/v0.8/shared/interfaces/AggregatorV3Interface.sol";
+import "./TicketNFT.sol"; // Import the TicketNFT contract
 
 contract CryptoDraw is VRFConsumerBaseV2, Ownable, KeeperCompatibleInterface, ReentrancyGuard, AccessControl {
     bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
@@ -16,6 +17,7 @@ contract CryptoDraw is VRFConsumerBaseV2, Ownable, KeeperCompatibleInterface, Re
 
     IERC20 public nativeTokenAddress;
     AggregatorV3Interface public priceFeed; // Chainlink Price Feed for USD/NativeToken price
+    TicketNFT public ticketNFT; // TicketNFT contract instance
     uint256 public ticketPriceUSD = 1 * 10 ** 18; // Default ticket price in USD (1 USD)
     uint8 public totalNumbers = 25;
     uint8 public minNumbers = 15;
@@ -39,6 +41,11 @@ contract CryptoDraw is VRFConsumerBaseV2, Ownable, KeeperCompatibleInterface, Re
     uint256 public grantFund;
     uint256 public operationFund;
 
+    // Agents management
+    mapping(address => bool) public agents; // Mapping of valid agents
+    mapping(address => bool) public isSuspended; // Mapping to track suspended agents
+    mapping(address => uint256) public agentTicketCounts; // Count of tickets sold by each agent
+
     struct Ticket {
         address player;
         uint8[] chosenNumbers;
@@ -55,13 +62,19 @@ contract CryptoDraw is VRFConsumerBaseV2, Ownable, KeeperCompatibleInterface, Re
     event PrizeClaimed(address indexed player, uint256 amount);
     event AgentCommissionPaid(address indexed agent, uint256 amount);
     event RandomWordsRequested(uint256 requestId);
+    event AgentAdded(address indexed agent);
+    event AgentRemoved(address indexed agent);
+    event AgentSuspended(address indexed agent);
+    event AgentUnsuspended(address indexed agent);
+    event DrawIntervalUpdated(uint256 newDrawInterval); // Event for draw interval update
 
     constructor(
         address _nativeTokenAddress,
         address _vrfCoordinator,
         bytes32 _keyHash,
         uint64 _subscriptionId,
-        address _priceFeedAddress,
+        address _priceFeedAddress, // Address of the Chainlink Price Feed contract
+        address _ticketNFTAddress, // Address of the TicketNFT contract
         uint256 _initialProjectFund,
         uint256 _initialGrantFund,
         uint256 _initialOperationFund
@@ -71,6 +84,7 @@ contract CryptoDraw is VRFConsumerBaseV2, Ownable, KeeperCompatibleInterface, Re
         nativeTokenAddress = IERC20(_nativeTokenAddress);
         COORDINATOR = VRFCoordinatorV2Interface(_vrfCoordinator);
         priceFeed = AggregatorV3Interface(_priceFeedAddress);
+        ticketNFT = TicketNFT(_ticketNFTAddress); // Initialize the TicketNFT contract
         lastDrawTime = block.timestamp;
         keyHash = _keyHash;
         subscriptionId = _subscriptionId;
@@ -89,14 +103,61 @@ contract CryptoDraw is VRFConsumerBaseV2, Ownable, KeeperCompatibleInterface, Re
         _;
     }
 
-    function purchaseTicket(uint8[] calldata _chosenNumbers, address _agent) external nonReentrant {
+    modifier onlyAgent() {
+        require(agents[msg.sender], "Caller is not a registered agent");
+        _;
+    }
+
+    modifier notSuspended() {
+        require(!isSuspended[msg.sender], "Agent is suspended");
+        _;
+    }
+
+    function addAgent(address _agent) external onlyRole(ADMIN_ROLE) {
+        require(!agents[_agent], "Agent already added");
+        agents[_agent] = true;
+        isSuspended[_agent] = false; // Ensure agent is not suspended when added
+        emit AgentAdded(_agent);
+    }
+
+    function removeAgent(address _agent) external onlyRole(ADMIN_ROLE) {
+        require(agents[_agent], "Agent not found");
+        agents[_agent] = false;
+        isSuspended[_agent] = false; // Ensure agent is not suspended when removed
+        emit AgentRemoved(_agent);
+    }
+
+    function suspendAgent(address _agent) external onlyRole(ADMIN_ROLE) {
+        require(agents[_agent], "Agent not found");
+        isSuspended[_agent] = true;
+        emit AgentSuspended(_agent);
+    }
+
+    function unsuspendAgent(address _agent) external onlyRole(ADMIN_ROLE) {
+        require(agents[_agent], "Agent not found");
+        isSuspended[_agent] = false;
+        emit AgentUnsuspended(_agent);
+    }
+
+    function updateDrawInterval(uint256 _newDrawInterval) external onlyRole(ADMIN_ROLE) {
+        drawInterval = _newDrawInterval;
+        emit DrawIntervalUpdated(_newDrawInterval);
+    }
+
+    function purchaseTicket(uint8[] calldata _chosenNumbers, address _agent) external nonReentrant notSuspended {
+        require(agents[_agent], "Invalid agent address");
+        require(!isSuspended[_agent], "Agent is suspended");
         require(_chosenNumbers.length >= minNumbers && _chosenNumbers.length <= maxNumbers, "Invalid number of chosen numbers.");
         
         uint256 ticketPriceInNativeToken = getTicketPriceInNativeToken();
         uint256 ticketCost = ticketPriceInNativeToken * (_chosenNumbers.length - minNumbers + 1);
         safeTransferFrom(nativeTokenAddress, msg.sender, address(this), ticketCost);
-        
+
+        // Mint NFT for the ticket
+        uint256 tokenId = ticketNFT.mint(msg.sender, _chosenNumbers);
+
         tickets.push(Ticket(msg.sender, _chosenNumbers, _agent));
+        agentTicketCounts[_agent] += 1; // Track tickets sold by the agent
         prizePool += ticketCost;
 
         // Calculate and assign agent's commission
@@ -161,12 +222,13 @@ contract CryptoDraw is VRFConsumerBaseV2, Ownable, KeeperCompatibleInterface, Re
 
         // Distribute agent commissions
         for (uint256 i = 0; i < tickets.length; i++) {
-            if (tickets[i].agent != address(0)) {
-                uint256 commission = agentCommissions[tickets[i].agent];
+            address agent = tickets[i].agent;
+            if (agent != address(0) && !isSuspended[agent]) {
+                uint256 commission = agentCommissions[agent];
                 if (commission > 0) {
-                    agentCommissions[tickets[i].agent] = 0; // Reset commission after payout
-                    safeTransfer(nativeTokenAddress, tickets[i].agent, commission);
-                    emit AgentCommissionPaid(tickets[i].agent, commission);
+                    agentCommissions[agent] = 0; // Reset commission after payout
+                    safeTransfer(nativeTokenAddress, agent, commission);
+                    emit AgentCommissionPaid(agent, commission);
                 }
             }
         }
@@ -207,6 +269,7 @@ contract CryptoDraw is VRFConsumerBaseV2, Ownable, KeeperCompatibleInterface, Re
     function claimAgentCommission() external nonReentrant {
         uint256 amount = agentCommissions[msg.sender];
         require(amount > 0, "No commission to claim.");
+        require(!isSuspended[msg.sender], "Agent is suspended");
 
         agentCommissions[msg.sender] = 0;
         safeTransfer(nativeTokenAddress, msg.sender, amount);
@@ -228,6 +291,10 @@ contract CryptoDraw is VRFConsumerBaseV2, Ownable, KeeperCompatibleInterface, Re
 
     function revokeRole(bytes32 role, address account) public onlyOwner {
         _revokeRole(role, account);
+    }
+
+    function getAgentTicketCount(address _agent) external view returns (uint256) {
+        return agentTicketCounts[_agent];
     }
 
     function safeTransfer(IERC20 token, address to, uint256 amount) internal {

@@ -1,176 +1,162 @@
-## CryptoDraw Contract Documentation
+### CryptoDraw Contract Technical Documentation
 
-### Overview
+#### **Overview**
 
-The `CryptoDraw` contract is a lottery system implemented in Solidity. It integrates Chainlink services for randomness and automated upkeep, and leverages OpenZeppelin contracts for security and access control. Players purchase tickets to participate in the lottery, and winning numbers are drawn using Chainlink VRF. The contract handles ticket purchases, prize distribution, and agent commissions.
+The `CryptoDraw` contract is a lottery system that integrates Chainlink VRF for random number generation and Chainlink Keepers for automated draw scheduling. It utilizes ERC20 tokens for ticket purchases and integrates with a custom NFT contract for ticket management. 
 
-### Dependencies
+#### **Imports**
 
-- **OpenZeppelin Contracts:**
-  - `IERC20`: Interface for ERC20 token standard.
-  - `Ownable`: Provides basic authorization control functions, simplifying the implementation of user permissions.
-  - `AccessControl`: Provides role-based access control mechanism.
-  - `ReentrancyGuard`: Prevents reentrant calls to functions.
+1. **IERC20**: Interface for ERC20 token interactions.
+2. **VRFConsumerBaseV2**: Chainlink VRF base contract for random number requests.
+3. **VRFCoordinatorV2Interface**: Interface for Chainlink VRF Coordinator.
+4. **Ownable**: Provides basic access control mechanism.
+5. **AccessControl**: Allows role-based access control.
+6. **KeeperCompatibleInterface**: Interface for Chainlink Keepers.
+7. **ReentrancyGuard**: Prevents reentrancy attacks.
+8. **AggregatorV3Interface**: Chainlink interface for price feeds.
+9. **TicketNFT**: Custom contract managing NFT tickets.
 
-- **Chainlink Contracts:**
-  - `VRFConsumerBaseV2`: Base contract for consuming Chainlink VRF (Verifiable Random Function).
-  - `VRFCoordinatorV2Interface`: Interface for interacting with the VRF Coordinator.
-  - `AggregatorV3Interface`: Interface for Chainlink Price Feeds.
-  - `KeeperCompatibleInterface`: Interface for Chainlink Keepers (automation).
+#### **Contract State Variables**
 
-### Contract Details
-
-#### State Variables
-
-- **`nativeTokenAddress`**: Address of the ERC20 token used for transactions.
-- **`priceFeed`**: Chainlink Price Feed used to fetch the USD to native token conversion rate.
-- **`ticketPriceUSD`**: Price of a ticket in USD (1 USD by default).
-- **`totalNumbers`**: Total number of possible numbers in the lottery (25).
-- **`minNumbers`**: Minimum number of numbers a player must choose (15).
-- **`maxNumbers`**: Maximum number of numbers a player can choose (20).
-- **`drawInterval`**: Interval between lottery draws (4 days by default).
+- **`nativeTokenAddress`**: The ERC20 token used for transactions.
+- **`priceFeed`**: Chainlink price feed contract for USD/NativeToken conversion.
+- **`ticketNFT`**: Instance of the `TicketNFT` contract.
+- **`ticketPriceUSD`**: The price of a ticket in USD.
+- **`totalNumbers`**: The total range of numbers for the lottery.
+- **`minNumbers`**: Minimum number of numbers a player must choose.
+- **`maxNumbers`**: Maximum number of numbers a player can choose.
+- **`drawInterval`**: Interval between draws.
 - **`lastDrawTime`**: Timestamp of the last draw.
-- **`prizePool`**: Total pool of funds accumulated from ticket purchases.
+- **`prizePool`**: Total pool of prize money.
+- **`COORDINATOR`**: Chainlink VRF Coordinator interface.
+- **`subscriptionId`**: Chainlink VRF subscription ID.
+- **`keyHash`**: Key hash for Chainlink VRF.
+- **`requestConfirmations`**: Number of confirmations for Chainlink VRF.
+- **`callbackGasLimit`**: Gas limit for Chainlink VRF callback.
+- **`numWords`**: Number of random words to request.
+- **`randomWords`**: Array of random words from Chainlink VRF.
+- **`requestId`**: ID of the Chainlink VRF request.
+- **`projectFund`**: Fund allocation for the project.
+- **`grantFund`**: Fund allocation for grants.
+- **`operationFund`**: Fund allocation for operations.
+- **`agents`**: Mapping of valid agents.
+- **`isSuspended`**: Tracking of suspended agents.
+- **`agentTicketCounts`**: Number of tickets sold by each agent.
+- **`tickets`**: Array of purchased tickets.
+- **`winningNumbers`**: Array of winning numbers.
+- **`winnings`**: Mapping of player winnings.
+- **`agentCommissions`**: Tracking of agent commissions.
 
-- **Chainlink VRF Variables:**
-  - **`COORDINATOR`**: Address of the Chainlink VRF Coordinator.
-  - **`subscriptionId`**: Subscription ID for Chainlink VRF.
-  - **`keyHash`**: Key hash for Chainlink VRF.
-  - **`requestConfirmations`**: Number of confirmations required by Chainlink VRF.
-  - **`callbackGasLimit`**: Gas limit for the callback function from Chainlink VRF.
-  - **`numWords`**: Number of random words needed for generating winning numbers (15).
+#### **Events**
 
-- **Funds:**
-  - **`projectFund`**: Fund allocated for the project's use.
-  - **`grantFund`**: Fund allocated for grants.
-  - **`operationFund`**: Fund allocated for operational expenses.
+- **`TicketPurchased`**: Emitted when a ticket is purchased.
+- **`DrawResult`**: Emitted when the draw results are determined.
+- **`PrizeClaimed`**: Emitted when a player claims a prize.
+- **`AgentCommissionPaid`**: Emitted when an agent receives commission.
+- **`RandomWordsRequested`**: Emitted when random words are requested.
+- **`AgentAdded`**: Emitted when an agent is added.
+- **`AgentRemoved`**: Emitted when an agent is removed.
+- **`AgentSuspended`**: Emitted when an agent is suspended.
+- **`AgentUnsuspended`**: Emitted when an agent is unsuspended.
+- **`DrawIntervalUpdated`**: Emitted when the draw interval is updated.
 
-- **`tickets`**: Array of `Ticket` structs, each representing a purchased ticket.
-- **`winningNumbers`**: Array of winning numbers drawn in the latest lottery.
-- **`winnings`**: Mapping from player addresses to their accumulated winnings.
-- **`agentCommissions`**: Mapping from agent addresses to their accumulated commissions.
+#### **Constructor**
 
-#### Structs
+Initializes the contract with necessary parameters:
+- `_nativeTokenAddress`: Address of the ERC20 token.
+- `_vrfCoordinator`: Address of the Chainlink VRF Coordinator.
+- `_keyHash`: Key hash for Chainlink VRF.
+- `_subscriptionId`: Chainlink VRF subscription ID.
+- `_priceFeedAddress`: Address of the Chainlink price feed.
+- `_ticketNFTAddress`: Address of the TicketNFT contract.
+- `_initialProjectFund`: Initial project fund allocation.
+- `_initialGrantFund`: Initial grant fund allocation.
+- `_initialOperationFund`: Initial operation fund allocation.
 
-- **`Ticket`**:
-  - **`player`**: Address of the player who purchased the ticket.
-  - **`chosenNumbers`**: Array of numbers chosen by the player.
-  - **`agent`**: Address of the agent who sold the ticket.
+#### **Modifiers**
 
-#### Events
+- **`onlyRole(bytes32 role)`**: Ensures the caller has the required role.
+- **`onlyAgent()`**: Ensures the caller is a registered agent.
+- **`notSuspended()`**: Ensures the agent is not suspended.
 
-- **`TicketPurchased(address indexed player, uint8[] chosenNumbers, address agent)`**: Emitted when a ticket is purchased.
-- **`DrawResult(uint8[] winningNumbers)`**: Emitted when winning numbers are drawn.
-- **`PrizeClaimed(address indexed player, uint256 amount)`**: Emitted when a player claims their prize.
-- **`AgentCommissionPaid(address indexed agent, uint256 amount)`**: Emitted when an agent receives a commission payment.
-- **`RandomWordsRequested(uint256 requestId)`**: Emitted when a request for random words is made to Chainlink VRF.
+#### **Functions**
 
-#### Modifiers
+- **`addAgent(address _agent)`**: Adds a new agent with the `ADMIN_ROLE`.
+- **`removeAgent(address _agent)`**: Removes an existing agent with the `ADMIN_ROLE`.
+- **`suspendAgent(address _agent)`**: Suspends an agent with the `ADMIN_ROLE`.
+- **`unsuspendAgent(address _agent)`**: Unsuspends an agent with the `ADMIN_ROLE`.
+- **`updateDrawInterval(uint256 _newDrawInterval)`**: Updates the interval between draws.
+- **`purchaseTicket(uint8[] calldata _chosenNumbers, address _agent)`**: Allows players to purchase tickets.
+- **`getTicketPriceInNativeToken()`**: Returns the ticket price in native tokens.
+- **`checkUpkeep(bytes calldata)`**: Chainlink Keeper check for maintenance.
+- **`performUpkeep(bytes calldata)`**: Chainlink Keeper performs the draw if conditions are met.
+- **`fulfillRandomWords(uint256, uint256[] memory _randomWords)`**: Callback from Chainlink VRF with random numbers.
+- **`distributePrizes()`**: Distributes the prize pool and agent commissions.
+- **`getMatchCount(uint8[] memory _chosenNumbers)`**: Counts the number of matching numbers.
+- **`claimPrize()`**: Allows players to claim their winnings.
+- **`claimAgentCommission()`**: Allows agents to claim their commissions.
+- **`updateTicketPriceUSD(uint256 _newPriceUSD)`**: Updates the price of a ticket in USD.
+- **`withdrawFunds(uint256 _amount)`**: Withdraws funds from the contract.
+- **`grantRole(bytes32 role, address account)`**: Grants a role to an account.
+- **`revokeRole(bytes32 role, address account)`**: Revokes a role from an account.
+- **`getAgentTicketCount(address _agent)`**: Returns the number of tickets sold by an agent.
+- **`safeTransfer(IERC20 token, address to, uint256 amount)`**: Safely transfers tokens.
+- **`safeTransferFrom(IERC20 token, address from, address to, uint256 amount)`**: Safely transfers tokens from another address.
 
-- **`onlyRole(bytes32 role)`**: Restricts access to functions based on the specified role.
+#### **Internal Functions**
 
-#### Constructor
+- **`safeTransfer`**: Ensures safe transfer of ERC20 tokens.
+- **`safeTransferFrom`**: Ensures safe transfer of ERC20 tokens from another address.
 
-```solidity
-constructor(
-    address _nativeTokenAddress,
-    address _vrfCoordinator,
-    bytes32 _keyHash,
-    uint64 _subscriptionId,
-    address _priceFeedAddress,
-    uint256 _initialProjectFund,
-    uint256 _initialGrantFund,
-    uint256 _initialOperationFund
-)
-    VRFConsumerBaseV2(_vrfCoordinator)
-```
+The prize distribution mechanism in the `CryptoDraw` contract is designed to allocate the prize pool and agent commissions based on predefined percentages. Here's a detailed breakdown of how prizes are calculated:
 
-- **Parameters:**
-  - **`_nativeTokenAddress`**: Address of the ERC20 token.
-  - **`_vrfCoordinator`**: Address of the Chainlink VRF Coordinator.
-  - **`_keyHash`**: Key hash for Chainlink VRF.
-  - **`_subscriptionId`**: Subscription ID for Chainlink VRF.
-  - **`_priceFeedAddress`**: Address of the Chainlink Price Feed.
-  - **`_initialProjectFund`**: Initial allocation for the project fund.
-  - **`_initialGrantFund`**: Initial allocation for the grant fund.
-  - **`_initialOperationFund`**: Initial allocation for the operation fund.
+### Prize Calculation Process
 
-#### Functions
+1. **Prize Pool Contribution**:
+   - Each ticket purchased contributes to the `prizePool`. The total `prizePool` accumulates from all ticket sales until the next draw occurs.
 
-- **`purchaseTicket(uint8[] calldata _chosenNumbers, address _agent) external nonReentrant`**
-  - Allows a user to purchase a ticket. Calculates the ticket cost based on the number of chosen numbers and the conversion rate from USD to the native token. Updates the prize pool and agent commissions.
+2. **Draw Execution**:
+   - When a draw is executed (either manually or by Chainlink Keepers), random numbers are generated by Chainlink VRF, and the winning numbers are determined.
 
-- **`getTicketPriceInNativeToken() public view returns (uint256)`**
-  - Returns the price of a ticket in the native token, converted from USD using the Chainlink Price Feed.
+3. **Prize Distribution**:
+   - **Gross Prize Distribution**:
+     - **Gross Prize Pool**: This is a portion of the `prizePool` that is set aside for prize money.
+     - **Percentage**: 43.35% of the `prizePool` is allocated to the gross prize pool.
+     - **Calculation**: `grossPrize = (prizePool * 4335) / 10000`
 
-- **`checkUpkeep(bytes calldata) external view override returns (bool upkeepNeeded, bytes memory performData)`**
-  - Checks if the conditions for performing upkeep are met. Determines if it is time for the next draw and if there are funds in the prize pool.
+   - **Agent Commissions Distribution**:
+     - **Agent Commissions Pool**: This is a portion of the `prizePool` allocated to agent commissions.
+     - **Percentage**: 8.61% of the `prizePool` is set aside for agent commissions.
+     - **Calculation**: `agentsCommissionTotal = (prizePool * 861) / 10000`
+   
+4. **Agent Commission Payout**:
+   - **Distribution**:
+     - Each agent's commission is paid out based on the number of tickets sold by that agent.
+     - The commission is directly transferred to the agent’s address from the `prizePool`.
+   - **Commission Reset**: After payout, each agent’s commission balance is reset to zero.
 
-- **`performUpkeep(bytes calldata) external override`**
-  - Requests random numbers from Chainlink VRF if the draw conditions are met.
+5. **Prize Pool Reset**:
+   - After all agent commissions are paid out and the prize distribution is executed, the `prizePool` is reset to zero.
 
-- **`fulfillRandomWords(uint256, uint256[] memory _randomWords) internal override`**
-  - Callback function from Chainlink VRF. Receives random numbers, generates winning numbers, and distributes prizes.
+6. **Prize Claiming**:
+   - Players can claim their winnings based on their match count with the winning numbers. The exact method for calculating player prizes is not detailed in the provided code but generally involves matching player numbers with winning numbers.
 
-- **`distributePrizes() internal`**
-  - Distributes prizes to winning ticket holders and pays out commissions to agents.
+### Summary of Distribution Calculation
 
-- **`getMatchCount(uint8[] memory _chosenNumbers) internal view returns (uint8)`**
-  - Counts the number of matches between the chosen numbers and winning numbers.
+- **Gross Prize Money**: 43.35% of the `prizePool`
+- **Agent Commissions**: 8.61% of the `prizePool`
 
-- **`claimPrize() external nonReentrant`**
-  - Allows a player to claim their winnings.
+### Key Contract Functions Related to Prize Calculation
 
-- **`claimAgentCommission() external nonReentrant`**
-  - Allows an agent to claim their accumulated commission.
+**`distributePrizes()`**:
+   - Responsible for calculating and distributing the prize money and agent commissions based on the percentages defined.
+   - Resets the `prizePool` after distribution.
 
-- **`updateTicketPriceUSD(uint256 _newPriceUSD) external onlyRole(UPDATER_ROLE)`**
-  - Updates the ticket price in USD. Restricted to users with the `UPDATER_ROLE`.
+**`fulfillRandomWords(uint256, uint256[] memory _randomWords)`**:
+   - Called by Chainlink VRF Coordinator when random numbers are ready. The winning numbers are generated from the random words.
 
-- **`withdrawFunds(uint256 _amount) external onlyRole(ADMIN_ROLE) nonReentrant`**
-  - Allows an admin to withdraw funds from the contract. Restricted to users with the `ADMIN_ROLE`.
+### Additional Details
 
-- **`grantRole(bytes32 role, address account) public onlyOwner`**
-  - Grants a role to an account. Restricted to the contract owner.
+- The actual allocation of player prizes is not explicitly detailed in the `distributePrizes()` function in the provided code. Typically, player prizes are determined based on the number of matching numbers between the player's ticket and the winning numbers, but this logic would need to be implemented or referenced from the complete contract.
 
-- **`revokeRole(bytes32 role, address account) public onlyOwner`**
-  - Revokes a role from an account. Restricted to the contract owner.
-
-- **`safeTransfer(IERC20 token, address to, uint256 amount) internal`**
-  - Safely transfers tokens from the contract to a specified address.
-
-- **`safeTransferFrom(IERC20 token, address from, address to, uint256 amount) internal`**
-  - Safely transfers tokens from one address to the contract.
-
-### Usage
-
-1. **Ticket Purchase:**
-   - Users can purchase lottery tickets by calling `purchaseTicket` with their chosen numbers and optionally specifying an agent.
-
-2. **Lottery Draw:**
-   - Chainlink Keepers automatically trigger draws at regular intervals. Chainlink VRF ensures randomness in selecting winning numbers.
-
-3. **Claiming Prizes:**
-   - Winners can claim their prizes by calling `claimPrize`, while agents can claim their commissions via `claimAgentCommission`.
-
-4. **Role Management:**
-   - The contract owner can grant or revoke roles and manage ticket prices.
-
-5. **Fund Management:**
-   - Admins can withdraw funds from the contract as needed.
-
-### Security Considerations
-
-- **Reentrancy Protection:**
-  - The contract uses `ReentrancyGuard` to protect against reentrant attacks.
-
-- **Access Control:**
-  - The `AccessControl` and `Ownable` mechanisms ensure that only authorized users can perform sensitive operations.
-
-- **Chainlink VRF:**
-  - Chainlink VRF provides verifiable randomness, which is crucial for ensuring fairness in lottery draws.
-
-- **Token Handling:**
-  - The contract uses safe transfer functions to handle ERC20 tokens, reducing the risk of failed transfers or malicious attacks.
-
-This documentation provides a comprehensive overview of the `CryptoDraw` contract, covering its functionality, usage, and security considerations.
+- Ensure that all percentages and distributions comply with the intended business rules and legal requirements for lottery or raffle systems in the relevant jurisdiction.

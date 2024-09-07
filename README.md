@@ -1,111 +1,196 @@
-# CryptoDraw [![CI/CD Harmony](https://github.com/Axodus/CryptoDraw/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/Axodus/CryptoDraw/actions/workflows/ci-cd.yml)
+# **CryptoDraw: Revolutionizing Lottery with Blockchain Technology** [![CI/CD Harmony](https://github.com/Axodus/CryptoDraw/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/Axodus/CryptoDraw/actions/workflows/ci-cd.yml)
 
-CryptoDraw is a decentralized, blockchain-powered lottery game that offers participants a fair, transparent, and exciting way to win substantial rewards. Built on Ethereum-compatible networks, CryptoDraw uses smart contracts and Chainlink's Verifiable Random Function (VRF) to ensure the integrity of each draw.
+### **1. Introduction**
 
-## Game Overview
+#### **What is CryptoDraw?**
 
-CryptoDraw is a strategic lottery game where players select a set of numbers in hopes of matching them with the randomly drawn winning numbers. The game is designed to reward both jackpot winners and those who come close, with multiple prize tiers ensuring that even near misses are recognized.
+CryptoDraw is a blockchain-based lottery system integrating Chainlink VRF for fair and verifiable random number generation and Chainlink Keepers for automated draw scheduling. It leverages ERC20 tokens for transactions and a custom NFT contract for ticket management.
 
-### How to Play
+---
 
-1. **Select Your Numbers**: Choose between 15 and 20 numbers from a pool of 25 possible numbers.
-2. **Purchase a Ticket**: The ticket price is dynamically calculated based on the number of chosen numbers. The base price is (tbd) token per ticket.
-3. **Wait for the Draw**: Draws occur every 4 days, and the winning numbers are generated using Chainlink VRF.
-4. **Match to Win**: Your ticket is evaluated based on how many of your chosen numbers match the winning numbers.
-5. **Claim Your Prize**: If your numbers match enough of the winning numbers, you can claim your prize directly from the smart contract.
+### **2. Key Features**
 
-### Strategic Considerations
+#### **Blockchain Integration**
 
-- **Number Selection**: Selecting more numbers increases your chances of winning but also increases the ticket cost. Choose wisely to balance cost and potential rewards.
-- **Timing**: With draws occurring every 4 days, timing your ticket purchase can be crucial, especially as the prize pool grows.
-- **Agent Sales**: Agents who sell tickets receive commissions, with additional bonuses for electronic sales, incentivizing widespread ticket distribution.
+- **Chainlink VRF**: Ensures transparent and tamper-proof random number generation.
+- **Chainlink Keepers**: Automates the lottery draw process, reducing manual intervention.
 
-## Prize Breakdown
+#### **ERC20 Token Usage**
 
-CryptoDraw offers a tiered prize structure, ensuring rewards across multiple levels of matching numbers. The prize pool is distributed as follows:
+- **Native Token**: Utilizes ERC20 tokens for purchasing tickets and handling transactions.
 
-### Arrecadation split
-**Numerical Prognostics** | **Percentage**
---- | ---
-Gross Prize | 43.35%
-Lottery Agents' Commission* | 8.61%
-Lottery Development Fund (FDL) | 1.95%
-Operational Expense Costs | 9.57%
-Chain Health Investment Program | 24.96%
-Grant Fund | 7.72%
-Operation Fund (accumulate to final 0 draw) | 4.93%
-**Total** | **100%**
+#### **NFT Tickets**
 
-### Prize Tiers
+- **TicketNFT**: Each ticket is minted as an NFT, providing unique ownership and traceability.
 
-- **Jackpot (15 Matches)**: 75% of the total Gross prize pool is allocated to jackpot winners.
-- **14 Matches**: 14% of the prize pool.
-- **13 Matches**: 5% of the prize pool.
-- **12 Matches**: 3% of the prize pool.
-- **11 Matches**: 2% of the prize pool.
+#### **Agent System**
 
-### Chances of win (1 in:)* 
-**Probability**
+- **Registered Agents**: Agents can sell tickets and earn commissions.
+- **Commission Structure**: Agents receive 8.61% of the ticket price as commission.
 
-| Prize Tiers | Simple Bets | | | | | |
-| --- | --- | --- | --- | --- | --- | --- |
-|  | 15 Numbers (1 bet) | 16 Numbers (16 bets) | 17 Numbers (136 bets) | 18 Numbers (816 bets) | 19 Numbers (3,876 bets) | 20 Numbers (15,504 bets) |
-| **15 Matches** | 3,268,760 | 204,298 | 24,035 | 4,006 | 843 | 211 |
-| **14 Matches** | 21,792 | 3,027 | 601 | 153 | 47 | 17 |
-| **13 Matches** | 692 | 162 | 49 | 18 | 8 | 4.2 |
-| **12 Matches** | 60 | 21 | 9 | 5 | 3.2 | 2.6 |
-| **11 Matches** | 11 | 6 | 4 | 3 | 2.9 | 3.9 |
-| **PRICE TO PAY** | 1 x $3.00 = $3.00 | 16 x $3.00 = $48.00 | 136 x $3.00 = $408.00 | 816 x $3.00 = $2,448.00 | 3,876 x $3.00 = $11,628.00 | 15,504 x $3.00 = $46,512.00 |
+### Game Overview
 
-*note: Example considering ticket at price $3 usd worth
+CryptoDraw is an innovative blockchain-based lottery system that combines the transparency and security of blockchain technology with the excitement of traditional lottery games. At its core, CryptoDraw utilizes Chainlink’s Verifiable Random Function (VRF) to ensure that every draw is conducted with absolute fairness and randomness. This integration guarantees that all participants have an equal chance of winning, with no possibility of tampering or manipulation.
 
-### Additional Fund Allocations
+Participants engage in the game by purchasing tickets using native ERC20 tokens. These tokens serve as the currency within the CryptoDraw ecosystem, facilitating all transactions. To buy a ticket, players select a set of numbers and make a payment in native tokens equivalent to the ticket price, which is determined based on the USD value converted to the native token. Upon successful payment, a unique NFT is minted for each ticket, recording the chosen numbers and confirming the player's entry into the draw.
 
-- **Agent Commissions**: 8.61% of the total prize pool goes to agents.
-- **Chain Health Investment**: 24.96% of the prize pool is reserved for long-term sustainability and growth of the blockchain network.
-- **Operational Expenses**: 9.57% is allocated to covering operational costs.
-- **Grant Fund**: 7.72% is set aside for future project grants.
-- **Lottery Development Fund (FDL)**: 0.95% is allocated to ongoing development and improvements.
+The draw itself is managed automatically through Chainlink Keepers, which ensure that draws occur at regular intervals, such as every four days. Winning numbers are generated through Chainlink VRF, providing a verifiable and transparent method of determining the outcomes. This random number generation process is crucial for maintaining the integrity and fairness of the game.
 
-### Prize Distribution Example
+After the draw, the winning numbers are announced, and players can check their tickets to see if their numbers match the winning combination. If a player’s numbers align with the winning numbers, they can claim their prize directly through the CryptoDraw platform. The prize money is distributed from the prize pool, which accumulates from ticket sales. A significant portion of the prize pool is allocated to player winnings, while a percentage is set aside for agent commissions. Agents, who facilitate ticket sales, receive commissions based on their performance, ensuring their engagement and motivation.
 
-For example, if the total prize pool is 1,000,000 tokens:
+CryptoDraw’s design ensures a high level of security and transparency. The use of blockchain technology for ticket issuance and prize distribution minimizes risks and provides a clear, immutable record of all transactions. Players and agents can track their activities and earnings, fostering trust in the system. By integrating advanced technologies and adhering to rigorous security standards, CryptoDraw offers a modern and exciting lottery experience that aligns with the principles of fairness and transparency.
+---
 
-- **Jackpot Winners (15 Matches)**: 750,000 tokens are shared among those who match all 15 numbers.
-- **14 Matches**: 140,000 tokens are shared among those who match 14 numbers.
-- **13 Matches**: 50,000 tokens are shared among those who match 13 numbers.
-- **12 Matches**: 30,000 tokens are shared among those who match 12 numbers.
-- **11 Matches**: 20,000 tokens are shared among those who match 11 numbers.
+### **3. How It Works**
 
-## Key Features
+#### **Ticket Purchase**
 
-- **Chainlink VRF**: Ensures that the number selection is provably fair and cannot be tampered with.
-- **Decentralized**: All transactions and processes are conducted on-chain, providing transparency and security.
-- **Dynamic Ticket Pricing**: The cost of participation scales with the number of selected numbers, offering strategic depth.
+- **Ticket Price**: Determined in USD and converted to the native ERC20 token.
+- **Agent Role**: Players must choose a registered agent to purchase tickets.
+- **Ticket Pricing Example**:
+  - **USD Ticket Price**: $1 (1 * 10^18 in USD)
+  - **Conversion**: Ticket price in native token is dynamically calculated based on Chainlink Price Feed.
 
-## Technical Overview
+#### **Draw Process**
 
-CryptoDraw is implemented in Solidity and deployed on Ethereum-compatible networks. Key technologies include:
+- **Draw Interval**: Set at 4 days (adjustable).
+- **Random Number Generation**: Conducted by Chainlink VRF.
+- **Winning Numbers**: Generated and verified for fairness.
 
-- **Solidity**: For smart contract development.
-- **Chainlink VRF**: For verifiable random number generation.
-- **OpenZeppelin Contracts**: Providing secure token and access control implementations.
-- **Hardhat**: For local development, testing, and deployment of the smart contracts.
+#### **Prize Distribution**
 
-## Deployment
+- **Gross Prize Pool**: 43.35% of the prize pool is allocated for player prizes.
+- **Agent Commissions**: 8.61% of the prize pool is distributed to agents.
+- **Example Breakdown**:
+  - **Total Prize Pool**: $100,000
+  - **Gross Prize Pool**: $43,350
+  - **Agent Commissions**: $8,610
 
-CryptoDraw can be deployed on various EVM-compatible networks, including:
+### Interesting in be an Agent
+Becoming an agent in the CryptoDraw lottery system involves a few key steps designed to ensure that only qualified individuals or entities participate in the ticket sales process. Here’s a comprehensive guide on how to become an agent:
 
-- Ethereum Mainnet
-- Sepolia
-- Harmony
-- Binance Smart Chain (BSC)
-- opBNB
+### **Understanding the Role**
 
-## Contributing
+Before applying to become an agent, it’s important to understand the responsibilities and benefits associated with the role. Agents are responsible for selling lottery tickets and earning commissions from those sales. They must adhere to the rules and policies set by CryptoDraw to maintain their status and ensure fair play.
 
-We welcome contributions to the CryptoDraw project. Please submit issues or pull requests to suggest improvements or report bugs.
+### **Meeting Requirements**
 
-## License
+There are certain requirements that potential agents must meet:
 
-CryptoDraw is open-source and available under the MIT License.
+- **Eligibility**: Ensure you meet the basic eligibility criteria set by CryptoDraw. This may include geographic restrictions, financial stability, and legal compliance.
+- **Reputation**: Maintain a good reputation and ethical standing, as the role requires trustworthiness and integrity.
+
+### **Application Process**
+
+To apply to become an agent, follow these steps:
+
+- **Contact CryptoDraw**: Reach out to CryptoDraw’s administration or support team. This can typically be done through their official website or contact channels provided.
+- **Submit Application**: Provide the necessary details and documentation as required by CryptoDraw. This may include personal identification, business credentials (if applicable), and a brief on how you plan to operate as an agent.
+- **Review and Approval**: CryptoDraw will review your application to ensure compliance with their standards and policies. If approved, you will receive official confirmation and any additional information required to start.
+
+### **Training and Onboarding**
+
+Once approved, you may undergo training or onboarding to familiarize yourself with the CryptoDraw system:
+
+- **System Overview**: Learn about the CryptoDraw platform, ticketing process, and commission structure.
+- **Compliance**: Understand the rules and regulations, including how to handle transactions and manage ticket sales.
+- **Technical Setup**: If necessary, set up the required technical infrastructure to sell tickets and interact with the CryptoDraw system.
+
+### **Start Selling Tickets**
+
+After completing the onboarding process, you can start selling tickets:
+
+- **Promote**: Market your services to potential players. Ensure that you provide accurate information about the lottery and adhere to all advertising guidelines.
+- **Manage Sales**: Handle ticket sales through the designated channels. Ensure all transactions are recorded properly and comply with CryptoDraw’s protocols.
+- **Track Commissions**: Monitor your sales and track commissions earned. Use the provided tools or dashboard to keep track of your performance.
+
+### **Maintain Status**
+
+To maintain your status as an agent:
+
+- **Adhere to Policies**: Follow all CryptoDraw policies and regulations. This includes not engaging in fraudulent activities and treating players fairly.
+- **Regular Updates**: Stay updated with any changes in rules or processes. Participate in periodic reviews or re-certifications if required.
+- **Maintain Integrity**: Ensure your conduct remains professional and transparent, as CryptoDraw values trust and ethical behavior.
+
+By following these steps, you can successfully become an agent in the CryptoDraw system and start participating in the dynamic and exciting world of blockchain-based lotteries.
+
+---
+
+### **4. Policy and Security**
+
+#### **Access Control**
+
+- **Role-Based Access**: Different roles (Admin, Updater) with specific permissions.
+- **Agent Management**: Ability to add, remove, suspend, or unsuspend agents.
+
+#### **Safety Features**
+
+- **Reentrancy Guard**: Prevents reentrancy attacks in critical functions like ticket purchase and prize claiming.
+- **Fund Management**: Secure transfer functions to prevent loss of funds.
+- **Prize Pool Reset**: Automatic reset after prize distribution to prevent misuse.
+
+#### **Compliance**
+
+- **Regulatory Compliance**: Ensure adherence to local lottery and gaming regulations.
+- **Transparency**: All transactions and prize distributions are recorded on the blockchain for full transparency.
+
+---
+
+### **5. User Experience**
+
+#### **For Players**
+
+- **Ticket Purchase**: Simple and intuitive process with secure transactions.
+- **Prize Claiming**: Easy claiming of winnings directly from the contract.
+- **Transparency**: Real-time updates on draws and prize distributions.
+
+#### **For Agents**
+
+- **Commission Tracking**: Clear visibility of earned commissions.
+- **Ticket Sales**: Ability to sell tickets and earn rewards.
+
+---
+
+### **6. Technical Breakdown**
+
+#### **Smart Contract Components**
+
+- **ERC20 Integration**: Handles token transactions.
+- **Chainlink VRF**: Ensures fairness in random number generation.
+- **Chainlink Keepers**: Automates draw execution.
+- **TicketNFT**: Manages ticket issuance and ownership.
+
+#### **Functionality Overview**
+
+- **Ticket Purchase**: Includes agent validation, ticket minting, and fee collection.
+- **Draw Execution**: Managed by Chainlink Keepers and VRF.
+- **Prize Distribution**: Automated calculations and fund transfers.
+
+---
+
+### **7. Roadmap and Future Plans**
+
+#### **Upcoming Features**
+
+- **Enhanced User Interface**: Improved dashboards for players and agents.
+- **Additional Security Measures**: Regular audits and upgrades.
+- **Expanded Agent Network**: More agents to enhance ticket sales and distribution.
+
+#### **Community Engagement**
+
+- **Feedback Channels**: Open lines for user and agent feedback.
+- **Incentives**: Rewards and promotions for active participants.
+
+---
+
+### **8. Conclusion**
+
+#### **Join the CryptoDraw Revolution**
+
+CryptoDraw brings a new level of fairness, transparency, and automation to the lottery experience. With blockchain technology, secure transactions, and a robust system for managing tickets and prizes, CryptoDraw is set to transform the world of lotteries.
+
+---
+
+### **9. Q&A**
+
+**Open the floor for questions from the audience to address any specific concerns or queries about the CryptoDraw system.**
