@@ -1,5 +1,5 @@
-# CryptoDraw
-[![CI/CD Harmony](https://github.com/Axodus/CryptoDraw/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/Axodus/CryptoDraw/actions/workflows/ci-cd.yml)
+# CryptoDraw [![CI/CD Harmony](https://github.com/Axodus/CryptoDraw/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/Axodus/CryptoDraw/actions/workflows/ci-cd.yml)
+
 CryptoDraw is a decentralized, blockchain-powered lottery game that offers participants a fair, transparent, and exciting way to win substantial rewards. Built on Ethereum-compatible networks, CryptoDraw uses smart contracts and Chainlink's Verifiable Random Function (VRF) to ensure the integrity of each draw.
 
 ## Game Overview
