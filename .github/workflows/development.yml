@@ -41,6 +41,9 @@ jobs:
       - name: Install Dependencies
         run: npm install
 
+      - name: Debug Network Input
+        run: echo "Network: ${{ github.event.inputs.network }}"
+
       - name: Set RPC URL
         id: set-rpc
         run: |
@@ -67,7 +70,7 @@ jobs:
               echo "RPC_URL=${{ secrets.RPC_URL_OPBNB_TESTNET }}" >> $GITHUB_ENV
               ;;
             *)
-              echo "Network not supported"
+              echo "Network '${{ github.event.inputs.network }}' not supported"
               exit 1
               ;;
           esac
@@ -98,10 +101,15 @@ jobs:
               echo "NATIVE_TOKEN=${{ secrets.NATIVE_TOKEN_OPBNB_TESTNET }}" >> $GITHUB_ENV
               ;;
             *)
-              echo "Network not supported"
+              echo "Network '${{ github.event.inputs.network }}' not supported"
               exit 1
               ;;
           esac
+      
+      - name: Debug Environment Variables
+        run: |
+          echo "RPC_URL=$RPC_URL"
+          echo "NATIVE_TOKEN=$NATIVE_TOKEN"
 
   test:
     name: Run Tests
