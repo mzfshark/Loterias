@@ -18,7 +18,6 @@ on:
           - sepolia
           - bsc_testnet
           - opBNB_testnet
-          # Add more networks if needed
 
 jobs:
   setup:
