@@ -37,6 +37,18 @@ jobs:
       - name: Install Dependencies
         run: npm install
 
+      - name: Debug Network Input
+        run: echo "Network: ${{ github.event.inputs.network }}"
+
+      - name: Ensure Network Value
+        run: |
+          if [ -z "${{ github.event.inputs.network }}" ]; then
+            echo "Network input is empty"
+            exit 1
+          else
+            echo "Network input is: ${{ github.event.inputs.network }}"
+          fi
+
       - name: Set RPC URL
         id: set-rpc
         run: |
@@ -74,7 +86,7 @@ jobs:
               exit 1
               ;;
           esac
-      
+
       - name: Debug Environment Variables
         run: |
           echo "RPC_URL=$RPC_URL"
