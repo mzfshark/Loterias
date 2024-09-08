@@ -1,41 +1,46 @@
 require('@nomiclabs/hardhat-ethers');
+require('@nomiclabs/hardhat-etherscan');
 require('dotenv').config();
 
+// Load environment variables
+const { RPC_URL_BSC, RPC_URL_BSC_TESTNET, RPC_URL_HARMONY, RPC_URL_OPBNB, RPC_URL_OPBNB_TESTNET, RPC_URL_SEPOLIA, DEPLOYER_PRIVATE_KEY } = process.env;
 
 module.exports = {
-  solidity: "0.8.7",
+  solidity: {
+    version: "0.8.7",
+    settings: {
+      optimizer: {
+        enabled: true,
+        runs: 200
+      }
+    }
+  },
   networks: {
-    hardhat: {},
-    // Add other networks here if needed
-    // e.g., ropsten: {
-    //   url: `https://ropsten.infura.io/v3/YOUR_INFURA_PROJECT_ID`,
-    //   accounts: [`0x${YOUR_PRIVATE_KEY}`]
-    // }
-    harmony: {
-      url: `https://api.harmony.one`,
-      chainId: 1666600000
-      //accounts: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
+    mainnet: {
+      url: RPC_URL_MAINNET,
     },
     sepolia: {
-      url: `https://sepolia.infura.io/v3/554262fab79f49adb4fdba2db2587800`,
-      chainId: 11155111
-    //  accounts: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
+      url: RPC_URL_SEPOLIA,
     },
-    /*bsc: {
-      url: `https://bsc-mainnet.infura.io/v3/554262fab79f49adb4fdba2db2587800`,
-      accounts: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
+    harmony: {
+      url: RPC_URL_HARMONY,
+    },
+    bsc: {
+      url: RPC_URL_BSC,
     },
     bsc_testnet: {
-      url: `https://bsc-testnet.infura.io/v3/554262fab79f49adb4fdba2db2587800`,
-      accounts: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
+      url: RPC_URL_BSC_TESTNET,
     },
     opBNB: {
-      url: `https://opbnb-mainnet.infura.io/v3/554262fab79f49adb4fdba2db2587800`,
-      accounts: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
+      url: RPC_URL_OPBNB,
     },
     opBNB_testnet: {
-      url: `https://opbnb-testnet.infura.io/v3/554262fab79f49adb4fdba2db2587800`,
-      accounts: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
-    },*/
+      url: RPC_URL_OPBNB_TESTNET,
+    }
   },
+  /*etherscan: {
+    apiKey: {
+      // Your etherscan API key if needed for verification
+    }
+  }*/
 };

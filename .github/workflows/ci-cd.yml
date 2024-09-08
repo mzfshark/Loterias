@@ -36,7 +36,7 @@ jobs:
       - name: Set Up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '20'  # Specify the Node.js version
+          node-version: '20'
 
       - name: Install Dependencies
         run: npm install
@@ -44,40 +44,64 @@ jobs:
       - name: Set RPC URL
         id: set-rpc
         run: |
-          if [ "${{ github.event.inputs.network }}" == "mainnet" ]; then
-            echo "RPC_URL=${{ secrets.RPC_URL_MAINNET }}" >> $GITHUB_ENV
-          elif [ "${{ github.event.inputs.network }}" == "sepolia" ]; then
-            echo "RPC_URL=${{ secrets.RPC_URL_SEPOLIA }}" >> $GITHUB_ENV
-          elif [ "${{ github.event.inputs.network }}" == "harmony" ]; then
-            echo "RPC_URL=${{ secrets.RPC_URL_HARMONY }}" >> $GITHUB_ENV
-          elif [ "${{ github.event.inputs.network }}" == "bsc" ]; then
-            echo "RPC_URL=${{ secrets.RPC_URL_BSC }}" >> $GITHUB_ENV
-          elif [ "${{ github.event.inputs.network }}" == "bsc_testnet" ]; then
-            echo "RPC_URL=${{ secrets.RPC_URL_BSC_TESTNET }}" >> $GITHUB_ENV
-          elif [ "${{ github.event.inputs.network }}" == "opBNB" ]; then
-            echo "RPC_URL=${{ secrets.RPC_URL_opBNB }}" >> $GITHUB_ENV
-          elif [ "${{ github.event.inputs.network }}" == "opBNB_testnet" ]; then
-            echo "RPC_URL=${{ secrets.RPC_URL_opBNB_TESTNET }}" >> $GITHUB_ENV
-          fi
+          case "${{ github.event.inputs.network }}" in
+            "mainnet")
+              echo "RPC_URL=${{ secrets.RPC_URL_MAINNET }}" >> $GITHUB_ENV
+              ;;
+            "sepolia")
+              echo "RPC_URL=${{ secrets.RPC_URL_SEPOLIA }}" >> $GITHUB_ENV
+              ;;
+            "harmony")
+              echo "RPC_URL=${{ secrets.RPC_URL_HARMONY }}" >> $GITHUB_ENV
+              ;;
+            "bsc")
+              echo "RPC_URL=${{ secrets.RPC_URL_BSC }}" >> $GITHUB_ENV
+              ;;
+            "bsc_testnet")
+              echo "RPC_URL=${{ secrets.RPC_URL_BSC_TESTNET }}" >> $GITHUB_ENV
+              ;;
+            "opBNB")
+              echo "RPC_URL=${{ secrets.RPC_URL_OPBNB }}" >> $GITHUB_ENV
+              ;;
+            "opBNB_testnet")
+              echo "RPC_URL=${{ secrets.RPC_URL_OPBNB_TESTNET }}" >> $GITHUB_ENV
+              ;;
+            *)
+              echo "Network not supported"
+              exit 1
+              ;;
+          esac
 
       - name: Set NATIVE_TOKEN
         id: set-native-token
         run: |
-          if [ "${{ github.event.inputs.network }}" == "mainnet" ]; then
-            echo "NATIVE_TOKEN=${{ secrets.NATIVE_TOKEN_MAINNET }}" >> $GITHUB_ENV
-          elif [ "${{ github.event.inputs.network }}" == "sepolia" ]; then
-            echo "NATIVE_TOKEN=${{ secrets.NATIVE_TOKEN_SEPOLIA }}" >> $GITHUB_ENV
-          elif [ "${{ github.event.inputs.network }}" == "harmony" ]; then
-            echo "NATIVE_TOKEN=${{ secrets.NATIVE_TOKEN_HARMONY }}" >> $GITHUB_ENV
-          elif [ "${{ github.event.inputs.network }}" == "bsc" ]; then
-            echo "NATIVE_TOKEN=${{ secrets.NATIVE_TOKEN_BSC }}" >> $GITHUB_ENV
-          elif [ "${{ github.event.inputs.network }}" == "bsc_testnet" ]; then
-            echo "NATIVE_TOKEN=${{ secrets.NATIVE_TOKEN_BSC_TESTNET }}" >> $GITHUB_ENV
-          elif [ "${{ github.event.inputs.network }}" == "opBNB" ]; then
-            echo "NATIVE_TOKEN=${{ secrets.NATIVE_TOKEN_opBNB }}" >> $GITHUB_ENV
-          elif [ "${{ github.event.inputs.network }}" == "opBNB_testnet" ]; then
-            echo "NATIVE_TOKEN=${{ secrets.NATIVE_TOKEN_opBNB_TESTNET }}" >> $GITHUB_ENV
-          fi
+          case "${{ github.event.inputs.network }}" in
+            "mainnet")
+              echo "NATIVE_TOKEN=${{ secrets.NATIVE_TOKEN_MAINNET }}" >> $GITHUB_ENV
+              ;;
+            "sepolia")
+              echo "NATIVE_TOKEN=${{ secrets.NATIVE_TOKEN_SEPOLIA }}" >> $GITHUB_ENV
+              ;;
+            "harmony")
+              echo "NATIVE_TOKEN=${{ secrets.NATIVE_TOKEN_HARMONY }}" >> $GITHUB_ENV
+              ;;
+            "bsc")
+              echo "NATIVE_TOKEN=${{ secrets.NATIVE_TOKEN_BSC }}" >> $GITHUB_ENV
+              ;;
+            "bsc_testnet")
+              echo "NATIVE_TOKEN=${{ secrets.NATIVE_TOKEN_BSC_TESTNET }}" >> $GITHUB_ENV
+              ;;
+            "opBNB")
+              echo "NATIVE_TOKEN=${{ secrets.NATIVE_TOKEN_OPBNB }}" >> $GITHUB_ENV
+              ;;
+            "opBNB_testnet")
+              echo "NATIVE_TOKEN=${{ secrets.NATIVE_TOKEN_OPBNB_TESTNET }}" >> $GITHUB_ENV
+              ;;
+            *)
+              echo "Network not supported"
+              exit 1
+              ;;
+          esac
 
   test:
     name: Run Tests
@@ -91,7 +115,7 @@ jobs:
       - name: Set Up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '20'  # Specify the Node.js version
+          node-version: '20'
 
       - name: Install Dependencies
         run: npm install
@@ -111,7 +135,7 @@ jobs:
       - name: Set Up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '20'  # Specify the Node.js version
+          node-version: '20'
 
       - name: Install Dependencies
         run: npm install
