@@ -1,12 +1,12 @@
-name: CI/CD CryptoDraw
+name: CI/CD CryptoDraw Development
 
 on:
   push:
     branches:
-      - main
+      - develop
   pull_request:
     branches:
-      - main
+      - develop
   workflow_dispatch:
     inputs:
       network:
