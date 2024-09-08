@@ -15,12 +15,8 @@ on:
         default: 'sepolia'
         type: choice
         options:
-          - mainnet
           - sepolia
-          - harmony
-          - bsc
           - bsc_testnet
-          - opBNB
           - opBNB_testnet
           # Add more networks if needed
 
@@ -41,27 +37,15 @@ jobs:
       - name: Install Dependencies
         run: npm install
 
-      - name: Set RPC URL
+      - name: Set RPC_URL
         id: set-rpc
         run: |
           case "${{ github.event.inputs.network }}" in
-            "mainnet")
-              echo "RPC_URL=${{ secrets.RPC_URL_MAINNET }}" >> $GITHUB_ENV
-              ;;
             "sepolia")
               echo "RPC_URL=${{ secrets.RPC_URL_SEPOLIA }}" >> $GITHUB_ENV
               ;;
-            "harmony")
-              echo "RPC_URL=${{ secrets.RPC_URL_HARMONY }}" >> $GITHUB_ENV
-              ;;
-            "bsc")
-              echo "RPC_URL=${{ secrets.RPC_URL_BSC }}" >> $GITHUB_ENV
-              ;;
             "bsc_testnet")
               echo "RPC_URL=${{ secrets.RPC_URL_BSC_TESTNET }}" >> $GITHUB_ENV
-              ;;
-            "opBNB")
-              echo "RPC_URL=${{ secrets.RPC_URL_OPBNB }}" >> $GITHUB_ENV
               ;;
             "opBNB_testnet")
               echo "RPC_URL=${{ secrets.RPC_URL_OPBNB_TESTNET }}" >> $GITHUB_ENV
@@ -76,23 +60,11 @@ jobs:
         id: set-native-token
         run: |
           case "${{ github.event.inputs.network }}" in
-            "mainnet")
-              echo "NATIVE_TOKEN=${{ secrets.NATIVE_TOKEN_MAINNET }}" >> $GITHUB_ENV
-              ;;
             "sepolia")
               echo "NATIVE_TOKEN=${{ secrets.NATIVE_TOKEN_SEPOLIA }}" >> $GITHUB_ENV
               ;;
-            "harmony")
-              echo "NATIVE_TOKEN=${{ secrets.NATIVE_TOKEN_HARMONY }}" >> $GITHUB_ENV
-              ;;
-            "bsc")
-              echo "NATIVE_TOKEN=${{ secrets.NATIVE_TOKEN_BSC }}" >> $GITHUB_ENV
-              ;;
             "bsc_testnet")
               echo "NATIVE_TOKEN=${{ secrets.NATIVE_TOKEN_BSC_TESTNET }}" >> $GITHUB_ENV
-              ;;
-            "opBNB")
-              echo "NATIVE_TOKEN=${{ secrets.NATIVE_TOKEN_OPBNB }}" >> $GITHUB_ENV
               ;;
             "opBNB_testnet")
               echo "NATIVE_TOKEN=${{ secrets.NATIVE_TOKEN_OPBNB_TESTNET }}" >> $GITHUB_ENV
