@@ -122,18 +122,32 @@ contract CryptoDraw is VRFConsumerBaseV2, Ownable, KeeperCompatibleInterface, Re
         uint256 ticketCost = ticketPriceInNativeToken * (_chosenNumbers.length - minNumbers + 1);
         safeTransferFrom(nativeTokenAddress, msg.sender, address(this), ticketCost);
 
-        uint256 ticketId = tickets.length; // Use the length of the tickets array as a unique ticket ID
-
-        tickets.push(Ticket(msg.sender, _chosenNumbers, _agent, currentDrawRound, ticketId));
-        prizePool += ticketCost;
-
         uint256 commission = ticketCost * 861 / 10000;
+        uint256 amountForPrizePool = ticketCost * 4335 / 10000;
+        uint256 amountForProjectFund = ticketCost * 2000 / 10000;
+        uint256 amountForGrantFund = ticketCost * 1000 / 10000;
+        uint256 amountForOperationFund = ticketCost * 1804 / 10000;
+
+        // Transfer funds to respective wallets
+        safeTransfer(nativeTokenAddress, projectFund, amountForProjectFund);
+        safeTransfer(nativeTokenAddress, grantFund, amountForGrantFund);
+        safeTransfer(nativeTokenAddress, operationFund, amountForOperationFund);
+
+        // Update prize pool
+        prizePool += amountForPrizePool;
+
+        // Distribute agent commission
         if (_agent != address(0) && !agentSuspended[_agent]) {
             agentCommissions[_agent] += commission;
         }
 
+        uint256 ticketId = tickets.length; // Use the length of the tickets array as a unique ticket ID
+
+        tickets.push(Ticket(msg.sender, _chosenNumbers, _agent, currentDrawRound, ticketId));
+
         emit TicketPurchased(msg.sender, _chosenNumbers, _agent);
     }
+
 
     function getTicketPriceInNativeToken() public view returns (uint256) {
         (, int256 price, , ,) = priceFeed.latestRoundData();
@@ -180,8 +194,9 @@ contract CryptoDraw is VRFConsumerBaseV2, Ownable, KeeperCompatibleInterface, Re
     }
 
     function distributePrizes() internal {
-        uint256 grossPrize = (prizePool * 4335) / 10000;
+        uint256 grossPrize = prizePool;
 
+        // Distribute commissions to agents
         for (uint256 i = 0; i < tickets.length; i++) {
             if (tickets[i].agent != address(0) && !agentSuspended[tickets[i].agent]) {
                 uint256 commission = agentCommissions[tickets[i].agent];
@@ -191,16 +206,63 @@ contract CryptoDraw is VRFConsumerBaseV2, Ownable, KeeperCompatibleInterface, Re
                     emit AgentCommissionPaid(tickets[i].agent, commission);
                 }
             }
+        }
 
+        // Calculate prize distribution
+        uint256;
+        uint256 jackpotPrize = grossPrize * 50 / 100; // 50% of grossPrize
+        uint256 prize14 = grossPrize * 20 / 100;     // 20% of grossPrize
+        uint256 prize13 = grossPrize * 15 / 100;     // 15% of grossPrize
+        uint256 prize12 = grossPrize * 10 / 100;     // 10% of grossPrize
+        uint256 prize11 = grossPrize * 5 / 100;      // 5% of grossPrize
+
+        prizes[0] = jackpotPrize;
+        prizes[1] = prize14;
+        prizes[2] = prize13;
+        prizes[3] = prize12;
+        prizes[4] = prize11;
+
+        // Check for winners and distribute prizes
+        uint256 totalWinners = 0;
+        uint256 jackpotCount = 0;
+
+        for (uint256 i = 0; i < tickets.length; i++) {
             uint8 matchCount = getMatchCount(tickets[i].chosenNumbers);
             if (matchCount >= minNumbers) {
-                uint256 prizeAmount = grossPrize / tickets.length;
-                winnings[tickets[i].player] += prizeAmount;
+                uint256 prizeAmount = 0;
+                if (matchCount == 15) {
+                    prizeAmount = prizes[0];
+                    jackpotCount++;
+                } else if (matchCount == 14) {
+                    prizeAmount = prizes[1];
+                } else if (matchCount == 13) {
+                    prizeAmount = prizes[2];
+                } else if (matchCount == 12) {
+                    prizeAmount = prizes[3];
+                } else if (matchCount == 11) {
+                    prizeAmount = prizes[4];
+                }
+
+                if (prizeAmount > 0) {
+                    totalWinners++;
+                    winnings[tickets[i].player] += prizeAmount;
+                }
             }
         }
 
-        prizePool = 0;
+        // Accumulate jackpot if no jackpot winner
+        if (jackpotCount == 0) {
+            prizePool += jackpotPrize;
+        } else {
+            prizePool = 0;
+        }
+
+        // Reset prize amounts
+        for (uint8 i = 0; i < 5; i++) {
+            prizes[i] = 0;
+        }
     }
+
 
     function getMatchCount(uint8[] memory _chosenNumbers) internal view returns (uint8) {
         uint8 matchCount = 0;
