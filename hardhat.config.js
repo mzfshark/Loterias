@@ -17,25 +17,18 @@ module.exports = {
   },
   networks: {
     mainnet: {
-      url: RPC_URL_MAINNET,
     },
     sepolia: {
-      url: RPC_URL_SEPOLIA,
     },
     harmony: {
-      url: RPC_URL_HARMONY,
     },
     bsc: {
-      url: RPC_URL_BSC,
     },
     bsc_testnet: {
-      url: RPC_URL_BSC_TESTNET,
     },
     opBNB: {
-      url: RPC_URL_OPBNB,
     },
     opBNB_testnet: {
-      url: RPC_URL_OPBNB_TESTNET,
     }
   },
   /*etherscan: {
