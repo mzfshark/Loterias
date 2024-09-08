@@ -10,6 +10,8 @@ contract TicketNFT is ERC721, Ownable, ERC721Burnable {
     using Counters for Counters.Counter;
     Counters.Counter private _tokenIdCounter;
 
+    address public cryptoDrawAddress;
+
     struct Ticket {
         address player;
         uint8[] chosenNumbers;
@@ -18,7 +20,16 @@ contract TicketNFT is ERC721, Ownable, ERC721Burnable {
 
     mapping(uint256 => Ticket) private _tickets;
 
-    constructor() ERC721("TicketNFT", "TICKET") {}
+    constructor() ERC721("TicketNFT", "TNFT") {}
+
+    function setCryptoDrawAddress(address _cryptoDrawAddress) external onlyOwner {
+        cryptoDrawAddress = _cryptoDrawAddress;
+    }
+
+    function burn(uint256 tokenId) public override {
+        require(msg.sender == cryptoDrawAddress, "Only CryptoDraw contract can burn tokens");
+        super.burn(tokenId);
+    }
 
     function mint(address to, uint8[] memory _chosenNumbers, uint256 _drawRound) external onlyOwner returns (uint256) {
         uint256 tokenId = _tokenIdCounter.current();

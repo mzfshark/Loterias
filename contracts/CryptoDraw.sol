@@ -10,11 +10,16 @@ import "@chainlink/contracts/src/v0.8/automation/interfaces/KeeperCompatibleInte
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@chainlink/contracts/src/v0.8/shared/interfaces/AggregatorV3Interface.sol";
 
+interface ITicketNFT {
+    function burn(uint256 tokenId) external;
+}
+
 contract CryptoDraw is VRFConsumerBaseV2, Ownable, KeeperCompatibleInterface, ReentrancyGuard, AccessControl {
     bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
     bytes32 public constant UPDATER_ROLE = keccak256("UPDATER_ROLE");
 
     IERC20 public nativeTokenAddress;
+    ITicketNFT public ticketNFT; // Interface instance for the TicketNFT contract
     AggregatorV3Interface public priceFeed;
     uint256 public ticketPriceUSD = 1 * 10 ** 18;
     uint8 public totalNumbers = 25;
@@ -46,6 +51,7 @@ contract CryptoDraw is VRFConsumerBaseV2, Ownable, KeeperCompatibleInterface, Re
         uint8[] chosenNumbers;
         address agent;
         uint256 drawRound;
+        uint256 ticketId;
     }
 
     Ticket[] public tickets;
@@ -65,6 +71,7 @@ contract CryptoDraw is VRFConsumerBaseV2, Ownable, KeeperCompatibleInterface, Re
 
     constructor(
         address _nativeTokenAddress,
+        address _ticketNFTAddress,
         address _vrfCoordinator,
         bytes32 _keyHash,
         uint64 _subscriptionId,
@@ -76,6 +83,7 @@ contract CryptoDraw is VRFConsumerBaseV2, Ownable, KeeperCompatibleInterface, Re
         VRFConsumerBaseV2(_vrfCoordinator)
     {
         nativeTokenAddress = IERC20(_nativeTokenAddress);
+        ticketNFT = ITicketNFT(_ticketNFTAddress); // Set the TicketNFT contract address
         COORDINATOR = VRFCoordinatorV2Interface(_vrfCoordinator);
         priceFeed = AggregatorV3Interface(_priceFeedAddress);
         lastDrawTime = block.timestamp;
@@ -114,7 +122,9 @@ contract CryptoDraw is VRFConsumerBaseV2, Ownable, KeeperCompatibleInterface, Re
         uint256 ticketCost = ticketPriceInNativeToken * (_chosenNumbers.length - minNumbers + 1);
         safeTransferFrom(nativeTokenAddress, msg.sender, address(this), ticketCost);
 
-        tickets.push(Ticket(msg.sender, _chosenNumbers, _agent, currentDrawRound));
+        uint256 ticketId = tickets.length; // Use the length of the tickets array as a unique ticket ID
+
+        tickets.push(Ticket(msg.sender, _chosenNumbers, _agent, currentDrawRound, ticketId));
         prizePool += ticketCost;
 
         uint256 commission = ticketCost * 861 / 10000;
@@ -187,10 +197,6 @@ contract CryptoDraw is VRFConsumerBaseV2, Ownable, KeeperCompatibleInterface, Re
             if (matchCount >= minNumbers) {
                 uint256 prizeAmount = grossPrize / tickets.length;
                 winnings[tickets[i].player] += prizeAmount;
-
-                // Burn the NFT here
-                // Assuming a function `burnNFT` exists in the TicketNFT contract
-                // ticketNFT.burn(ticketId); 
             }
         }
 
@@ -219,19 +225,16 @@ contract CryptoDraw is VRFConsumerBaseV2, Ownable, KeeperCompatibleInterface, Re
         require(amount > 0, "No winnings to claim.");
 
         winnings[msg.sender] = 0;
-        safeTransfer(nativeTokenAddress, msg.sender, amount);
 
+        // Burn the NFTs of winning tickets for the caller
+        for (uint256 i = 0; i < tickets.length; i++) {
+            if (tickets[i].player == msg.sender && tickets[i].drawRound == currentDrawRound - 1) {
+                ticketNFT.burn(tickets[i].ticketId);
+            }
+        }
+
+        safeTransfer(nativeTokenAddress, msg.sender, amount);
         emit PrizeClaimed(msg.sender, amount);
-    }
-
-    function claimAgentCommission() external nonReentrant whenNotPaused {
-        uint256 amount = agentCommissions[msg.sender];
-        require(amount > 0, "No commission to claim.");
-
-        agentCommissions[msg.sender] = 0;
-        safeTransfer(nativeTokenAddress, msg.sender, amount);
-
-        emit AgentCommissionPaid(msg.sender, amount);
     }
 
     function pause() external onlyRole(ADMIN_ROLE) {
@@ -248,36 +251,32 @@ contract CryptoDraw is VRFConsumerBaseV2, Ownable, KeeperCompatibleInterface, Re
         return lastDrawTime + drawInterval;
     }
 
-    function setDrawInterval(uint256 _drawInterval) external onlyRole(ADMIN_ROLE) {
-        drawInterval = _drawInterval;
+    function safeTransfer(IERC20 _token, address _to, uint256 _amount) internal {
+        bool sent = _token.transfer(_to, _amount);
+        require(sent, "Token transfer failed.");
     }
 
-    function setTicketPriceUSD(uint256 _ticketPriceUSD) external onlyRole(ADMIN_ROLE) {
-        ticketPriceUSD = _ticketPriceUSD;
+    function safeTransferFrom(IERC20 _token, address _from, address _to, uint256 _amount) internal {
+        bool sent = _token.transferFrom(_from, _to, _amount);
+        require(sent, "Token transfer failed.");
+    }
+
+    function setTicketNFT(address _ticketNFTAddress) external onlyRole(ADMIN_ROLE) {
+        ticketNFT = ITicketNFT(_ticketNFTAddress);
     }
 
     function addAgent(address _agent) external onlyRole(ADMIN_ROLE) {
+        require(_agent != address(0), "Invalid agent address");
         agents[_agent] = true;
     }
 
     function removeAgent(address _agent) external onlyRole(ADMIN_ROLE) {
+        require(agents[_agent], "Agent does not exist");
         agents[_agent] = false;
-        agentSuspended[_agent] = false; // Unsuspend if currently suspended
     }
 
-    function suspendAgent(address _agent) external onlyRole(ADMIN_ROLE) {
-        agentSuspended[_agent] = true;
-    }
-
-    function unsuspendAgent(address _agent) external onlyRole(ADMIN_ROLE) {
-        agentSuspended[_agent] = false;
-    }
-
-    function safeTransfer(IERC20 token, address to, uint256 amount) internal {
-        require(token.transfer(to, amount), "Transfer failed");
-    }
-
-    function safeTransferFrom(IERC20 token, address from, address to, uint256 amount) internal {
-        require(token.transferFrom(from, to, amount), "TransferFrom failed");
+    function setDrawInterval(uint256 _drawInterval) external onlyRole(ADMIN_ROLE) {
+        require(_drawInterval > 0, "Invalid interval");
+        drawInterval = _drawInterval;
     }
 }
