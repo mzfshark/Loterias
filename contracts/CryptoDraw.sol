@@ -181,7 +181,6 @@ contract CryptoDraw is VRFConsumerBaseV2, Ownable, KeeperCompatibleInterface, Re
 
     function distributePrizes() internal {
         uint256 grossPrize = (prizePool * 4335) / 10000;
-        uint256 agentsCommissionTotal = (prizePool * 861) / 10000;
 
         for (uint256 i = 0; i < tickets.length; i++) {
             if (tickets[i].agent != address(0) && !agentSuspended[tickets[i].agent]) {
