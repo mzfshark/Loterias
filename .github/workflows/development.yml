@@ -41,9 +41,6 @@ jobs:
       - name: Install Dependencies
         run: npm install
 
-      - name: Debug Network Input
-        run: echo "Network: ${{ github.event.inputs.network }}"
-
       - name: Set RPC URL
         id: set-rpc
         run: |
