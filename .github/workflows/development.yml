@@ -37,9 +37,13 @@ jobs:
       - name: Install Dependencies
         run: npm install
 
-      - name: Set RPC_URL
+      - name: Debug Network Input
+        run: echo "Network: ${{ github.event.inputs.network }}"
+
+      - name: Set RPC URL
         id: set-rpc
         run: |
+          echo "Network Input: ${{ github.event.inputs.network }}"
           case "${{ github.event.inputs.network }}" in
             "sepolia")
               echo "RPC_URL=${{ secrets.RPC_URL_SEPOLIA }}" >> $GITHUB_ENV
@@ -59,6 +63,7 @@ jobs:
       - name: Set NATIVE_TOKEN
         id: set-native-token
         run: |
+          echo "Network Input: ${{ github.event.inputs.network }}"
           case "${{ github.event.inputs.network }}" in
             "sepolia")
               echo "NATIVE_TOKEN=${{ secrets.NATIVE_TOKEN_SEPOLIA }}" >> $GITHUB_ENV
