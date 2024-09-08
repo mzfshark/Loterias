@@ -152,4 +152,3 @@ jobs:
           OPERATION_FUND: ${{ secrets.OPERATION_FUND }}
           RPC_URL: ${{ env.RPC_URL }}
         run: npx hardhat run scripts/deploy.js --network ${{ github.event.inputs.network }}
-
