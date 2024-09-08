@@ -15,9 +15,14 @@ on:
         default: 'sepolia'
         type: choice
         options:
+          - mainnet
           - sepolia
+          - harmony
+          - bsc
           - bsc_testnet
+          - opBNB
           - opBNB_testnet
+          # Add more networks if needed
 
 jobs:
   setup:
@@ -36,33 +41,33 @@ jobs:
       - name: Install Dependencies
         run: npm install
 
-      - name: Debug Network Input
-        run: echo "Network: ${{ github.event.inputs.network }}"
-
-      - name: Ensure Network Value
-        run: |
-          if [ -z "${{ github.event.inputs.network }}" ]; then
-            echo "Network input is empty"
-            exit 1
-          else
-            echo "Network input is: ${{ github.event.inputs.network }}"
-          fi
-
       - name: Set RPC URL
         id: set-rpc
         run: |
           case "${{ github.event.inputs.network }}" in
+            "mainnet")
+              echo "RPC_URL=${{ secrets.RPC_URL_MAINNET }}" >> $GITHUB_ENV
+              ;;
             "sepolia")
               echo "RPC_URL=${{ secrets.RPC_URL_SEPOLIA }}" >> $GITHUB_ENV
               ;;
+            "harmony")
+              echo "RPC_URL=${{ secrets.RPC_URL_HARMONY }}" >> $GITHUB_ENV
+              ;;
+            "bsc")
+              echo "RPC_URL=${{ secrets.RPC_URL_BSC }}" >> $GITHUB_ENV
+              ;;
             "bsc_testnet")
               echo "RPC_URL=${{ secrets.RPC_URL_BSC_TESTNET }}" >> $GITHUB_ENV
+              ;;
+            "opBNB")
+              echo "RPC_URL=${{ secrets.RPC_URL_OPBNB }}" >> $GITHUB_ENV
               ;;
             "opBNB_testnet")
               echo "RPC_URL=${{ secrets.RPC_URL_OPBNB_TESTNET }}" >> $GITHUB_ENV
               ;;
             *)
-              echo "Network '${{ github.event.inputs.network }}' not supported"
+              echo "Network not supported"
               exit 1
               ;;
           esac
@@ -71,25 +76,32 @@ jobs:
         id: set-native-token
         run: |
           case "${{ github.event.inputs.network }}" in
+            "mainnet")
+              echo "NATIVE_TOKEN=${{ secrets.NATIVE_TOKEN_MAINNET }}" >> $GITHUB_ENV
+              ;;
             "sepolia")
               echo "NATIVE_TOKEN=${{ secrets.NATIVE_TOKEN_SEPOLIA }}" >> $GITHUB_ENV
               ;;
+            "harmony")
+              echo "NATIVE_TOKEN=${{ secrets.NATIVE_TOKEN_HARMONY }}" >> $GITHUB_ENV
+              ;;
+            "bsc")
+              echo "NATIVE_TOKEN=${{ secrets.NATIVE_TOKEN_BSC }}" >> $GITHUB_ENV
+              ;;
             "bsc_testnet")
               echo "NATIVE_TOKEN=${{ secrets.NATIVE_TOKEN_BSC_TESTNET }}" >> $GITHUB_ENV
+              ;;
+            "opBNB")
+              echo "NATIVE_TOKEN=${{ secrets.NATIVE_TOKEN_OPBNB }}" >> $GITHUB_ENV
               ;;
             "opBNB_testnet")
               echo "NATIVE_TOKEN=${{ secrets.NATIVE_TOKEN_OPBNB_TESTNET }}" >> $GITHUB_ENV
               ;;
             *)
-              echo "Network '${{ github.event.inputs.network }}' not supported"
+              echo "Network not supported"
               exit 1
               ;;
           esac
-
-      - name: Debug Environment Variables
-        run: |
-          echo "RPC_URL=$RPC_URL"
-          echo "NATIVE_TOKEN=$NATIVE_TOKEN"
 
   test:
     name: Run Tests
@@ -140,3 +152,4 @@ jobs:
           OPERATION_FUND: ${{ secrets.OPERATION_FUND }}
           RPC_URL: ${{ env.RPC_URL }}
         run: npx hardhat run scripts/deploy.js --network ${{ github.event.inputs.network }}
+
