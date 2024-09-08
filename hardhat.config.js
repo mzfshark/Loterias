@@ -14,31 +14,31 @@ module.exports = {
   },
   networks: {
     mainnet: {
-      url: [],
+      url: "https://mainnet.infura.io/v3/554262fab79f49adb4fdba2db2587800",
       chainId: 1,
     },
     sepolia: {
-      url: [],
+      url: "https://sepolia.infura.io/v3/554262fab79f49adb4fdba2db2587800",
       chainId: 11155111,
     },
     harmony: {
-      url: [],
+      url: "https://api.harmony.one",
       chainId: 1666600000,
     },
     bsc: {
-      url: [],
+      url: "https://bsc-mainnet.infura.io/v3/554262fab79f49adb4fdba2db2587800",
       chainId: 56,
     },
     bsc_testnet: {
-      url: [],
+      url: "https://bsc-testnet.infura.io/v3/554262fab79f49adb4fdba2db2587800",
       chainId: 97,
     },
     opBNB: {
-      url: [],
+      url: "https://opbnb-testnet.infura.io/v3/554262fab79f49adb4fdba2db2587800",
       chainId: 100,
     },
     opBNB_testnet: {
-      url: [],
+      url: "https://opbnb-mainnet.infura.io/v3/554262fab79f49adb4fdba2db2587800",
       chainId: 101,
     }
   },
