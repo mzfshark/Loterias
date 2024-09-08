@@ -2,12 +2,6 @@ require('@nomiclabs/hardhat-ethers');
 require('@nomiclabs/hardhat-etherscan');
 require('dotenv').config();
 
-// Load environment variables
-const { 
-  RPC_URL_MAINNET, RPC_URL_SEPOLIA, RPC_URL_HARMONY, RPC_URL_BSC, RPC_URL_BSC_TESTNET, RPC_URL_OPBNB, RPC_URL_OPBNB_TESTNET, 
-  DEPLOYER_PRIVATE_KEY 
-} = process.env;
-
 module.exports = {
   solidity: {
     version: "0.8.7",
@@ -20,39 +14,32 @@ module.exports = {
   },
   networks: {
     mainnet: {
-      url: RPC_URL_MAINNET,
+      url: [],
       chainId: 1,
-      accounts: [`0x${DEPLOYER_PRIVATE_KEY}`]
     },
     sepolia: {
-      url: RPC_URL_SEPOLIA,
+      url: [],
       chainId: 11155111,
-      accounts: [`0x${DEPLOYER_PRIVATE_KEY}`]
     },
     harmony: {
-      url: RPC_URL_HARMONY,
+      url: [],
       chainId: 1666600000,
-      accounts: [`0x${DEPLOYER_PRIVATE_KEY}`]
     },
     bsc: {
-      url: RPC_URL_BSC,
+      url: [],
       chainId: 56,
-      accounts: [`0x${DEPLOYER_PRIVATE_KEY}`]
     },
     bsc_testnet: {
-      url: RPC_URL_BSC_TESTNET,
+      url: [],
       chainId: 97,
-      accounts: [`0x${DEPLOYER_PRIVATE_KEY}`]
     },
     opBNB: {
-      url: RPC_URL_OPBNB,
+      url: [],
       chainId: 100,
-      accounts: [`0x${DEPLOYER_PRIVATE_KEY}`]
     },
     opBNB_testnet: {
-      url: RPC_URL_OPBNB_TESTNET,
+      url: [],
       chainId: 101,
-      accounts: [`0x${DEPLOYER_PRIVATE_KEY}`]
     }
   },
   // Uncomment and configure this section if you need Etherscan verification
