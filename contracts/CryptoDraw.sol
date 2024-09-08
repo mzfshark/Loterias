@@ -19,7 +19,7 @@ contract CryptoDraw is VRFConsumerBaseV2, Ownable, KeeperCompatibleInterface, Re
     bytes32 public constant UPDATER_ROLE = keccak256("UPDATER_ROLE");
 
     IERC20 public nativeTokenAddress;
-    ITicketNFT public ticketNFT; // Interface instance for the TicketNFT contract
+    ITicketNFT public ticketNFT;
     AggregatorV3Interface public priceFeed;
     uint256 public ticketPriceUSD = 1 * 10 ** 18;
     uint8 public totalNumbers = 25;
@@ -42,9 +42,9 @@ contract CryptoDraw is VRFConsumerBaseV2, Ownable, KeeperCompatibleInterface, Re
     uint256 public requestId;
 
     // Funds for various uses
-    uint256 public projectFund;
-    uint256 public grantFund;
-    uint256 public operationFund;
+    address public projectFund;
+    address public grantFund;
+    address public operationFund;
 
     struct Ticket {
         address player;
@@ -76,14 +76,14 @@ contract CryptoDraw is VRFConsumerBaseV2, Ownable, KeeperCompatibleInterface, Re
         bytes32 _keyHash,
         uint64 _subscriptionId,
         address _priceFeedAddress,
-        uint256 _initialProjectFund,
-        uint256 _initialGrantFund,
-        uint256 _initialOperationFund
+        address _initialProjectFund,
+        address _initialGrantFund,
+        address _initialOperationFund
     ) 
         VRFConsumerBaseV2(_vrfCoordinator)
     {
         nativeTokenAddress = IERC20(_nativeTokenAddress);
-        ticketNFT = ITicketNFT(_ticketNFTAddress); // Set the TicketNFT contract address
+        ticketNFT = ITicketNFT(_ticketNFTAddress);
         COORDINATOR = VRFCoordinatorV2Interface(_vrfCoordinator);
         priceFeed = AggregatorV3Interface(_priceFeedAddress);
         lastDrawTime = block.timestamp;
@@ -148,7 +148,6 @@ contract CryptoDraw is VRFConsumerBaseV2, Ownable, KeeperCompatibleInterface, Re
         emit TicketPurchased(msg.sender, _chosenNumbers, _agent);
     }
 
-
     function getTicketPriceInNativeToken() public view returns (uint256) {
         (, int256 price, , ,) = priceFeed.latestRoundData();
         require(price > 0, "Invalid price feed data");
@@ -209,13 +208,13 @@ contract CryptoDraw is VRFConsumerBaseV2, Ownable, KeeperCompatibleInterface, Re
         }
 
         // Calculate prize distribution
-        uint256;
         uint256 jackpotPrize = grossPrize * 50 / 100; // 50% of grossPrize
         uint256 prize14 = grossPrize * 20 / 100;     // 20% of grossPrize
         uint256 prize13 = grossPrize * 15 / 100;     // 15% of grossPrize
         uint256 prize12 = grossPrize * 10 / 100;     // 10% of grossPrize
         uint256 prize11 = grossPrize * 5 / 100;      // 5% of grossPrize
 
+        uint256[] memory prizes = new uint256[](5);
         prizes[0] = jackpotPrize;
         prizes[1] = prize14;
         prizes[2] = prize13;
@@ -256,13 +255,7 @@ contract CryptoDraw is VRFConsumerBaseV2, Ownable, KeeperCompatibleInterface, Re
         } else {
             prizePool = 0;
         }
-
-        // Reset prize amounts
-        for (uint8 i = 0; i < 5; i++) {
-            prizes[i] = 0;
-        }
     }
-
 
     function getMatchCount(uint8[] memory _chosenNumbers) internal view returns (uint8) {
         uint8 matchCount = 0;
