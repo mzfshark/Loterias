@@ -99,7 +99,7 @@ contract CryptoDraw is VRFConsumerBaseV2, Ownable, KeeperCompatibleInterface, Re
         _setupRole(UPDATER_ROLE, msg.sender);
     }
 
-    modifier onlyRole(bytes32 role) {
+    modifier onlyCustomRole(bytes32 role) {
         require(hasRole(role, msg.sender), "AccessControl: caller does not have the appropriate role");
         _;
     }
@@ -237,12 +237,12 @@ contract CryptoDraw is VRFConsumerBaseV2, Ownable, KeeperCompatibleInterface, Re
         emit PrizeClaimed(msg.sender, amount);
     }
 
-    function pause() external onlyRole(ADMIN_ROLE) {
+    function pause() external onlyCustomRole(ADMIN_ROLE) {
         paused = true;
         emit Paused();
     }
 
-    function unpause() external onlyRole(ADMIN_ROLE) {
+    function unpause() external onlyCustomRole(ADMIN_ROLE) {
         paused = false;
         emit Unpaused();
     }
@@ -261,21 +261,21 @@ contract CryptoDraw is VRFConsumerBaseV2, Ownable, KeeperCompatibleInterface, Re
         require(sent, "Token transfer failed.");
     }
 
-    function setTicketNFT(address _ticketNFTAddress) external onlyRole(ADMIN_ROLE) {
+    function setTicketNFT(address _ticketNFTAddress) external onlyCustomRole(ADMIN_ROLE) {
         ticketNFT = ITicketNFT(_ticketNFTAddress);
     }
 
-    function addAgent(address _agent) external onlyRole(ADMIN_ROLE) {
+    function addAgent(address _agent) external onlyCustomRole(ADMIN_ROLE) {
         require(_agent != address(0), "Invalid agent address");
         agents[_agent] = true;
     }
 
-    function removeAgent(address _agent) external onlyRole(ADMIN_ROLE) {
+    function removeAgent(address _agent) external onlyCustomRole(ADMIN_ROLE) {
         require(agents[_agent], "Agent does not exist");
         agents[_agent] = false;
     }
 
-    function setDrawInterval(uint256 _drawInterval) external onlyRole(ADMIN_ROLE) {
+    function setDrawInterval(uint256 _drawInterval) external onlyCustomRole(ADMIN_ROLE) {
         require(_drawInterval > 0, "Invalid interval");
         drawInterval = _drawInterval;
     }

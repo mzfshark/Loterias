@@ -20,6 +20,9 @@ contract TicketNFT is ERC721, Ownable, ERC721Burnable {
 
     mapping(uint256 => Ticket) private _tickets;
 
+    event TicketMinted(address indexed to, uint256 tokenId, uint256 drawRound);
+    event TicketBurned(uint256 tokenId);
+
     constructor() ERC721("TicketNFT", "TNFT") {}
 
     function setCryptoDrawAddress(address _cryptoDrawAddress) external onlyOwner {
@@ -29,6 +32,7 @@ contract TicketNFT is ERC721, Ownable, ERC721Burnable {
     function burn(uint256 tokenId) public override {
         require(msg.sender == cryptoDrawAddress, "Only CryptoDraw contract can burn tokens");
         super.burn(tokenId);
+        emit TicketBurned(tokenId);
     }
 
     function mint(address to, uint8[] memory _chosenNumbers, uint256 _drawRound) external onlyOwner returns (uint256) {
@@ -42,6 +46,8 @@ contract TicketNFT is ERC721, Ownable, ERC721Burnable {
             chosenNumbers: _chosenNumbers,
             drawRound: _drawRound
         });
+
+        emit TicketMinted(to, tokenId, _drawRound);
 
         return tokenId;
     }
@@ -117,10 +123,11 @@ contract TicketNFT is ERC721, Ownable, ERC721Burnable {
 
             result[j++] = table[index0];
             result[j++] = table[index1];
-            result[j++] = index2 < 64 ? table[index2] : '=';
-            result[j++] = index3 < 64 ? table[index3] : '=';
+            result[j++] = index2 < 64 ? table[index2] : bytes1('=');
+            result[j++] = index3 < 64 ? table[index3] : bytes1('=');
         }
 
         return string(result);
     }
+
 }
