@@ -44,6 +44,7 @@ jobs:
       - name: Parse Configuration
         id: parse-config
         run: |
+          echo "Network input: ${{ github.event.inputs.network }}"  # Debug output
           python3 ./scripts/parse_config.py ${{ github.event.inputs.network }} > parsed_env.txt || { echo "Script failed"; cat parsed_env.txt; exit 1; }
           cat parsed_env.txt  # Print the output for debugging
         shell: bash
