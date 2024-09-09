@@ -140,6 +140,18 @@ jobs:
       - name: Install Dependencies
         run: npm install
 
+      - name: Debug Environment Variables Before Deployment
+        run: |
+          echo "DEPLOYER_PRIVATE_KEY=$DEPLOYER_PRIVATE_KEY"
+          echo "NATIVE_TOKEN=$NATIVE_TOKEN"
+          echo "VRF_COORDINATOR_ADDRESS=$VRF_COORDINATOR_ADDRESS"
+          echo "KEY_HASH=$KEY_HASH"
+          echo "SUBSCRIPTION_ID=$SUBSCRIPTION_ID"
+          echo "PROJECT_FUNDS=$PROJECT_FUNDS"
+          echo "GRANT_FUND=$GRANT_FUND"
+          echo "OPERATION_FUND=$OPERATION_FUND"
+          echo "RPC_URL=$RPC_URL"
+
       - name: Run Deployment Script
         env:
           DEPLOYER_PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
@@ -151,4 +163,10 @@ jobs:
           GRANT_FUND: ${{ secrets.GRANT_FUND }}
           OPERATION_FUND: ${{ secrets.OPERATION_FUND }}
           RPC_URL: ${{ env.RPC_URL }}
-        run: npx hardhat run scripts/deploy.js --network ${{ github.event.inputs.network }}
+        run: |
+          if [ -z "$NATIVE_TOKEN" ] || [ -z "$RPC_URL" ] || [ -z "$PROJECT_FUNDS" ]; then
+            echo "Missing required environment variables."
+            exit 1
+          fi
+          npx hardhat run scripts/deploy.js --network ${{ github.event.inputs.network }}
+
