@@ -36,71 +36,13 @@ jobs:
       - name: Install Dependencies
         run: npm install
 
-      - name: Set RPC URL
-        id: set-rpc
+      - name: Set Variables
+        id: set-variables
         run: |
-          NETWORK=${{ github.event.inputs.network || 'sepolia' }}  # Default to 'sepolia' if not set
-          case "$NETWORK" in
-            "sepolia")
-              echo "RPC_URL=${{ secrets.RPC_URL_SEPOLIA }}" >> $GITHUB_ENV
-              ;;
-            "bsc_testnet")
-              echo "RPC_URL=${{ secrets.RPC_URL_BSC_TESTNET }}" >> $GITHUB_ENV
-              ;;
-            "opBNB_testnet")
-              echo "RPC_URL=${{ secrets.RPC_URL_OPBNB_TESTNET }}" >> $GITHUB_ENV
-              ;;
-            *)
-              echo "Network '$NETWORK' not supported"
-              exit 1
-              ;;
-          esac
-
-      - name: Set NATIVE_TOKEN
-        id: set-native-token
-        run: |
-          NETWORK=${{ github.event.inputs.network || 'sepolia' }}  # Default to 'sepolia' if not set
-          case "$NETWORK" in
-            "sepolia")
-              echo "NATIVE_TOKEN=${{ secrets.NATIVE_TOKEN_SEPOLIA }}" >> $GITHUB_ENV
-              ;;
-            "bsc_testnet")
-              echo "NATIVE_TOKEN=${{ secrets.NATIVE_TOKEN_BSC_TESTNET }}" >> $GITHUB_ENV
-              ;;
-            "opBNB_testnet")
-              echo "NATIVE_TOKEN=${{ secrets.NATIVE_TOKEN_OPBNB_TESTNET }}" >> $GITHUB_ENV
-              ;;
-            *)
-              echo "Network '$NETWORK' not supported"
-              exit 1
-              ;;
-          esac
-
-      - name: Set Project and Fund Variables
-        id: set-funds
-        run: |
-          NETWORK=${{ github.event.inputs.network || 'sepolia' }}  # Default to 'sepolia' if not set
-          case "$NETWORK" in
-            "sepolia")
-              echo "PROJECT_FUND=${{ secrets.PROJECT_FUND_SEPOLIA }}" >> $GITHUB_ENV
-              echo "GRANT_FUND=${{ secrets.GRANT_FUND_SEPOLIA }}" >> $GITHUB_ENV
-              echo "OPERATION_FUND=${{ secrets.OPERATION_FUND_SEPOLIA }}" >> $GITHUB_ENV
-              ;;
-            "bsc_testnet")
-              echo "PROJECT_FUND=${{ secrets.PROJECT_FUND_BSC_TESTNET }}" >> $GITHUB_ENV
-              echo "GRANT_FUND=${{ secrets.GRANT_FUND_BSC_TESTNET }}" >> $GITHUB_ENV
-              echo "OPERATION_FUND=${{ secrets.OPERATION_FUND_BSC_TESTNET }}" >> $GITHUB_ENV
-              ;;
-            "opBNB_testnet")
-              echo "PROJECT_FUND=${{ secrets.PROJECT_FUND_OPBNB_TESTNET }}" >> $GITHUB_ENV
-              echo "GRANT_FUND=${{ secrets.GRANT_FUND_OPBNB_TESTNET }}" >> $GITHUB_ENV
-              echo "OPERATION_FUND=${{ secrets.OPERATION_FUND_OPBNB_TESTNET }}" >> $GITHUB_ENV
-              ;;
-            *)
-              echo "Network '$NETWORK' not supported"
-              exit 1
-              ;;
-          esac
+          bash parse_config.py ${{ github.event.inputs.network }} > output.env
+          set -o allexport
+          source output.env
+          set +o allexport
 
       - name: Debug Environment Variables
         run: |
@@ -162,4 +104,4 @@ jobs:
           GRANT_FUND: ${{ env.GRANT_FUND }}
           OPERATION_FUND: ${{ env.OPERATION_FUND }}
           RPC_URL: ${{ env.RPC_URL }}
-        run: npx hardhat run scripts/deploy.js --network ${{ github.event.inputs.network || 'sepolia' }}
+        run: npx hardhat run scripts/deploy.js --network ${{ github.event.inputs.network }}
