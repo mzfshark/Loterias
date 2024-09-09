@@ -7,7 +7,7 @@ on:
   pull_request:
     branches:
       - develop
-  workflow_dispatch: # This line adds support for manual triggering
+  workflow_dispatch:
     inputs:
       network:
         description: 'The network to deploy to'
@@ -39,7 +39,8 @@ jobs:
       - name: Set RPC URL
         id: set-rpc
         run: |
-          case "${{ github.event.inputs.network }}" in
+          NETWORK=${{ github.event.inputs.network || 'sepolia' }}  # Default to 'sepolia' if not set
+          case "$NETWORK" in
             "sepolia")
               echo "RPC_URL=${{ secrets.RPC_URL_SEPOLIA }}" >> $GITHUB_ENV
               ;;
@@ -50,7 +51,7 @@ jobs:
               echo "RPC_URL=${{ secrets.RPC_URL_OPBNB_TESTNET }}" >> $GITHUB_ENV
               ;;
             *)
-              echo "Network '${{ github.event.inputs.network }}' not supported"
+              echo "Network '$NETWORK' not supported"
               exit 1
               ;;
           esac
@@ -58,7 +59,8 @@ jobs:
       - name: Set NATIVE_TOKEN
         id: set-native-token
         run: |
-          case "${{ github.event.inputs.network }}" in
+          NETWORK=${{ github.event.inputs.network || 'sepolia' }}  # Default to 'sepolia' if not set
+          case "$NETWORK" in
             "sepolia")
               echo "NATIVE_TOKEN=${{ secrets.NATIVE_TOKEN_SEPOLIA }}" >> $GITHUB_ENV
               ;;
@@ -69,15 +71,25 @@ jobs:
               echo "NATIVE_TOKEN=${{ secrets.NATIVE_TOKEN_OPBNB_TESTNET }}" >> $GITHUB_ENV
               ;;
             *)
-              echo "Network '${{ github.event.inputs.network }}' not supported"
+              echo "Network '$NETWORK' not supported"
               exit 1
               ;;
           esac
+
+      - name: Set PROJECT_FUNDS
+        id: set-project-funds
+        run: |
+          if [ -z "${{ secrets.PROJECT_FUNDS }}" ]; then
+            echo "Missing PROJECT_FUNDS secret."
+            exit 1
+          fi
+          echo "PROJECT_FUNDS=${{ secrets.PROJECT_FUNDS }}" >> $GITHUB_ENV
 
       - name: Debug Environment Variables
         run: |
           echo "RPC_URL=$RPC_URL"
           echo "NATIVE_TOKEN=$NATIVE_TOKEN"
+          echo "PROJECT_FUNDS=$PROJECT_FUNDS"
 
   test:
     name: Run Tests
@@ -116,14 +128,18 @@ jobs:
       - name: Install Dependencies
         run: npm install
 
+      - name: Check Required Environment Variables
+        run: |
+          if [ -z "$NATIVE_TOKEN" ] || [ -z "$RPC_URL" ] || [ -z "$PROJECT_FUNDS" ]; then
+            echo "Missing required environment variables."
+            exit 1
+          fi
+
       - name: Run Deployment Script
         env:
           DEPLOYER_PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
           NATIVE_TOKEN: ${{ env.NATIVE_TOKEN }}
-          #VRF_COORDINATOR_ADDRESS: ${{ secrets.VRF_COORDINATOR_ADDRESS }}
-          #KEY_HASH: ${{ secrets.KEY_HASH }}
-          #SUBSCRIPTION_ID: ${{ secrets.SUBSCRIPTION_ID }}
-          PROJECT_FUNDS: ${{ secrets.PROJECT_FUNDS }}
+          PROJECT_FUNDS: ${{ env.PROJECT_FUNDS }}
           GRANT_FUND: ${{ secrets.GRANT_FUND }}
           OPERATION_FUND: ${{ secrets.OPERATION_FUND }}
           RPC_URL: ${{ env.RPC_URL }}
