@@ -122,7 +122,7 @@ jobs:
           NATIVE_TOKEN: ${{ env.NATIVE_TOKEN }}
           #VRF_COORDINATOR_ADDRESS: ${{ secrets.VRF_COORDINATOR_ADDRESS }}
           #KEY_HASH: ${{ secrets.KEY_HASH }}
-          SUBSCRIPTION_ID: ${{ secrets.SUBSCRIPTION_ID }}
+          #SUBSCRIPTION_ID: ${{ secrets.SUBSCRIPTION_ID }}
           PROJECT_FUNDS: ${{ secrets.PROJECT_FUNDS }}
           GRANT_FUND: ${{ secrets.GRANT_FUND }}
           OPERATION_FUND: ${{ secrets.OPERATION_FUND }}
