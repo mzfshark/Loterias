@@ -2,7 +2,7 @@ import json
 import sys
 
 def parse_config(network):
-    print(f"Parsing config for network: {network}")  # Debug print
+    print(f"Debug: Parsing config for network: {network}")  # Debug output
     with open('config.json') as f:
         config = json.load(f)
     
@@ -31,3 +31,4 @@ if __name__ == "__main__":
     except ValueError as e:
         print(e)
         sys.exit(1)
+
