@@ -45,24 +45,11 @@ jobs:
           cat parsed_env.txt  # Print the parsed variables for debugging
         shell: bash
 
-      - name: Debug: Print parsed_env.txt
-        run: cat parsed_env.txt
-        shell: bash
-
       - name: Load Environment Variables
         run: |
           set -o allexport
           source parsed_env.txt || { echo "Failed to load environment variables"; cat parsed_env.txt; exit 1; }
           set +o allexport
-        shell: bash
-
-      - name: Debug: Check Loaded Environment Variables
-        run: |
-          echo "NATIVE_TOKEN=$NATIVE_TOKEN"
-          echo "RPC_URL=$RPC_URL"
-          echo "PROJECT_FUND=$PROJECT_FUND"
-          echo "GRANT_FUND=$GRANT_FUND"
-          echo "OPERATION_FUND=$OPERATION_FUND"
         shell: bash
 
       - name: Check Required Environment Variables
