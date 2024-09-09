@@ -28,20 +28,24 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v3
 
-      - name: Set Up Node.js
-        uses: actions/setup-node@v3
+      - name: Set Up Python
+        uses: actions/setup-python@v4
         with:
-          node-version: '20'
+          python-version: '3.9'
 
-      - name: Install Dependencies
-        run: npm install
-
-      - name: Set Variables
-        id: set-variables
+      - name: Install Python Dependencies
         run: |
-          bash parse_config.py ${{ github.event.inputs.network }} > output.env
+          pip install -r requirements.txt
+          # Ensure the Python script is executable
+          chmod +x ./scripts/parse_config.py
+
+      - name: Parse Configuration
+        id: parse-config
+        run: |
+          python3 ./scripts/parse_config.py ${{ github.event.inputs.network }} > parsed_env.txt
+          # Load variables into the environment
           set -o allexport
-          source output.env
+          source parsed_env.txt
           set +o allexport
 
       - name: Debug Environment Variables
