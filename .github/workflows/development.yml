@@ -36,67 +36,24 @@ jobs:
       - name: Install Dependencies
         run: npm install
 
+      - name: Debug Network Input
+        run: echo "Network input: ${{ github.event.inputs.network }}"  # Debug output
+
       - name: Parse Configuration
         id: parse-config
         run: |
-          NETWORK=${{ github.event.inputs.network }}  # Assign input to a variable
+          NETWORK=${{ github.event.inputs.network }}
           echo "Network input: $NETWORK"  # Print network input for debugging
           python3 ./scripts/parse_config.py $NETWORK > parsed_env.txt 2> parse_debug.log || { echo "Script failed"; cat parse_debug.log; exit 1; }
-          cat parsed_env.txt  # Print the output for debugging
+          cat parsed_env.txt  # Print the parsed variables for debugging
         shell: bash
 
       - name: Load Environment Variables
         run: |
           set -o allexport
-          source parsed_env.txt
+          source parsed_env.txt || { echo "Failed to load environment variables"; cat parsed_env.txt; exit 1; }
           set +o allexport
-        shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
-
-      - name: Debug Environment Variables
-        run: |
-          echo "RPC_URL=$RPC_URL"
-          echo "NATIVE_TOKEN=$NATIVE_TOKEN"
-          echo "PROJECT_FUND=$PROJECT_FUND"
-          echo "GRANT_FUND=$GRANT_FUND"
-          echo "OPERATION_FUND=$OPERATION_FUND"
-
-
-  test:
-    name: Run Tests
-    runs-on: ubuntu-latest
-    needs: setup
-
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
-
-      - name: Set Up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '20'
-
-      - name: Install Dependencies
-        run: npm install
-
-      - name: Run Tests
-        run: npx hardhat test
-
-  deploy:
-    name: Deploy Contract
-    runs-on: ubuntu-latest
-    needs: [setup, test]
-
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
-
-      - name: Set Up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '20'
-
-      - name: Install Dependencies
-        run: npm install
+        shell: bash
 
       - name: Check Required Environment Variables
         run: |
@@ -104,6 +61,15 @@ jobs:
             echo "Missing required environment variables."
             exit 1
           fi
+        shell: bash
+
+      - name: Export Environment Variables for Deployment
+        run: |
+          echo "NATIVE_TOKEN=$NATIVE_TOKEN" >> $GITHUB_ENV
+          echo "PROJECT_FUND=$PROJECT_FUND" >> $GITHUB_ENV
+          echo "GRANT_FUND=$GRANT_FUND" >> $GITHUB_ENV
+          echo "OPERATION_FUND=$OPERATION_FUND" >> $GITHUB_ENV
+          echo "RPC_URL=$RPC_URL" >> $GITHUB_ENV
 
       - name: Run Deployment Script
         env:
