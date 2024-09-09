@@ -41,8 +41,13 @@ jobs:
       - name: Parse Configuration
         id: parse-config
         run: |
-          python3 scripts/parse_config.py ${{ github.event.inputs.network }} > parsed_env.txt || { echo "Script failed"; exit 1; }
+          python3 ./scripts/parse_config.py ${{ github.event.inputs.network }} > parsed_env.txt || { echo "Script failed"; cat parsed_env.txt; exit 1; }
           cat parsed_env.txt  # Print the output for debugging
+        shell: bash
+
+      - name: Make Script Executable
+        run: chmod +x ./scripts/parse_config.py
+
 
       - name: Load Variables into Environment
         run: |
