@@ -36,12 +36,12 @@ jobs:
       - name: Install Python Dependencies
         run: |
           pip install -r requirements.txt
-          chmod +x ./scripts/parse_config.py
+          chmod +x scripts/parse_config.py
 
       - name: Parse Configuration
         id: parse-config
         run: |
-          python3 ./scripts/parse_config.py ${{ github.event.inputs.network }} > parsed_env.txt || { echo "Script failed"; exit 1; }
+          python3 scripts/parse_config.py ${{ github.event.inputs.network }} > parsed_env.txt || { echo "Script failed"; exit 1; }
           cat parsed_env.txt  # Print the output for debugging
 
       - name: Load Variables into Environment

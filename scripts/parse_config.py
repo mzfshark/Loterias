@@ -2,7 +2,7 @@ import json
 import sys
 
 def parse_config(network):
-    with open('../src/config.json') as f:
+    with open('src/config.json') as f:
         config = json.load(f)
     
     if network in config:
