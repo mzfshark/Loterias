@@ -80,13 +80,27 @@ jobs:
         id: set-funds
         run: |
           NETWORK=${{ github.event.inputs.network || 'sepolia' }}  # Default to 'sepolia' if not set
-          PROJECT_FUND_VAR="PROJECT_FUND_${NETWORK^^}"  # Convert network name to uppercase
-          GRANT_FUND_VAR="GRANT_FUND_${NETWORK^^}"
-          OPERATION_FUND_VAR="OPERATION_FUND_${NETWORK^^}"
-
-          echo "PROJECT_FUND=${{ secrets[PROJECT_FUND_VAR] }}" >> $GITHUB_ENV
-          echo "GRANT_FUND=${{ secrets[GRANT_FUND_VAR] }}" >> $GITHUB_ENV
-          echo "OPERATION_FUND=${{ secrets[OPERATION_FUND_VAR] }}" >> $GITHUB_ENV
+          case "$NETWORK" in
+            "sepolia")
+              echo "PROJECT_FUND=${{ secrets.PROJECT_FUND_SEPOLIA }}" >> $GITHUB_ENV
+              echo "GRANT_FUND=${{ secrets.GRANT_FUND_SEPOLIA }}" >> $GITHUB_ENV
+              echo "OPERATION_FUND=${{ secrets.OPERATION_FUND_SEPOLIA }}" >> $GITHUB_ENV
+              ;;
+            "bsc_testnet")
+              echo "PROJECT_FUND=${{ secrets.PROJECT_FUND_BSC_TESTNET }}" >> $GITHUB_ENV
+              echo "GRANT_FUND=${{ secrets.GRANT_FUND_BSC_TESTNET }}" >> $GITHUB_ENV
+              echo "OPERATION_FUND=${{ secrets.OPERATION_FUND_BSC_TESTNET }}" >> $GITHUB_ENV
+              ;;
+            "opBNB_testnet")
+              echo "PROJECT_FUND=${{ secrets.PROJECT_FUND_OPBNB_TESTNET }}" >> $GITHUB_ENV
+              echo "GRANT_FUND=${{ secrets.GRANT_FUND_OPBNB_TESTNET }}" >> $GITHUB_ENV
+              echo "OPERATION_FUND=${{ secrets.OPERATION_FUND_OPBNB_TESTNET }}" >> $GITHUB_ENV
+              ;;
+            *)
+              echo "Network '$NETWORK' not supported"
+              exit 1
+              ;;
+          esac
 
       - name: Debug Environment Variables
         run: |
