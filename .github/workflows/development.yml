@@ -36,9 +36,6 @@ jobs:
       - name: Install Dependencies
         run: npm install
 
-      - name: Debug Network Input
-        run: echo "Network input: ${{ github.event.inputs.network }}"  # Debug output
-
       - name: Parse Configuration
         id: parse-config
         run: |
@@ -54,8 +51,6 @@ jobs:
           source parsed_env.txt
           set +o allexport
         shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
-
-
 
       - name: Debug Environment Variables
         run: |
