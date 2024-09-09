@@ -36,17 +36,20 @@ jobs:
       - name: Install Python Dependencies
         run: |
           pip install -r requirements.txt
-          # Ensure the Python script is executable
           chmod +x ./scripts/parse_config.py
 
       - name: Parse Configuration
         id: parse-config
         run: |
-          python3 ./scripts/parse_config.py ${{ github.event.inputs.network }} > parsed_env.txt
-          # Load variables into the environment
+          python3 ./scripts/parse_config.py ${{ github.event.inputs.network }} > parsed_env.txt || { echo "Script failed"; exit 1; }
+          cat parsed_env.txt  # Print the output for debugging
+
+      - name: Load Variables into Environment
+        run: |
           set -o allexport
           source parsed_env.txt
           set +o allexport
+        shell: bash
 
       - name: Debug Environment Variables
         run: |
@@ -55,6 +58,7 @@ jobs:
           echo "PROJECT_FUND=$PROJECT_FUND"
           echo "GRANT_FUND=$GRANT_FUND"
           echo "OPERATION_FUND=$OPERATION_FUND"
+
 
   test:
     name: Run Tests
