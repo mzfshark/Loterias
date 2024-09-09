@@ -74,10 +74,10 @@ jobs:
               ;;
           esac
 
-    - name: Debug Environment Variables
-      run: |
-        echo "RPC_URL=$RPC_URL"
-        echo "NATIVE_TOKEN=$NATIVE_TOKEN"
+      - name: Debug Environment Variables
+        run: |
+          echo "RPC_URL=$RPC_URL"
+          echo "NATIVE_TOKEN=$NATIVE_TOKEN"
 
   test:
     name: Run Tests
