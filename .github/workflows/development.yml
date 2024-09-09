@@ -76,20 +76,20 @@ jobs:
               ;;
           esac
 
-      - name: Set PROJECT_FUNDS
+      - name: Set PROJECT_FUND
         id: set-project-funds
         run: |
-          if [ -z "${{ secrets.PROJECT_FUNDS }}" ]; then
-            echo "Missing PROJECT_FUNDS secret."
+          if [ -z "${{ secrets.PROJECT_FUND }}" ]; then
+            echo "Missing PROJECT_FUND secret."
             exit 1
           fi
-          echo "PROJECT_FUNDS=${{ secrets.PROJECT_FUNDS }}" >> $GITHUB_ENV
+          echo "PROJECT_FUND=${{ secrets.PROJECT_FUND }}" >> $GITHUB_ENV
 
       - name: Debug Environment Variables
         run: |
           echo "RPC_URL=$RPC_URL"
           echo "NATIVE_TOKEN=$NATIVE_TOKEN"
-          echo "PROJECT_FUNDS=$PROJECT_FUNDS"
+          echo "PROJECT_FUND=$PROJECT_FUND"
 
   test:
     name: Run Tests
@@ -130,7 +130,7 @@ jobs:
 
       - name: Check Required Environment Variables
         run: |
-          if [ -z "$NATIVE_TOKEN" ] || [ -z "$RPC_URL" ] || [ -z "$PROJECT_FUNDS" ]; then
+          if [ -z "$NATIVE_TOKEN" ] || [ -z "$RPC_URL" ] || [ -z "$PROJECT_FUND" ]; then
             echo "Missing required environment variables."
             exit 1
           fi
@@ -139,7 +139,7 @@ jobs:
         env:
           DEPLOYER_PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
           NATIVE_TOKEN: ${{ env.NATIVE_TOKEN }}
-          PROJECT_FUNDS: ${{ env.PROJECT_FUNDS }}
+          PROJECT_FUND: ${{ env.PROJECT_FUND }}
           GRANT_FUND: ${{ secrets.GRANT_FUND }}
           OPERATION_FUND: ${{ secrets.OPERATION_FUND }}
           RPC_URL: ${{ env.RPC_URL }}
