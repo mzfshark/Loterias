@@ -76,20 +76,25 @@ jobs:
               ;;
           esac
 
-      - name: Set PROJECT_FUND
-        id: set-project-funds
+      - name: Set Project and Fund Variables
+        id: set-funds
         run: |
-          if [ -z "${{ secrets.PROJECT_FUND }}" ]; then
-            echo "Missing PROJECT_FUND secret."
-            exit 1
-          fi
-          echo "PROJECT_FUND=${{ secrets.PROJECT_FUND }}" >> $GITHUB_ENV
+          NETWORK=${{ github.event.inputs.network || 'sepolia' }}  # Default to 'sepolia' if not set
+          PROJECT_FUND_VAR="PROJECT_FUND_${NETWORK^^}"  # Convert network name to uppercase
+          GRANT_FUND_VAR="GRANT_FUND_${NETWORK^^}"
+          OPERATION_FUND_VAR="OPERATION_FUND_${NETWORK^^}"
+
+          echo "PROJECT_FUND=${{ secrets[PROJECT_FUND_VAR] }}" >> $GITHUB_ENV
+          echo "GRANT_FUND=${{ secrets[GRANT_FUND_VAR] }}" >> $GITHUB_ENV
+          echo "OPERATION_FUND=${{ secrets[OPERATION_FUND_VAR] }}" >> $GITHUB_ENV
 
       - name: Debug Environment Variables
         run: |
           echo "RPC_URL=$RPC_URL"
           echo "NATIVE_TOKEN=$NATIVE_TOKEN"
           echo "PROJECT_FUND=$PROJECT_FUND"
+          echo "GRANT_FUND=$GRANT_FUND"
+          echo "OPERATION_FUND=$OPERATION_FUND"
 
   test:
     name: Run Tests
@@ -130,7 +135,7 @@ jobs:
 
       - name: Check Required Environment Variables
         run: |
-          if [ -z "$NATIVE_TOKEN" ] || [ -z "$RPC_URL" ] || [ -z "$PROJECT_FUND" ]; then
+          if [ -z "$NATIVE_TOKEN" ] || [ -z "$RPC_URL" ] || [ -z "$PROJECT_FUND" ] || [ -z "$GRANT_FUND" ] || [ -z "$OPERATION_FUND" ]; then
             echo "Missing required environment variables."
             exit 1
           fi
@@ -140,7 +145,7 @@ jobs:
           DEPLOYER_PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
           NATIVE_TOKEN: ${{ env.NATIVE_TOKEN }}
           PROJECT_FUND: ${{ env.PROJECT_FUND }}
-          GRANT_FUND: ${{ secrets.GRANT_FUND }}
-          OPERATION_FUND: ${{ secrets.OPERATION_FUND }}
+          GRANT_FUND: ${{ env.GRANT_FUND }}
+          OPERATION_FUND: ${{ env.OPERATION_FUND }}
           RPC_URL: ${{ env.RPC_URL }}
         run: npx hardhat run scripts/deploy.js --network ${{ github.event.inputs.network || 'sepolia' }}
