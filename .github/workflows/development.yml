@@ -7,7 +7,7 @@ on:
   pull_request:
     branches:
       - develop
-  workflow_dispatch:
+  workflow_dispatch: # This allows manual triggering of the workflow from the Actions tab
     inputs:
       network:
         description: 'The network to deploy to'
