@@ -52,14 +52,6 @@ jobs:
           set +o allexport
         shell: bash
 
-      - name: Check Required Environment Variables
-        run: |
-          if [ -z "$NATIVE_TOKEN" ] || [ -z "$RPC_URL" ] || [ -z "$PROJECT_FUND" ] || [ -z "$GRANT_FUND" ] || [ -z "$OPERATION_FUND" ]; then
-            echo "Missing required environment variables."
-            exit 1
-          fi
-        shell: bash
-
       - name: Export Environment Variables for Deployment
         run: |
           echo "NATIVE_TOKEN=$NATIVE_TOKEN" >> $GITHUB_ENV
