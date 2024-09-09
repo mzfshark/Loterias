@@ -68,4 +68,4 @@ jobs:
           GRANT_FUND: ${{ env.GRANT_FUND }}
           OPERATION_FUND: ${{ env.OPERATION_FUND }}
           RPC_URL: ${{ env.RPC_URL }}
-        run: npx hardhat run scripts/deploy.js --network ${{ github.event.inputs.network }}
+        run: npx hardhat run scripts/deploy.js --network ${{ github.event.inputs.network || 'sepolia' }}
