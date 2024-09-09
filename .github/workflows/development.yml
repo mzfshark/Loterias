@@ -116,19 +116,12 @@ jobs:
       - name: Install Dependencies
         run: npm install
 
-      - name: Check Required Environment Variables
-        run: |
-          if [ -z "$NATIVE_TOKEN" ] || [ -z "$RPC_URL" ] || [ -z "$PROJECT_FUNDS" ]; then
-            echo "Missing required environment variables."
-            exit 1
-          fi
-
       - name: Run Deployment Script
         env:
           DEPLOYER_PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
           NATIVE_TOKEN: ${{ env.NATIVE_TOKEN }}
-          VRF_COORDINATOR_ADDRESS: ${{ secrets.VRF_COORDINATOR_ADDRESS }}
-          KEY_HASH: ${{ secrets.KEY_HASH }}
+          #VRF_COORDINATOR_ADDRESS: ${{ secrets.VRF_COORDINATOR_ADDRESS }}
+          #KEY_HASH: ${{ secrets.KEY_HASH }}
           SUBSCRIPTION_ID: ${{ secrets.SUBSCRIPTION_ID }}
           PROJECT_FUNDS: ${{ secrets.PROJECT_FUNDS }}
           GRANT_FUND: ${{ secrets.GRANT_FUND }}
