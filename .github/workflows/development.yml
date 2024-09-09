@@ -45,11 +45,32 @@ jobs:
           cat parsed_env.txt  # Print the parsed variables for debugging
         shell: bash
 
+      - name: Debug: Print parsed_env.txt
+        run: cat parsed_env.txt
+        shell: bash
+
       - name: Load Environment Variables
         run: |
           set -o allexport
           source parsed_env.txt || { echo "Failed to load environment variables"; cat parsed_env.txt; exit 1; }
           set +o allexport
+        shell: bash
+
+      - name: Debug: Check Loaded Environment Variables
+        run: |
+          echo "NATIVE_TOKEN=$NATIVE_TOKEN"
+          echo "RPC_URL=$RPC_URL"
+          echo "PROJECT_FUND=$PROJECT_FUND"
+          echo "GRANT_FUND=$GRANT_FUND"
+          echo "OPERATION_FUND=$OPERATION_FUND"
+        shell: bash
+
+      - name: Check Required Environment Variables
+        run: |
+          if [ -z "$NATIVE_TOKEN" ] || [ -z "$RPC_URL" ] || [ -z "$PROJECT_FUND" ] || [ -z "$GRANT_FUND" ] || [ -z "$OPERATION_FUND" ]; then
+            echo "Missing required environment variables."
+            exit 1
+          fi
         shell: bash
 
       - name: Export Environment Variables for Deployment
@@ -59,6 +80,7 @@ jobs:
           echo "GRANT_FUND=$GRANT_FUND" >> $GITHUB_ENV
           echo "OPERATION_FUND=$OPERATION_FUND" >> $GITHUB_ENV
           echo "RPC_URL=$RPC_URL" >> $GITHUB_ENV
+        shell: bash
 
       - name: Run Deployment Script
         env:
@@ -69,3 +91,4 @@ jobs:
           OPERATION_FUND: ${{ env.OPERATION_FUND }}
           RPC_URL: ${{ env.RPC_URL }}
         run: npx hardhat run scripts/deploy.js --network ${{ github.event.inputs.network || 'sepolia' }}
+
