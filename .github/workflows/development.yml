@@ -28,24 +28,23 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v3
 
-      - name: Set Up Python
-        uses: actions/setup-python@v4
+      - name: Set Up Node.js
+        uses: actions/setup-node@v3
         with:
-          python-version: '3.9'
+          node-version: '20'
 
       - name: Install Dependencies
-        run: pip install -r requirements.txt
+        run: npm install
 
-      - name: Debug Python Environment
-        run: |
-          python --version
-          pip --version
+      - name: Debug Network Input
+        run: echo "Network input: ${{ github.event.inputs.network }}"  # Debug output
 
       - name: Parse Configuration
         id: parse-config
         run: |
-          echo "Network input: ${{ env.NETWORK }}"  # Debug output
-          python3 ./scripts/parse_config.py ${{ env.NETWORK }} > parsed_env.txt 2> parse_debug.log || { echo "Script failed"; cat parse_debug.log; exit 1; }
+          NETWORK=${{ github.event.inputs.network }}  # Assign input to a variable
+          echo "Network input: $NETWORK"  # Print network input for debugging
+          python3 ./scripts/parse_config.py $NETWORK > parsed_env.txt 2> parse_debug.log || { echo "Script failed"; cat parse_debug.log; exit 1; }
           cat parsed_env.txt  # Print the output for debugging
         shell: bash
 
@@ -55,6 +54,7 @@ jobs:
           source parsed_env.txt
           set +o allexport
         shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+
 
 
       - name: Debug Environment Variables
