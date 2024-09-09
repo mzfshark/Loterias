@@ -2,7 +2,7 @@ import json
 import sys
 
 def parse_config(network):
-    print(f"Debug: Parsing config for network: {network}")  # Debug output
+    print(f"Debug: Parsing config for network: {network}", file=sys.stderr)  # Debug output to stderr
     with open('./src/config.json') as f:
         config = json.load(f)
     
@@ -16,11 +16,11 @@ def parse_config(network):
             "OPERATION_FUND": data['OPERATION_FUND']
         }
     else:
-        raise ValueError(f"Network '{network}' not found in the configuration.")
+        raise ValueError(f"Network '{network}' not found in the configuration.", file=sys.stderr)
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
-        print("Usage: python3 parse_config.py <network>")
+        print(f"Usage: python3 {sys.argv[0]} <network>", file=sys.stderr)
         sys.exit(1)
     
     network = sys.argv[1]
@@ -29,6 +29,5 @@ if __name__ == "__main__":
         for key, value in config.items():
             print(f"{key}={value}")
     except ValueError as e:
-        print(e)
+        print(e, file=sys.stderr)
         sys.exit(1)
-

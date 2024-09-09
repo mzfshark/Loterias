@@ -44,18 +44,18 @@ jobs:
       - name: Parse Configuration
         id: parse-config
         run: |
-          echo "Network input: ${{ github.event.inputs.network }}"  # Debug output
-          python3 ./scripts/parse_config.py ${{ github.event.inputs.network }} > parsed_env.txt || { echo "Script failed"; cat parsed_env.txt; exit 1; }
+          echo "Network input: ${{ env.NETWORK }}"  # Debug output
+          python3 ./scripts/parse_config.py ${{ env.NETWORK }} > parsed_env.txt 2> parse_debug.log || { echo "Script failed"; cat parse_debug.log; exit 1; }
           cat parsed_env.txt  # Print the output for debugging
         shell: bash
 
-
-      - name: Load Variables into Environment
+      - name: Load Environment Variables
         run: |
           set -o allexport
           source parsed_env.txt
           set +o allexport
-        shell: bash
+        shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+
 
       - name: Debug Environment Variables
         run: |
