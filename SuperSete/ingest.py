@@ -3,7 +3,7 @@ import requests
 from bs4 import BeautifulSoup
 
 def fetch_latest_draws(n=50):
-    url = "https://asloterias.com.br/super-sete"
+    url = "https://asloterias.com.br/todos-resultados-super-sete"
     print(f"Fetching the last {n} Super Sete draws from: {url}")
 
     response = requests.get(url)
