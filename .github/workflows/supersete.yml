@@ -34,10 +34,15 @@ jobs:
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
           git add SuperSete/docs/index.md
-          git commit -m "Atualiza relatório Markdown do Super Sete"
-          git push
+          if ! git diff --cached --quiet; then
+            git commit -m "Atualiza relatório Markdown do Super Sete"
+            git push
+          else
+            echo "Nenhuma mudança para comitar."
+          fi
         env:
           GH_PAT: ${{ secrets.GH_PAT }}
+
 
       - name: Publicar via GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
