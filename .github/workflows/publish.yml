@@ -1,0 +1,47 @@
+name: SuperSete HTML generator
+
+on:
+  workflow_run:
+    workflows: ["supersete"]  # Nome exato do workflow supersete.yml
+    types:
+      - completed
+
+jobs:
+  predict-and-publish:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repositório
+        uses: actions/checkout@v3
+
+      - name: Configurar Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Instalar dependências
+        run: |
+          pip install pandas numpy
+
+      - name: Rodar predição
+        run: |
+          python SuperSete/predict.py
+
+      - name: Commit e push do relatório
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add SuperSete/index.html
+          git commit -m "Atualiza relatório Super Sete"
+          git push
+        env:
+          GH_PAT: ${{ secrets.GH_PAT }}
+
+      - name: Publicar via GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GH_PAT }}
+          publish_dir: ./SuperSete
+          publish_branch: gh-pages
+          enable_jekyll: false
