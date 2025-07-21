@@ -28,9 +28,9 @@ jobs:
 
       - name: Commit report
         run: |
-          git config --global user.email "bot@supersete.ai"
-          git config --global user.name "SuperSeteBot"
-          git add supersete/report.md supersete/data/latest_draws.csv
+          git config --global user.email "mzfshark@gmail.com"
+          git config --global user.name "mzfshark"
+          git add SuperSete/report.md SuperSete/data/latest_draws.csv
           git commit -m "update: auto-palpite Super Sete" || echo "No changes to commit"
           git push
         env:
