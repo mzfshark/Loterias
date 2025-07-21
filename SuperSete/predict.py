@@ -68,7 +68,7 @@ def salvar_relatorio(p1, p2, p3, path="SuperSete/report.md"):
             f.write(f"{i+1}. {beam}\n")
 
 if __name__ == "__main__":
-    path = "SuperSete/data/latest_draws.csv"
+    path = "SuperSete/data/SuperSete.csv"
     if not os.path.exists(path):
         print("Arquivo de dados não encontrado.")
         exit(1)
