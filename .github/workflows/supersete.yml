@@ -1,53 +1,50 @@
-name: SuperSete Palpites Diários
+name: SuperSete Auto Predict
 
 on:
+  push:
+    paths:
+      - 'SuperSete/data/SuperSete.csv'
   schedule:
-    - cron: '0 12 * * *'  # Diariamente às 09:00 BRT (12:00 UTC)
-  workflow_dispatch:
+    - cron: '0 12 * * *' # Executa diariamente às 9h BRT (12h UTC)
 
 jobs:
-  gerar-palpite:
+  predict-and-publish:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout do repositório
+      - name: Checkout repositório
         uses: actions/checkout@v3
 
       - name: Configurar Python
         uses: actions/setup-python@v4
         with:
-          python-version: 3.11
+          python-version: '3.11'
 
       - name: Instalar dependências
         run: |
-          pip install -r requirements.txt || true
-          pip install pandas numpy beautifulsoup4 requests
+          pip install pandas numpy
 
-      - name: Verificar atualização do arquivo SuperSete.csv
-        id: check_file
+      - name: Rodar predição
         run: |
-          if [ -f SuperSete/data/SuperSete.csv ]; then
-            AGE=$(($(date +%s) - $(date +%s -r SuperSete/data/SuperSete.csv)))
-            if [ "$AGE" -gt 43200 ]; then
-              echo "needs_update=true" >> "$GITHUB_OUTPUT"
-            else
-              echo "needs_update=false" >> "$GITHUB_OUTPUT"
-            fi
-          else
-            echo "needs_update=true" >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Rodar ingest.py (se necessário)
-        if: steps.check_file.outputs.needs_update == 'true'
-        run: python SuperSete/ingest.py
-
-      - name: Gerar relatório de palpites
-        run: python SuperSete/predict.py
+          python SuperSete/predict.py
 
       - name: Commit e push do novo relatório (GitHub Pages)
         run: |
           git config --global user.email "mzfshark@gmail.com"
           git config --global user.name "mzfshark"
-          git add SuperSete/docs/index.md
-          git diff --cached --quiet || (git commit -m "📊 Atualização automática de palpites Super Sete" && git push)
+          git add SuperSete/index.html
+          git commit -m "Atualiza relatório Super Sete"
+          git push        
         env:
           GH_TOKEN: ${{ secrets.GH_PAT }}
+
+      - name: Publicar via GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GH_PAT }}
+          publish_dir: ./SuperSete
+          publish_branch: gh-pages
+          enable_jekyll: false
+
+
+
