@@ -55,18 +55,22 @@ def gerar_palpites_beam(df, beam_width=3):
         beam = [b for b, _ in new_beam]
     return beam
 
-def salvar_relatorio(p1, p2, p3, path="SuperSete/docs/index.md"):
+def salvar_relatorio(p1, p2, p3, path="SuperSete/index.html"):
     with open(path, "w") as f:
-        f.write("# Palpite Automático Super Sete\n\n")
-        f.write("## 🎯 Palpite Simples (Frequência Histórica)\n")
-        f.write(f"{p1}\n\n")
+        f.write("<html><head><meta charset='UTF-8'><title>Palpite Super Sete</title></head><body>")
+        f.write("<h1>Palpite Automático Super Sete</h1>")
 
-        f.write("## 🔁 Palpite Markov 1ª Ordem\n")
-        f.write(f"{p2}\n\n")
+        f.write("<h2>🎯 Palpite Simples (Frequência Histórica)</h2>")
+        f.write(f"<p>{p1}</p>")
 
-        f.write("## 🤖 Top Palpites por Beam Search (base 20 concursos)\n")
+        f.write("<h2>🔁 Palpite Markov 1ª Ordem</h2>")
+        f.write(f"<p>{p2}</p>")
+
+        f.write("<h2>🤖 Top Palpites por Beam Search (base 20 concursos)</h2>")
         for i, beam in enumerate(p3):
-            f.write(f"{i+1}. {beam}\n")
+            f.write(f"<p>{i+1}. {beam}</p>")
+
+        f.write("</body></html>")
 
 if __name__ == "__main__":
     path = "SuperSete/data/SuperSete.csv"
