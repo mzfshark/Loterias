@@ -80,9 +80,18 @@ if __name__ == "__main__":
 
     df = pd.read_csv(path)
 
-    if list(df.columns) == [f"Coluna {i}" for i in range(1, 8)]:
-        df.columns = ["col_a", "col_b", "col_c", "col_d", "col_e", "col_f", "col_g"]
-        df.insert(0, "contest", range(1, len(df)+1))
+    if list(df.columns) == ["Concurso", "Data", "1ª Coluna", "2ª Coluna", "3ª Coluna", "4ª Coluna", "5ª Coluna", "6ª Coluna", "7ª Coluna"]:
+        df = df.rename(columns={
+            "1ª Coluna": "col_a",
+            "2ª Coluna": "col_b",
+            "3ª Coluna": "col_c",
+            "4ª Coluna": "col_d",
+            "5ª Coluna": "col_e",
+            "6ª Coluna": "col_f",
+            "7ª Coluna": "col_g",
+        })
+        df = df[["Concurso", "col_a", "col_b", "col_c", "col_d", "col_e", "col_f", "col_g"]]
+        df = df.rename(columns={"Concurso": "contest"})
 
     if df.empty or len(df.columns) < 8:
         print("Dados insuficientes para gerar palpites.")
