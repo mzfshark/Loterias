@@ -46,7 +46,7 @@ def gerar_palpites_beam(df, beam_width=3):
         beam = [b for b, _ in new_beam]
     return beam
 
-def salvar_relatorio(p1, p2, p3, path="supersete/report.md"):
+def salvar_relatorio(p1, p2, p3, path="SuperSete/report.md"):
     with open(path, "w") as f:
         f.write("# Palpite Automático Super Sete\n\n")
         f.write("## 🎯 Palpite Simples (Frequência Histórica)\n")
@@ -60,7 +60,7 @@ def salvar_relatorio(p1, p2, p3, path="supersete/report.md"):
             f.write(f"{i+1}. {beam}\n")
 
 if __name__ == "__main__":
-    df = pd.read_csv("supersete/data/latest_draws.csv")
+    df = pd.read_csv("SuperSete/data/latest_draws.csv")
 
     palpite_simples = gerar_palpite_simples(df)
     palpite_markov = gerar_palpite_markov(df)
