@@ -3,7 +3,7 @@ from pathlib import Path
 from jinja2 import Template
 
 # Caminhos
-markdown_file = Path("SuperSete/data/index.md")
+markdown_file = Path("SuperSete/docs/index.md")
 output_html = Path("SuperSete/index.html")
 
 # Leitura do conteúdo Markdown
