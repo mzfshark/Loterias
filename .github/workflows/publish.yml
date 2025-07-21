@@ -31,8 +31,8 @@ jobs:
       - name: Commit e push do HTML
         shell: bash
         run: |
-          git config user.name "github-actions"
-          git config user.email "github-actions@github.com"
+          git config user.name "mzfshark"
+          git config user.email "mzfshark@gmail.com"
           git add SuperSete/index.html
           if ! git diff --cached --quiet; then
             git commit -m "Atualiza apresentação HTML do Super Sete"
