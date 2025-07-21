@@ -2,12 +2,12 @@ name: SuperSete HTML generator
 
 on:
   workflow_run:
-    workflows: ["SuperSete Auto Predict"]  # Nome exato do workflow supersete.yml
+    workflows: ["SuperSete Auto Predict"]
     types:
       - completed
 
 jobs:
-  predict-and-publish:
+  format-and-publish:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
 
@@ -22,20 +22,20 @@ jobs:
 
       - name: Instalar dependências
         run: |
-          pip install pandas numpy
+          pip install markdown2 jinja2
 
-      - name: Rodar predição
+      - name: Gerar HTML formatado a partir de Markdown
         run: |
-          python SuperSete/predict.py
+          python SuperSete/scripts/generate_html.py
 
-      - name: Commit e push do relatório
+      - name: Commit e push do HTML
         shell: bash
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
           git add SuperSete/index.html
           if ! git diff --cached --quiet; then
-            git commit -m "Atualiza relatório Super Sete"
+            git commit -m "Atualiza apresentação HTML do Super Sete"
             git push
           else
             echo "Nenhuma mudança para comitar."
