@@ -6,7 +6,8 @@ on:
       - 'SuperSete/data/SuperSete.csv'
   schedule:
     - cron: '0 12 * * *' # Executa diariamente às 9h BRT (12h UTC)
-
+  workflow_dispatch:
+  
 jobs:
   predict-and-publish:
     runs-on: ubuntu-latest
