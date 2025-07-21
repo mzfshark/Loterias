@@ -1,1 +1,38 @@
 
+name: Super Sete Auto Pipeline
+
+on:
+  schedule:
+    - cron: '0 0 * * *'  # Executa diariamente às 21h BRT (~00h UTC)
+  workflow_dispatch:
+
+jobs:
+  run-pipeline:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.11
+
+      - name: Install dependencies
+        run: pip install pandas numpy requests
+
+      - name: Run ingest
+        run: python supersete/ingest.py
+
+      - name: Run prediction
+        run: python supersete/predict.py
+
+      - name: Commit report
+        run: |
+          git config --global user.email "bot@supersete.ai"
+          git config --global user.name "SuperSeteBot"
+          git add supersete/report.md supersete/data/latest_draws.csv
+          git commit -m "update: auto-palpite Super Sete"
+          git push
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
