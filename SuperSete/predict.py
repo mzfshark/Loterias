@@ -75,7 +75,7 @@ if __name__ == "__main__":
 
     df = pd.read_csv(path)
 
-    if list(df.columns) == [f"Coluna {i}" for i in range(1, 8)]:
+    if list(df.columns) == [f"Col: {i}" for i in range(1, 7)]:
         df.columns = ["col_a", "col_b", "col_c", "col_d", "col_e", "col_f", "col_g"]
         df.insert(0, "contest", range(1, len(df)+1))
 
