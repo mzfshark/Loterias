@@ -1,18 +1,24 @@
 import pandas as pd
 import numpy as np
-
+import os
 
 def gerar_palpite_simples(df):
     palpites = []
     for col in df.columns[1:]:
         freq = df[col].value_counts().sort_values(ascending=False)
-        palpites.append(freq.index[0])
+        if not freq.empty:
+            palpites.append(freq.index[0])
+        else:
+            palpites.append(-1)
     return palpites
 
 def gerar_palpite_markov(df):
     palpites = []
     for col in df.columns[1:]:
         series = df[col].tolist()
+        if len(series) < 2:
+            palpites.append(-1)
+            continue
         mat = np.ones((10, 10))
         for i in range(len(series) - 1):
             mat[series[i]][series[i + 1]] += 1
@@ -22,6 +28,8 @@ def gerar_palpite_markov(df):
     return palpites
 
 def gerar_palpites_beam(df, beam_width=3):
+    if len(df) < 5:
+        return [[-1]*7]
     recent = df.tail(20)
     freq_df = {
         col: recent[col].value_counts(normalize=True).sort_index()
@@ -60,7 +68,21 @@ def salvar_relatorio(p1, p2, p3, path="SuperSete/report.md"):
             f.write(f"{i+1}. {beam}\n")
 
 if __name__ == "__main__":
-    df = pd.read_csv("SuperSete/data/latest_draws.csv")
+    path = "SuperSete/data/latest_draws.csv"
+    if not os.path.exists(path):
+        print("Arquivo de dados não encontrado.")
+        exit(1)
+
+    df = pd.read_csv(path)
+
+    if list(df.columns) == [f"Coluna {i}" for i in range(1, 8)]:
+        df.columns = ["col_a", "col_b", "col_c", "col_d", "col_e", "col_f", "col_g"]
+        df.insert(0, "contest", range(1, len(df)+1))
+
+    if df.empty or len(df.columns) < 8:
+        print("Dados insuficientes para gerar palpites.")
+        salvar_relatorio([], [], [])
+        exit(0)
 
     palpite_simples = gerar_palpite_simples(df)
     palpite_markov = gerar_palpite_markov(df)
