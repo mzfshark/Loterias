@@ -1,9 +1,8 @@
-
 name: Super Sete Auto Pipeline
 
 on:
   schedule:
-    - cron: '0 0 * * *'  # Executa diariamente às 21h BRT (~00h UTC)
+    - cron: '0 12 * * *'  # Executa diariamente às 9h BRT (~12h UTC)
   workflow_dispatch:
 
 jobs:
@@ -19,7 +18,7 @@ jobs:
           python-version: 3.11
 
       - name: Install dependencies
-        run: pip install pandas numpy requests
+        run: pip install pandas numpy requests beautifulsoup4
 
       - name: Run ingest
         run: python supersete/ingest.py
@@ -32,7 +31,7 @@ jobs:
           git config --global user.email "bot@supersete.ai"
           git config --global user.name "SuperSeteBot"
           git add supersete/report.md supersete/data/latest_draws.csv
-          git commit -m "update: auto-palpite Super Sete"
+          git commit -m "update: auto-palpite Super Sete" || echo "No changes to commit"
           git push
         env:
           GH_TOKEN: ${{ secrets.GH_PAT }}
