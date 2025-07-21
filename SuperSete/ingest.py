@@ -25,4 +25,4 @@ def fetch_latest_draws(n=50):
 
 if __name__ == "__main__":
     df = fetch_latest_draws(n=50)
-    df.to_csv("supersete/data/latest_draws.csv", index=False)
+    df.to_csv("SuperSete/data/latest_draws.csv", index=False)
