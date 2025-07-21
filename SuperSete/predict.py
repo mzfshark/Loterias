@@ -1,4 +1,3 @@
-
 import pandas as pd
 import numpy as np
 
@@ -17,3 +16,4 @@ if __name__ == "__main__":
         f.write("# Palpite Automático Super Sete\n")
         f.write("Palpite baseado em frequência histórica:\n")
         f.write(str(palpite))
+
