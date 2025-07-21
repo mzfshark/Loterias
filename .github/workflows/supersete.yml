@@ -21,10 +21,10 @@ jobs:
         run: pip install pandas numpy requests beautifulsoup4
 
       - name: Run ingest
-        run: python supersete/ingest.py
+        run: python SuperSete/ingest.py
 
       - name: Run prediction
-        run: python supersete/predict.py
+        run: python SuperSete/predict.py
 
       - name: Commit report
         run: |
