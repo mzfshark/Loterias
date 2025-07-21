@@ -4,7 +4,7 @@ import os
 
 def gerar_palpite_simples(df):
     palpites = []
-    for col in df.columns[1:]:
+    for col in df.columns:
         freq = df[col].value_counts().sort_values(ascending=False)
         if not freq.empty:
             palpites.append(freq.index[0])
@@ -14,7 +14,7 @@ def gerar_palpite_simples(df):
 
 def gerar_palpite_markov(df):
     palpites = []
-    for col in df.columns[1:]:
+    for col in df.columns:
         series = pd.to_numeric(df[col], errors='coerce').dropna().astype(int)
         series = [s for s in series if 0 <= s <= 9]
         if len(series) < 2:
@@ -34,43 +34,39 @@ def gerar_palpites_beam(df, beam_width=3):
     recent = df.tail(20)
     freq_df = {
         col: recent[col].value_counts(normalize=True).sort_index()
-        for col in df.columns[1:]
+        for col in df.columns
     }
     sorted_digits = {
         col: freq_df[col].sort_values(ascending=False).index.tolist()
         for col in freq_df
     }
-    beam = [[d] for d in sorted_digits[df.columns[1]][:beam_width]]
-    for col in df.columns[2:]:
+    beam = [[d] for d in sorted_digits[df.columns[0]][:beam_width]]
+    for col in df.columns[1:]:
         new_beam = []
         for path in beam:
             for d in sorted_digits[col][:beam_width]:
                 new_path = path + [d]
                 prob = np.prod([
                     freq_df[c][val] if val in freq_df[c] else 0.01
-                    for c, val in zip(df.columns[1:], new_path)
+                    for c, val in zip(df.columns, new_path)
                 ])
                 new_beam.append((new_path, prob))
         new_beam = sorted(new_beam, key=lambda x: x[1], reverse=True)[:beam_width]
         beam = [b for b, _ in new_beam]
     return beam
 
-def salvar_relatorio(p1, p2, p3, path="SuperSete/index.html"):
+def salvar_relatorio(p1, p2, p3, path="SuperSete/docs/index.md"):
     with open(path, "w") as f:
-        f.write("<html><head><meta charset='UTF-8'><title>Palpite Super Sete</title></head><body>")
-        f.write("<h1>Palpite Automático Super Sete</h1>")
+        f.write("# Palpite Automático Super Sete\n\n")
+        f.write("## 🎯 Palpite Simples (Frequência Histórica)\n")
+        f.write(f"{p1}\n\n")
 
-        f.write("<h2>🎯 Palpite Simples (Frequência Histórica)</h2>")
-        f.write(f"<p>{p1}</p>")
+        f.write("## 🔁 Palpite Markov 1ª Ordem\n")
+        f.write(f"{p2}\n\n")
 
-        f.write("<h2>🔁 Palpite Markov 1ª Ordem</h2>")
-        f.write(f"<p>{p2}</p>")
-
-        f.write("<h2>🤖 Top Palpites por Beam Search (base 20 concursos)</h2>")
+        f.write("## 🤖 Top Palpites por Beam Search (base 20 concursos)\n")
         for i, beam in enumerate(p3):
-            f.write(f"<p>{i+1}. {beam}</p>")
-
-        f.write("</body></html>")
+            f.write(f"{i+1}. {beam}\n")
 
 if __name__ == "__main__":
     path = "SuperSete/data/SuperSete.csv"
@@ -78,22 +74,10 @@ if __name__ == "__main__":
         print("Arquivo de dados não encontrado.")
         exit(1)
 
-    df = pd.read_csv(path)
+    df_raw = pd.read_csv(path)
+    df = df_raw.iloc[:, 2:9]  # Colunas 3 a 9 (index 2 até 8) => Coluna 1 a Coluna 7
 
-    if list(df.columns) == ["Concurso", "Data", "1ª Coluna", "2ª Coluna", "3ª Coluna", "4ª Coluna", "5ª Coluna", "6ª Coluna", "7ª Coluna"]:
-        df = df.rename(columns={
-            "1ª Coluna": "col_a",
-            "2ª Coluna": "col_b",
-            "3ª Coluna": "col_c",
-            "4ª Coluna": "col_d",
-            "5ª Coluna": "col_e",
-            "6ª Coluna": "col_f",
-            "7ª Coluna": "col_g",
-        })
-        df = df[["Concurso", "col_a", "col_b", "col_c", "col_d", "col_e", "col_f", "col_g"]]
-        df = df.rename(columns={"Concurso": "contest"})
-
-    if df.empty or len(df.columns) < 8:
+    if df.empty or len(df.columns) != 7:
         print("Dados insuficientes para gerar palpites.")
         salvar_relatorio([], [], [])
         exit(0)
