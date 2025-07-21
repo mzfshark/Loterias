@@ -15,7 +15,8 @@ def gerar_palpite_simples(df):
 def gerar_palpite_markov(df):
     palpites = []
     for col in df.columns[1:]:
-        series = df[col].tolist()
+        series = pd.to_numeric(df[col], errors='coerce').dropna().astype(int)
+        series = [s for s in series if 0 <= s <= 9]
         if len(series) < 2:
             palpites.append(-1)
             continue
@@ -54,7 +55,7 @@ def gerar_palpites_beam(df, beam_width=3):
         beam = [b for b, _ in new_beam]
     return beam
 
-def salvar_relatorio(p1, p2, p3, path="SuperSete/report.md"):
+def salvar_relatorio(p1, p2, p3, path="SuperSete/docs/index.md"):
     with open(path, "w") as f:
         f.write("# Palpite Automático Super Sete\n\n")
         f.write("## 🎯 Palpite Simples (Frequência Histórica)\n")
@@ -75,7 +76,7 @@ if __name__ == "__main__":
 
     df = pd.read_csv(path)
 
-    if list(df.columns) == [f"Coluna {i}" for i in range(1, 7)]:
+    if list(df.columns) == [f"Coluna {i}" for i in range(1, 8)]:
         df.columns = ["col_a", "col_b", "col_c", "col_d", "col_e", "col_f", "col_g"]
         df.insert(0, "contest", range(1, len(df)+1))
 
