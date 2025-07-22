@@ -86,7 +86,7 @@ def salvar_relatorio(p1, p2, p3, path="Lotofacil/docs/index.md"):
             f.write(f"{i+1}. {beam}\n")
 
 if __name__ == "__main__":
-    path = "Lotofacil/data/lotofacil.csv"
+    path = "Lotofacil/data/Lotofacil.csv"
     if not os.path.exists(path):
         print("Arquivo de dados não encontrado.")
         exit(1)
