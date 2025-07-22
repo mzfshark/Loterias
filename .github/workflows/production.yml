@@ -12,16 +12,13 @@ on:
       network:
         description: 'The network to deploy to'
         required: true
-        default: 'sepolia'
+        default: 'harmony'
         type: choice
         options:
           - mainnet
-          - sepolia
           - harmony
           - bsc
-          - bsc_testnet
           - opBNB
-          - opBNB_testnet
           # Add more networks if needed
 
 jobs:

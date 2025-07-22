@@ -1,50 +1,57 @@
-const { ethers, network } = require("hardhat");
+const { ethers } = require("hardhat");
+const fs = require("fs");
 
 async function main() {
-    // Fetch environment variables
-    const deployerPrivateKey = process.env.DEPLOYER_PRIVATE_KEY;
-    const vrfCoordinatorAddress = process.env.VRF_COORDINATOR_ADDRESS;
-    const keyHash = process.env.KEY_HASH;
-    const subscriptionId = process.env.SUBSCRIPTION_ID;
-    const initialProjectFund = process.env.INITIAL_PROJECT_FUND;
-    const initialGrantFund = process.env.INITIAL_GRANT_FUND;
-    const initialOperationFund = process.env.INITIAL_OPERATION_FUND;
-    const nativeTokenAddress = process.env.NATIVE_TOKEN_ADDRESS;
-
-    // Validate environment variables
-    if (!deployerPrivateKey || !vrfCoordinatorAddress || !keyHash || !subscriptionId || 
-        !initialProjectFund || !initialGrantFund || !initialOperationFund || !nativeTokenAddress) {
-        console.error("Missing required environment variables.");
-        process.exit(1);
+    const network = process.env.NETWORK; // A rede deve ser especificada nas variáveis de ambiente
+    if (!network) {
+        throw new Error("A variável de ambiente NETWORK não está definida.");
     }
 
-    // Set up deployer
+    // Carregar configuração do arquivo config.json
+    const config = JSON.parse(fs.readFileSync("src/config.json", "utf8"));
+    const networkConfig = config[network];
+
+    if (!networkConfig) {
+        throw new Error(`Configuração para a rede ${network} não encontrada no config.json.`);
+    }
+
+    const {
+        RPC_URL,
+        NATIVE_TOKEN,
+        TICKET_NFT_ADDRESS,
+        VRF_COORDINATOR_ADDRESS,
+        KEY_HASH,
+        SUBSCRIPTION_ID,
+        PRICE_FEED_ADDRESS,
+        PROJECT_FUND,
+        GRANT_FUND,
+        OPERATION_FUND
+    } = networkConfig;
+
     const [deployer] = await ethers.getSigners();
-    console.log("Deploying contracts with account:", deployer.address);
-    console.log(`Account balance: ${(await deployer.getBalance()).toString()}`);
+    console.log("Deploying contracts with the account:", deployer.address);
 
-    // Contract factory
-    const CryptoDrawFactory = await ethers.getContractFactory("CryptoDraw");
+    // Verifica se o endereço do TicketNFT foi fornecido
+    if (!TICKET_NFT_ADDRESS) {
+        throw new Error("O endereço do TicketNFT deve ser especificado no arquivo config.json");
+    }
 
-    // Deployment parameters
-    const networkId = network.config.chainId;
-    console.log(`Deploying to network ID: ${networkId}`);
-
-    // Deploy the contract
-    const CryptoDraw = await CryptoDrawFactory.deploy(
-        nativeTokenAddress,
-        vrfCoordinatorAddress,
-        keyHash,
-        subscriptionId,
-        ethers.utils.parseUnits(initialProjectFund, "ether"),
-        ethers.utils.parseUnits(initialGrantFund, "ether"),
-        ethers.utils.parseUnits(initialOperationFund, "ether")
+    // Deploy do contrato CryptoDraw usando o endereço do TicketNFT existente
+    const CryptoDraw = await ethers.getContractFactory("CryptoDraw");
+    const cryptoDraw = await CryptoDraw.deploy(
+        NATIVE_TOKEN,
+        TICKET_NFT_ADDRESS,
+        VRF_COORDINATOR_ADDRESS,
+        KEY_HASH,
+        SUBSCRIPTION_ID,
+        PRICE_FEED_ADDRESS,
+        PROJECT_FUND,
+        GRANT_FUND,
+        OPERATION_FUND
     );
 
-    console.log("Deploying contract...");
-    await CryptoDraw.deployed();
-
-    console.log("CryptoDraw deployed to:", CryptoDraw.address);
+    await cryptoDraw.deployed();
+    console.log("CryptoDraw deployed to:", cryptoDraw.address);
 }
 
 main()
@@ -53,3 +60,4 @@ main()
         console.error(error);
         process.exit(1);
     });
+

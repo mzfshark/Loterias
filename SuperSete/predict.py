@@ -3,13 +3,11 @@ import numpy as np
 import os
 
 def gerar_palpite_simples(df):
+    # Para cada posição (coluna), escolhe o valor mais frequente
     palpites = []
     for col in df.columns:
         freq = df[col].value_counts().sort_values(ascending=False)
-        if not freq.empty:
-            palpites.append(freq.index[0])
-        else:
-            palpites.append(-1)
+        palpites.append(int(freq.index[0]) if not freq.empty else -1)
     return palpites
 
 def gerar_palpite_markov(df):

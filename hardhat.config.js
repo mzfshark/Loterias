@@ -2,9 +2,6 @@ require('@nomiclabs/hardhat-ethers');
 require('@nomiclabs/hardhat-etherscan');
 require('dotenv').config();
 
-// Load environment variables
-const { RPC_URL_BSC, RPC_URL_BSC_TESTNET, RPC_URL_HARMONY, RPC_URL_OPBNB, RPC_URL_OPBNB_TESTNET, RPC_URL_SEPOLIA, DEPLOYER_PRIVATE_KEY } = process.env;
-
 module.exports = {
   solidity: {
     version: "0.8.7",
@@ -17,30 +14,38 @@ module.exports = {
   },
   networks: {
     mainnet: {
-      url: RPC_URL_MAINNET,
+      url: "https://mainnet.infura.io/v3/554262fab79f49adb4fdba2db2587800",
+      chainId: 1,
     },
     sepolia: {
-      url: RPC_URL_SEPOLIA,
+      url: "https://sepolia.infura.io/v3/554262fab79f49adb4fdba2db2587800",
+      chainId: 11155111,
     },
     harmony: {
-      url: RPC_URL_HARMONY,
+      url: "https://api.harmony.one",
+      chainId: 1666600000,
     },
     bsc: {
-      url: RPC_URL_BSC,
+      url: "https://bsc-mainnet.infura.io/v3/554262fab79f49adb4fdba2db2587800",
+      chainId: 56,
     },
     bsc_testnet: {
-      url: RPC_URL_BSC_TESTNET,
+      url: "https://bsc-testnet.infura.io/v3/554262fab79f49adb4fdba2db2587800",
+      chainId: 97,
     },
     opBNB: {
-      url: RPC_URL_OPBNB,
+      url: "https://opbnb-testnet.infura.io/v3/554262fab79f49adb4fdba2db2587800",
+      chainId: 100,
     },
     opBNB_testnet: {
-      url: RPC_URL_OPBNB_TESTNET,
+      url: "https://opbnb-mainnet.infura.io/v3/554262fab79f49adb4fdba2db2587800",
+      chainId: 101,
     }
   },
-  /*etherscan: {
+  // Uncomment and configure this section if you need Etherscan verification
+  /* etherscan: {
     apiKey: {
       // Your etherscan API key if needed for verification
     }
-  }*/
+  } */
 };
