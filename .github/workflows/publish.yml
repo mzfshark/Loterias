@@ -26,19 +26,17 @@ jobs:
 
       - name: Gerar HTML formatado a partir de Markdown
         run: |
-          python scripts/generate_html.py
+          python SuperSete/scripts/generate_html.py
 
       - name: Commit e push do HTML
         shell: bash
         run: |
-          git config user.name "github-actions"
-          git config user.email "github-actions@github.com"
+          git config user.name "mzfshark"
+          git config user.email "mzfshark@gmail.com"
+          git pull
           git add SuperSete/index.html
-          if ! git diff --cached --quiet; then
-            git commit -m "Atualiza apresentação HTML do Super Sete"
-            git push
-          else
-            echo "Nenhuma mudança para comitar."
+          git commit -m "Atualiza apresentação HTML do Super Sete"
+          git push
 
       - name: Publicar via GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
