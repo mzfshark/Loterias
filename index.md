@@ -1,7 +1,7 @@
 # Palpite Automático Super Sete
 
 ## 🎯 Palpite Simples (Frequência Histórica)
-[np.int64(0), np.int64(7), np.int64(5), np.int64(6), np.int64(3), np.int64(7), np.int64(3)]
+[0, 7, 5, 6, 3, 7, 3]
 
 ## 🔁 Palpite Markov 1ª Ordem
 [7, 6, 5, 7, 7, 4, 2]
