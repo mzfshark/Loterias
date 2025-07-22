@@ -86,15 +86,23 @@ def salvar_relatorio(p1, p2, p3, path="Lotofacil/docs/index.md"):
             f.write(f"{i+1}. {beam}\n")
 
 if __name__ == "__main__":
-    path = "Lotofacil/data/lotofacil.csv"
+    path = "Lotofacil/data/Lotofacil.csv"
     if not os.path.exists(path):
         print("Arquivo de dados não encontrado.")
         exit(1)
 
     df_raw = pd.read_csv(path)
     # Assume colunas: primeira coluna data/id, próximas 15 dezenas
-    df = df_raw.iloc[:, 1:16]
-    if df.empty or df.shape[1] != 15:
+    # Seleciona apenas as colunas numéricas (dezenas)
+df = df_raw.select_dtypes(include=[np.number])
+# Se por acaso existir coluna de índice com valores altos, renomeie colunas para garantir as últimas 15
+if df.shape[1] > 15:
+    df = df.iloc[:, -15:]
+
+    if df.empty or df.shape[1] < 15:
+    print("Dados insuficientes para gerar palpites.")
+    salvar_relatorio([], [], [])
+    exit(0)
         print("Dados insuficientes para gerar palpites.")
         salvar_relatorio([], [], [])
         exit(0)
