@@ -1,10 +1,7 @@
-## 🎯 Palpite Simples (Frequência Histórica)
-[1, 2, 4, 6, 8, 9, 11, 13, 15, 16, 19, 20, 22, 24, 25]
+## 🎯 Palpite Simples (Top 15 Frequências)
+[20, 10, 25, 11, 13, 24, 14, 3, 1, 4, 12, 5, 2, 22, 9]
 
-## 🔁 Palpite Markov 1ª Ordem
-[1, 2, 4, 7, 7, 9, 10, 12, 14, 18, 18, 20, 22, 24, 25]
+## 🔁 Palpite Markov (Top 15 Transições)
+[1, 2, 3, 4, 5, 6, 7, 9, 8, 10, 11, 12, 13, 14, 15]
 
-## 🤖 Top Palpites por Beam Search (base 20 concursos)
-1. [1, 3, 5, 6, 9, 11, 12, 12, 16, 16, 19, 20, 21, 24, 25]
-2. [1, 3, 5, 6, 9, 11, 12, 12, 16, 18, 19, 20, 21, 24, 25]
-3. [1, 3, 5, 6, 9, 11, 12, 13, 16, 16, 19, 20, 21, 24, 25]
+## 🤖 Palpites por Beam Search (Top Combinações)
