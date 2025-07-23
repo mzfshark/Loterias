@@ -28,7 +28,7 @@ def genetic_algorithm(scores, pop_size=100, generations=50):
     population = [random.sample(range(1, 26), 15) for _ in range(pop_size)]
     for _ in range(generations):
         population.sort(key=fitness, reverse=True)
-        survivors = population[:pop_size//2]
+        survivors = population[:pop_size // 2]
         while len(survivors) < pop_size:
             p1, p2 = random.sample(survivors, 2)
             cut = random.randint(1, 14)
@@ -43,40 +43,30 @@ def genetic_algorithm(scores, pop_size=100, generations=50):
 
 def salvar_relatorio(mc_set, ga_set, df, path="Lotofacil/docs/index.md"):
     os.makedirs(os.path.dirname(path), exist_ok=True)
-    freq = pd.Series(df.values.flatten()).value_counts(normalize=True).reindex(range(1,26), fill_value=0)
+    freq = pd.Series(df.values.flatten()).value_counts(normalize=True).reindex(range(1, 26), fill_value=0)
     df_freq = freq.rename_axis('Number').reset_index(name='Frequency')
-    headers = ['Number','Frequency']
+    headers = ['Number', 'Frequency']
     rows = df_freq.values.tolist()
-    md_table = '| ' + ' | '.join(headers) + ' |
-'
-    md_table += '| ' + ' | '.join(['---']*len(headers)) + ' |
-'
+    md_table = '| ' + ' | '.join(headers) + ' |\n'
+    md_table += '| ' + ' | '.join(['---'] * len(headers)) + ' |\n'
     for num, freq_val in rows:
-        md_table += f'| {num} | {freq_val:.2%} |
-'
+        md_table += f'| {num} | {freq_val:.2%} |\n'
     with open(path, 'w', encoding='utf-8') as f:
-        f.write('## Frequência Histórica
-')
-        f.write(md_table + '
-')
-        f.write('## Conjunto Monte Carlo
-')
-        f.write(str(mc_set) + '
+        f.write('## Frequência Histórica\n')
+        f.write(md_table + '\n')
+        f.write('## Conjunto Monte Carlo\n')
+        f.write(str(mc_set) + '\n\n')
+        f.write('## Conjunto Genetic Algorithm\n')
+        f.write(str(ga_set) + '\n')
 
-')
-        f.write('## Conjunto Genetic Algorithm
-')
-        f.write(str(ga_set) + '
-')
-
-if __name__ == '__main__': == '__main__':
+if __name__ == '__main__':
     csv_path = 'Lotofacil/data/Lotofacil.csv'
     if not os.path.exists(csv_path):
         print('Arquivo de dados não encontrado.')
         exit(1)
     df_raw = pd.read_csv(csv_path)
     df = df_raw.iloc[:, 2:17]
-    df.columns = [f'Numero{i}' for i in range(1,16)]
+    df.columns = [f'Numero{i}' for i in range(1, 16)]
     scores = score_frequency(df)
     mc = monte_carlo_opt(scores)
     ga = genetic_algorithm(scores)
