@@ -55,13 +55,13 @@ def gerar_palpites_beam(df, beam_width=3):
 
 def salvar_relatorio(p1, p2, p3, path="SuperSete/docs/index.md"):
     with open(path, "w") as f:
-        f.write("## 🎯 Palpite Simples (Frequência Histórica)\n")
+        f.write("## 🎯 Frequência Histórica\n")
         f.write(f"{p1}\n\n")
 
-        f.write("## 🔁 Palpite Markov 1ª Ordem\n")
+        f.write("## 🔁 Palpite Markov \n")
         f.write(f"{p2}\n\n")
 
-        f.write("## 🤖 Top Palpites por Beam Search (base 20 concursos)\n")
+        f.write("## 🤖 Beam Search (base 20)\n")
         for i, beam in enumerate(p3):
             f.write(f"{i+1}. {beam}\n")
 

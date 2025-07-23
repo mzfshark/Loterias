@@ -58,9 +58,9 @@ def salvar_relatorio(mc_set, ga_set, df, path="Lotofacil/docs/index.md"):
     plt.close()
     with open(path, "w", encoding="utf-8") as f:
         f.write(f"![Heatmap de Frequências]({os.path.basename(heatmap_path)})\n\n")
-        f.write("## Conjunto Frequency-Weighted + Monte Carlo\n")
+        f.write("## Monte Carlo\n")
         f.write(f"{mc_set}\n\n")
-        f.write("## Conjunto Genetic Algorithm\n")
+        f.write("## Genetic Algorithm\n")
         f.write(f"{ga_set}\n")
 
 if __name__ == '__main__':
