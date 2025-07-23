@@ -24,20 +24,25 @@ def monte_carlo_opt(scores, trials=100000):
 
 
 def genetic_algorithm(scores, pop_size=100, generations=50, elite_frac=0.2, mutation_rate=0.1):
-    def fitness(ind):
-        return sum(scores[i] for i in ind)
+    def fitness(ind): return sum(scores[i] for i in ind)
     population = [random.sample(range(1, 26), 15) for _ in range(pop_size)]
     elite_size = max(1, int(elite_frac * pop_size))
     for _ in range(generations):
         population.sort(key=fitness, reverse=True)
         new_pop = population[:elite_size]
         weights = [fitness(ind) for ind in population]
-        # generate rest
         while len(new_pop) < pop_size:
-            parents = random.choices(population, weights=weights, k=2)
+            p1, p2 = random.choices(population, weights=weights, k=2)
             cut = random.randint(1, 14)
-            child = parents[0][:cut] + [g for g in parents[1] if g not in parents[0][:cut]]
-            # mutation: swap two positions
+            child = p1[:cut]
+            for g in p2:
+                if len(child) >= 15:
+                    break
+                if g not in child:
+                    child.append(g)
+            missing = [n for n in range(1,26) if n not in child]
+            while len(child) < 15:
+                child.append(random.choice(missing))
             if random.random() < mutation_rate:
                 i, j = random.sample(range(15), 2)
                 child[i], child[j] = child[j], child[i]
