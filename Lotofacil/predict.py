@@ -23,22 +23,28 @@ def monte_carlo_opt(scores, trials=100000):
     return sorted(best_set.tolist())
 
 
-def genetic_algorithm(scores, pop_size=100, generations=50):
-    def fitness(ind): return sum(scores[i] for i in ind)
+def genetic_algorithm(scores, pop_size=100, generations=50, elite_frac=0.2, mutation_rate=0.1):
+    def fitness(ind):
+        return sum(scores[i] for i in ind)
     population = [random.sample(range(1, 26), 15) for _ in range(pop_size)]
+    elite_size = max(1, int(elite_frac * pop_size))
     for _ in range(generations):
         population.sort(key=fitness, reverse=True)
-        survivors = population[:pop_size // 2]
-        while len(survivors) < pop_size:
-            p1, p2 = random.sample(survivors, 2)
+        new_pop = population[:elite_size]
+        weights = [fitness(ind) for ind in population]
+        # generate rest
+        while len(new_pop) < pop_size:
+            parents = random.choices(population, weights=weights, k=2)
             cut = random.randint(1, 14)
-            child = p1[:cut] + [x for x in p2 if x not in p1[:cut]]
-            if random.random() < 0.1:
+            child = parents[0][:cut] + [g for g in parents[1] if g not in parents[0][:cut]]
+            # mutation: swap two positions
+            if random.random() < mutation_rate:
                 i, j = random.sample(range(15), 2)
                 child[i], child[j] = child[j], child[i]
-            survivors.append(child)
-        population = survivors
-    return sorted(max(population, key=fitness))
+            new_pop.append(child)
+        population = new_pop
+    population.sort(key=fitness, reverse=True)
+    return sorted(population[0])
 
 
 def salvar_relatorio(mc_set, ga_set, df, path="Lotofacil/docs/index.md"):
