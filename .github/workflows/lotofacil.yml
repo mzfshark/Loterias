@@ -23,7 +23,7 @@ jobs:
 
       - name: Instalar dependências
         run: |
-          pip install pandas numpy scipy
+          pip install pandas numpy scipy matplotlib
 
       - name: Rodar predição
         run: |
