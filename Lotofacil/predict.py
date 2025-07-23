@@ -50,7 +50,6 @@ def gerar_palpites_beam(df, beam_width=3):
 def salvar_relatorio(p1, p2, p3, path="Lotofacil/docs/index.md"):
     os.makedirs(os.path.dirname(path), exist_ok=True)
     with open(path, "w", encoding="utf-8") as f:
-        f.write("# Palpite Automático Lotofácil\n\n")
         f.write("## 🎯 Palpite Simples (Frequência Histórica)\n")
         f.write(f"{p1}\n\n")
         f.write("## 🔁 Palpite Markov 1ª Ordem\n")

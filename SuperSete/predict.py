@@ -55,7 +55,6 @@ def gerar_palpites_beam(df, beam_width=3):
 
 def salvar_relatorio(p1, p2, p3, path="SuperSete/docs/index.md"):
     with open(path, "w") as f:
-        f.write("# Palpite Automático Super Sete\n\n")
         f.write("## 🎯 Palpite Simples (Frequência Histórica)\n")
         f.write(f"{p1}\n\n")
 
