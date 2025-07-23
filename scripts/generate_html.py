@@ -45,8 +45,12 @@ html_template = Template("""
       border-bottom: 2px solid #ccc;
       padding-bottom: 0.25rem;
     }
+    cards{
+    display: flex;
+    flex-wrap: unset;
+    }
     section {
-      margin: 50px;
+      margin: 1rem;
       background: #000616;
       padding: 1rem;
       border-radius: 8px;
