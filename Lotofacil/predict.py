@@ -45,25 +45,31 @@ def salvar_relatorio(mc_set, ga_set, df, path="Lotofacil/docs/index.md"):
     os.makedirs(os.path.dirname(path), exist_ok=True)
     freq = pd.Series(df.values.flatten()).value_counts(normalize=True).reindex(range(1,26), fill_value=0)
     df_freq = freq.rename_axis('Number').reset_index(name='Frequency')
-    # build markdown table manually
     headers = ['Number','Frequency']
     rows = df_freq.values.tolist()
     md_table = '| ' + ' | '.join(headers) + ' |
 '
     md_table += '| ' + ' | '.join(['---']*len(headers)) + ' |
 '
-    for num, freq in rows:
-        md_table += f'| {num} | {freq:.2%} |
+    for num, freq_val in rows:
+        md_table += f'| {num} | {freq_val:.2%} |
 '
     with open(path, 'w', encoding='utf-8') as f:
-        f.write('## Frequência Histórica\n')
-        f.write(md_table + '\n\n')
-        f.write('## Conjunto Monte Carlo\n')
-        f.write(str(mc_set) + '\n\n')
-        f.write('## Conjunto Genetic Algorithm\n')
-        f.write(str(ga_set) + '\n')
+        f.write('## Frequência Histórica
+')
+        f.write(md_table + '
+')
+        f.write('## Conjunto Monte Carlo
+')
+        f.write(str(mc_set) + '
 
-if __name__ == '__main__':
+')
+        f.write('## Conjunto Genetic Algorithm
+')
+        f.write(str(ga_set) + '
+')
+
+if __name__ == '__main__': == '__main__':
     csv_path = 'Lotofacil/data/Lotofacil.csv'
     if not os.path.exists(csv_path):
         print('Arquivo de dados não encontrado.')
