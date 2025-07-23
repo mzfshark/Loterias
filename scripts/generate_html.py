@@ -45,8 +45,8 @@ html_template = Template("""
       padding-bottom: 0.25rem;
     }
     cards{
-    display: flex;
-    flex-wrap: unset;
+      display: flex;
+      flex-wrap: unset;
     }
     section {
       margin: 1rem;
@@ -73,14 +73,14 @@ html_template = Template("""
 </head>
 <body>
   <h1>Relatórios de Loterias</h1>
-  <div class="cards">
+  <cards>
   <section>
     {{ lotofacil | safe }}
   </section>
   <section>
     {{ supersete | safe }}
   </section>
-  </div>
+  </cards>
 </body>
 </html>
 """)
