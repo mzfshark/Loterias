@@ -37,20 +37,21 @@ html_template = Template("""
       max-width: 1000px;
       margin: 2rem auto;
       padding: 1rem;
-      background: #f0f4f8;
-      color: #333;
+      background: #192532;
+      color: #e3e3e3;
     }
     h1, h2 {
-      color: #1a237e;
+      color: #2fd39a;
       border-bottom: 2px solid #ccc;
       padding-bottom: 0.25rem;
     }
     section {
-      margin-bottom: 3rem;
-      background: #fff;
+      margin: 50px;
+      background: #000616;
       padding: 1rem;
       border-radius: 8px;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+      width: 49%;
     }
     table {
       width: 100%;
@@ -69,12 +70,14 @@ html_template = Template("""
 </head>
 <body>
   <h1>Relatórios de Loterias</h1>
+  <div class="cards">
   <section>
     {{ lotofacil | safe }}
   </section>
   <section>
     {{ supersete | safe }}
   </section>
+  </div>
 </body>
 </html>
 """)
