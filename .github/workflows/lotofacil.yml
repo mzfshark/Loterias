@@ -23,7 +23,7 @@ jobs:
 
       - name: Instalar dependências
         run: |
-          pip install pandas numpy scipy matplotlib seaborn
+          pip install pandas numpy 
 
       - name: Rodar predição
         run: |
