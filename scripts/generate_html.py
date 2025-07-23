@@ -42,7 +42,6 @@ html_template = Template("""
     }
     h1, h2 {
       color: #2fd39a;
-      border-bottom: 2px solid #ccc;
       padding-bottom: 0.25rem;
     }
     cards{
