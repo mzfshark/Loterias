@@ -45,7 +45,16 @@ def salvar_relatorio(mc_set, ga_set, df, path="Lotofacil/docs/index.md"):
     os.makedirs(os.path.dirname(path), exist_ok=True)
     freq = pd.Series(df.values.flatten()).value_counts(normalize=True).reindex(range(1,26), fill_value=0)
     df_freq = freq.rename_axis('Number').reset_index(name='Frequency')
-    md_table = df_freq.to_markdown(index=False, floatfmt=".2%")
+    # build markdown table manually
+    headers = ['Number','Frequency']
+    rows = df_freq.values.tolist()
+    md_table = '| ' + ' | '.join(headers) + ' |
+'
+    md_table += '| ' + ' | '.join(['---']*len(headers)) + ' |
+'
+    for num, freq in rows:
+        md_table += f'| {num} | {freq:.2%} |
+'
     with open(path, 'w', encoding='utf-8') as f:
         f.write('## Frequência Histórica\n')
         f.write(md_table + '\n\n')
