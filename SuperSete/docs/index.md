@@ -1,5 +1,3 @@
-# Palpite Automático Super Sete
-
 ## 🎯 Palpite Simples (Frequência Histórica)
 [0, 7, 5, 6, 3, 7, 3]
 
