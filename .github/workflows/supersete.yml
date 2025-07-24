@@ -31,8 +31,8 @@ jobs:
 
       - name: Commit e push do relatório
         run: |
-          git config user.name "github-actions"
-          git config user.email "github-actions@github.com"
+          git config user.name "mzfshark"
+          git config user.email "mzfsharks@gmail.com"
           git add SuperSete/docs/index.md
           if ! git diff --cached --quiet; then
             git commit -m "Atualiza relatório Markdown do Super Sete"
