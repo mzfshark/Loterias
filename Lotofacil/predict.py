@@ -2,8 +2,8 @@ import pandas as pd
 import numpy as np
 import os
 import random
-import seaborn as sns
-import matplotlib.pyplot as plt
+import plotly.graph_objects as go
+import plotly.io as pio
 
 
 def load_data(path='Lotofacil/data/Lotofacil.csv'):
@@ -16,18 +16,29 @@ def load_data(path='Lotofacil/data/Lotofacil.csv'):
     return df_raw, df
 
 
-def generate_heatmap(df, save_path='Lotofacil/docs/heatmap.png'):
+def generate_heatmap(df):
     all_numbers = df.values.flatten()
     freq = pd.Series(all_numbers).value_counts(normalize=True).reindex(range(1, 26), fill_value=0)
-    heatmap_data = freq.values.reshape(5, 5)
-    plt.figure(figsize=(6, 4))
-    sns.heatmap(heatmap_data, annot=True, fmt=".0%", cmap="YlGnBu", xticklabels=False, yticklabels=False)
-    plt.title("Frequência das Dezenas (Histórico)")
-    os.makedirs(os.path.dirname(save_path), exist_ok=True)
-    plt.savefig(save_path)
-    plt.close()
+    freq_df = pd.DataFrame({
+        'Dezena': range(1, 26),
+        'Frequência (%)': (freq.values * 100).round(2)
+    })
+    freq_matrix = freq.values.reshape(5, 5)
+    heatmap_fig = go.Figure(data=go.Heatmap(
+        z=freq_matrix,
+        x=[1, 2, 3, 4, 5],
+        y=[1, 2, 3, 4, 5],
+        colorscale='YlGnBu',
+        text=freq_matrix,
+        hoverinfo="z"
+    ))
+    heatmap_fig.update_layout(
+        title="Frequência das Dezenas (Histórico)",
+        margin=dict(l=20, r=20, t=40, b=20),
+        height=300
+    )
     top_15 = sorted(freq.sort_values(ascending=False).head(15).index.tolist())
-    return top_15, freq
+    return top_15, freq_df, pio.to_html(heatmap_fig, include_plotlyjs='cdn', full_html=False)
 
 
 def score_frequency(df, alpha=0.5, window=None):
@@ -55,35 +66,31 @@ def generate_predictions(df):
     return pred_short, pred_mid, pred_long
 
 
-def track_performance(df, predictions, save_path='Lotofacil/docs/performance.png'):
+def track_performance(df, predictions):
     accuracy = []
     for idx in range(len(df)):
         draw = set(df.iloc[idx].values)
         acc = [len(draw & set(p)) for p in predictions]
         accuracy.append(acc)
-    accuracy = np.array(accuracy[::-1])  # invert to align with ascending Concurso
-    plt.plot(accuracy[:, 0], label='Short')
-    plt.plot(accuracy[:, 1], label='Mid')
-    plt.plot(accuracy[:, 2], label='Long')
-    plt.xlabel("Concursos Passados")
-    plt.ylabel("Acertos")
-    plt.title("Histórico de Acertos por Estratégia")
-    plt.legend()
-    os.makedirs(os.path.dirname(save_path), exist_ok=True)
-    plt.savefig(save_path)
-    plt.close()
-    return accuracy
+    accuracy = np.array(accuracy[::-1])
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(y=accuracy[:, 0], name='Short'))
+    fig.add_trace(go.Scatter(y=accuracy[:, 1], name='Mid'))
+    fig.add_trace(go.Scatter(y=accuracy[:, 2], name='Long'))
+    fig.update_layout(
+        title="Histórico de Acertos por Estratégia",
+        xaxis_title="Concursos Passados",
+        yaxis_title="Acertos",
+        height=300,
+        margin=dict(l=20, r=20, t=40, b=20)
+    )
+    return accuracy, pio.to_html(fig, include_plotlyjs='cdn', full_html=False)
 
 
-def generate_info_table(df_raw, freq):
-    total_games = len(df_raw)
+def generate_info_table(df_raw, freq_df):
     avg_numbers = df_raw[[f'Bola{i}' for i in range(1, 16)]].apply(pd.to_numeric).mean().to_dict()
-    info = pd.DataFrame({
-        'Dezena': list(freq.index),
-        'Frequência (%)': (freq.values * 100).round(2),
-        'Média de Ocorrência': [avg_numbers.get(i, 0) for i in range(1, 26)]
-    })
-    return info.sort_values(by='Dezena')
+    freq_df['Média de Ocorrência'] = freq_df['Dezena'].apply(lambda x: avg_numbers.get(x, 0))
+    return freq_df.sort_values(by='Dezena')
 
 
 def salvar_relatorio(df_raw, top_15, pred_short, pred_mid, pred_long, info_table, path="Lotofacil/docs/index.md"):
@@ -101,8 +108,12 @@ def salvar_relatorio(df_raw, top_15, pred_short, pred_mid, pred_long, info_table
 
 if __name__ == '__main__':
     df_raw, df = load_data()
-    top_15, freq = generate_heatmap(df)
+    top_15, freq_df, heatmap_html = generate_heatmap(df)
     pred_short, pred_mid, pred_long = generate_predictions(df)
-    acc_matrix = track_performance(df, [pred_short, pred_mid, pred_long])
-    info_table = generate_info_table(df_raw, freq)
+    acc_matrix, performance_html = track_performance(df, [pred_short, pred_mid, pred_long])
+    info_table = generate_info_table(df_raw, freq_df)
     salvar_relatorio(df_raw, top_15, pred_short, pred_mid, pred_long, info_table)
+
+    # Exporta gráficos para uso externo (ex: HTML)
+    Path("Lotofacil/docs/heatmap.html").write_text(heatmap_html, encoding="utf-8")
+    Path("Lotofacil/docs/performance.html").write_text(performance_html, encoding="utf-8")

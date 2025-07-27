@@ -23,19 +23,23 @@ jobs:
 
       - name: Instalar dependências
         run: |
-          pip install pandas numpy seaborn matplotlib tabulate
+          pip install pandas numpy seaborn matplotlib tabulate plotly markdown2 jinja2
 
       - name: Rodar predição
         run: |
           python Lotofacil/predict.py
 
+      - name: Gerar HTML unificado
+        run: |
+          python scripts/generate_html.py
+
       - name: Commit e push do relatório e gráficos
         run: |
           git config user.name "mzfshark"
           git config user.email "mzfshark@gmail.com"
-          git add Lotofacil/docs/index.md Lotofacil/docs/*.png
+          git add Lotofacil/docs/index.md Lotofacil/docs/*.html index.html
           if ! git diff --cached --quiet; then
-            git commit -m "Atualiza relatório e gráficos da Lotofácil"
+            git commit -m "Atualiza relatório interativo da Lotofácil"
             git push
           else
             echo "Nenhuma mudança para comitar."
@@ -47,6 +51,6 @@ jobs:
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GH_PAT }}
-          publish_dir: ./Lotofacil/docs
+          publish_dir: ./
           publish_branch: gh-pages
           enable_jekyll: true
