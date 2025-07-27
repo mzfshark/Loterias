@@ -3,7 +3,7 @@ name: Lotofacil Auto Predict
 on:
   push:
     paths:
-      - 'Lotofacil/data/Lotofacil.csv'
+      - 'Oraculo/Lotofacil/data/Lotofacil.csv'
   schedule:
     - cron: '0 12 * * *' # Executa diariamente às 9h BRT (12h UTC)
   workflow_dispatch:

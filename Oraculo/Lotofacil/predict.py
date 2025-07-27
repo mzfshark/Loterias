@@ -7,7 +7,7 @@ import plotly.io as pio
 from pathlib import Path
 
 
-def load_data(path='Lotofacil/data/Lotofacil.csv'):
+def load_data(path='Oraculo/Lotofacil/data/Lotofacil.csv'):
     if not os.path.exists(path):
         raise FileNotFoundError("CSV file not found at: " + path)
     df_raw = pd.read_csv(path)

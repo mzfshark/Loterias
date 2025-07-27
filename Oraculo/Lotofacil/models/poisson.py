@@ -3,7 +3,7 @@ import numpy as np
 from scipy.stats import poisson
 
 
-def carregar_dados(path='Lotofacil/data/Lotofacil.csv'):
+def carregar_dados(path='Oraculo/Lotofacil/data/Lotofacil.csv'):
     df = pd.read_csv(path)
     colunas_bolas = [col for col in df.columns if 'Bola' in col or 'Numero' in col]
     dezenas = df[colunas_bolas].values.flatten()
