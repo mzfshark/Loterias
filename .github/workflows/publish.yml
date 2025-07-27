@@ -22,7 +22,7 @@ jobs:
 
       - name: Instalar dependências
         run: |
-          pip install markdown2 jinja2
+          pip install markdown2 jinja2 pathlib
 
       - name: Gerar HTML formatado a partir de Markdown
         run: |
