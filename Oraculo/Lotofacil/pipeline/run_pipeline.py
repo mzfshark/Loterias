@@ -2,10 +2,11 @@ import os
 import json
 from datetime import datetime
 
-from Oraculo.Lotofacil.models.poisson import carregar_dados as dados_poisson, calcular_frequencias, ajustar_poisson
-from Oraculo.Lotofacil.models.markov import carregar_dados as dados_markov, construir_matriz_transicao, prever_proximas
-from Oraculo.Lotofacil.models.beam_search import carregar_dados as dados_beam, beam_search
-from Oraculo.Lotofacil.models.mutation import carregar_dados as dados_mut, gerar_mutacoes
+from Lotofacil.models.poisson import carregar_dados as dados_poisson, calcular_frequencias, ajustar_poisson
+from Lotofacil.models.markov import carregar_dados as dados_markov, construir_matriz_transicao, prever_proximas
+from Lotofacil.models.beam_search import carregar_dados as dados_beam, beam_search
+from Lotofacil.models.mutation import carregar_dados as dados_mut, gerar_mutacoes
+
 
 def salvar_previsoes(nome_modelo, jogos):
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
