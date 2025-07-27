@@ -27,7 +27,7 @@ jobs:
 
       - name: Executar pipeline completa
         run: |
-          python Lotofacil/pipeline/run_pipeline.py
+          python Oraculo/Lotofacil/pipeline/run_pipeline.py
 
       - name: Gerar HTML unificado
         run: |
