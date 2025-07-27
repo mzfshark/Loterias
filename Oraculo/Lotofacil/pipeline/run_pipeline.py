@@ -3,18 +3,19 @@ import sys
 import json
 from datetime import datetime
 
-# Corrige o path para rodar localmente ou via GitHub Actions
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
+# Corrige o path base dinamicamente para importar os módulos corretamente
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../'))
+sys.path.insert(0, BASE_DIR)
 
-from Oraculo.Lotofacil.models.poisson import carregar_dados as dados_poisson, calcular_frequencias, ajustar_poisson
-from Oraculo.Lotofacil.models.markov import carregar_dados as dados_markov, construir_matriz_transicao, prever_proximas
-from Oraculo.Lotofacil.models.beam_search import carregar_dados as dados_beam, beam_search
-from Oraculo.Lotofacil.models.mutation import carregar_dados as dados_mut, gerar_mutacoes
+from Lotofacil.models.poisson import carregar_dados as dados_poisson, calcular_frequencias, ajustar_poisson
+from Lotofacil.models.markov import carregar_dados as dados_markov, construir_matriz_transicao, prever_proximas
+from Lotofacil.models.beam_search import carregar_dados as dados_beam, beam_search
+from Lotofacil.models.mutation import carregar_dados as dados_mut, gerar_mutacoes
 
 
 def salvar_previsoes(nome_modelo, jogos):
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    path = f"Oraculo/Lotofacil/predictions/{timestamp}_{nome_modelo}.json"
+    path = f"Lotofacil/predictions/{timestamp}_{nome_modelo}.json"
     os.makedirs(os.path.dirname(path), exist_ok=True)
     with open(path, 'w', encoding='utf-8') as f:
         json.dump(jogos, f, ensure_ascii=False, indent=2)
