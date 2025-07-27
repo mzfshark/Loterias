@@ -3,62 +3,56 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>Relatórios Loterias</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Relatórios de Loterias</title>
   <style>
-    body {
-      font-family: system-ui, sans-serif;
-      max-width: 1000px;
-      margin: 2rem auto;
-      padding: 1rem;
-      background: #192532;
-      color: #e3e3e3;
-    }
-    h1, h2 {
+    body { font-family: system-ui, sans-serif; background: #111; color: #eee; padding: 2rem; }
+    h1 { color: #2fd39a; }
+    .tabs { display: flex; gap: 1rem; margin-bottom: 1rem; }
+    .tab-button {
+      padding: 0.5rem 1rem;
+      background: #222;
+      border: none;
       color: #2fd39a;
-      padding-bottom: 0.25rem;
+      cursor: pointer;
     }
-    cards{
-      display: flex;
-      flex-wrap: unset;
+    .tab-button.active { background: #2fd39a; color: #000; }
+    .tabcontent { display: none; animation: fadeIn 0.3s ease-in-out; }
+    .tabcontent.active { display: block; }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
     }
-    section {
-      margin: 1rem;
-      background: #000616;
-      padding: 1rem;
-      border-radius: 8px;
-      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
-      width: 49%;
-    }
-    table {
-      width: 100%;
+    table, th, td {
+      border: 1px solid #444;
       border-collapse: collapse;
-      margin-top: 1rem;
+      padding: 0.4rem;
     }
-    th, td {
-      border: 1px solid #ccc;
-      padding: 0.5rem;
-      text-align: center;
-    }
-    th {
-      background-color: #e3f2fd;
-    }
+    th { background: #2fd39a; color: #000; }
+    img { max-width: 100%; margin-top: 1rem; }
   </style>
 </head>
 <body>
-  <h1>Relatórios de Loterias</h1>
-  <cards>
-  <section>
-    <h2>Lotofácil</h2><h2>🔥 Top 15 Dezenas Mais Frequentes (Histórico)</h2>
+  <h1>Relatórios Probabilísticos - Loterias</h1>
+  <div class="tabs">
+    
+    <button class="tab-button" onclick="openTab('Lotofácil')">Lotofácil</button>
+    
+    <button class="tab-button" onclick="openTab('Super Sete')">Super Sete</button>
+    
+    <button class="tab-button" onclick="openTab('Mega-Sena')">Mega-Sena</button>
+    
+  </div>
+  <div class='tabcontent' id='Lotofácil'><h2>Lotofácil</h2><h2>🔥 Top 15 Dezenas Mais Frequentes (Histórico)</h2>
 
 <p>1, 2, 3, 4, 5, 9, 10, 11, 12, 13, 14, 20, 22, 24, 25</p>
 
 <h2>🎯 Palpites Gerados</h2>
 
 <ul>
-<li>Curto Prazo (últimos 5): [1, 2, 4, 5, 9, 10, 11, 12, 13, 16, 19, 20, 23, 24, 25]</li>
-<li>Médio Prazo (últimos 75): [1, 2, 4, 5, 6, 8, 10, 11, 13, 14, 16, 17, 19, 20, 23]</li>
-<li>Longo Prazo (todos): [1, 2, 3, 4, 9, 10, 11, 12, 13, 14, 19, 20, 22, 24, 25]</li>
+<li>Curto Prazo (últimos 5): [1, 2, 4, 8, 9, 10, 11, 12, 13, 16, 19, 20, 23, 24, 25]</li>
+<li>Médio Prazo (últimos 75): [1, 2, 5, 6, 8, 10, 11, 13, 14, 15, 16, 17, 19, 20, 23]</li>
+<li>Longo Prazo (todos): [1, 2, 3, 4, 5, 9, 10, 11, 13, 14, 18, 20, 22, 24, 25]</li>
 </ul>
 
 <h2>📊 Tabela Informacional</h2>
@@ -90,10 +84,8 @@
 |       23 |             3.89 |                     0 |
 |       24 |             4.06 |                     0 |
 |       25 |             4.14 |                     0 |</p>
-
-  </section>
-  <section>
-    <h2>Super Sete</h2><h2>🎯 Frequência Histórica</h2>
+</div>
+<div class='tabcontent' id='Super Sete'><h2>Super Sete</h2><h2>🎯 Frequência Histórica</h2>
 
 <p>[0, 7, 5, 6, 3, 0, 9]</p>
 
@@ -108,8 +100,22 @@
 <li>[3, 0, 9, 1, 4, 6, 9]</li>
 <li>[3, 9, 2, 1, 4, 6, 9]</li>
 </ol>
+</div>
+<h2>Mega-Sena</h2><p><em>Relatório não encontrado.</em></p>
 
-  </section>
-  </cards>
+  <script>
+    function openTab(tabName) {
+      const contents = document.querySelectorAll('.tabcontent');
+      contents.forEach(c => c.classList.remove('active'));
+      const tabs = document.querySelectorAll('.tab-button');
+      tabs.forEach(t => t.classList.remove('active'));
+      document.getElementById(tabName).classList.add('active');
+      event.currentTarget.classList.add('active');
+    }
+    document.addEventListener('DOMContentLoaded', () => {
+      const firstTab = document.querySelector('.tab-button');
+      if (firstTab) firstTab.click();
+    });
+  </script>
 </body>
 </html>
