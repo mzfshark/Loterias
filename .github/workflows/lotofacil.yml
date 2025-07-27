@@ -27,12 +27,12 @@ jobs:
 
       - name: Rodar predição
         run: |
-          python Lotofacil/predicty.py
+          python ./Lotofacil/predicty.py
 
       - name: Commit e push do relatório e gráficos
         run: |
-          git config user.name "github-actions"
-          git config user.email "github-actions@users.noreply.github.com"
+          git config user.name "mzfshark"
+          git config user.email "mzfshark@gmail.com"
           git add Lotofacil/docs/index.md Lotofacil/docs/*.png
           if ! git diff --cached --quiet; then
             git commit -m "Atualiza relatório e gráficos da Lotofácil"
