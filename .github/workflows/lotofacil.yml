@@ -3,7 +3,7 @@ name: Lotofacil Auto Predict
 on:
   push:
     paths:
-      - 'Lotofacil/data/lotofacil.csv'
+      - 'Lotofacil/data/Lotofacil.csv'
   schedule:
     - cron: '0 12 * * *' # Executa diariamente às 9h BRT (12h UTC)
   workflow_dispatch:
@@ -14,32 +14,31 @@ jobs:
 
     steps:
       - name: Checkout repositório
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Configurar Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
       - name: Instalar dependências
         run: |
-          pip install pandas numpy 
+          pip install pandas numpy seaborn matplotlib
 
       - name: Rodar predição
         run: |
-          python Lotofacil/predict.py
+          python Lotofacil/predicty.py
 
-      - name: Commit e push do relatório
+      - name: Commit e push do relatório e gráficos
         run: |
-          git config user.name "mzfshark"
-          git config user.email "mzfsharks@gmail.com"
-          git add Lotofacil/docs/index.md
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          git add Lotofacil/docs/index.md Lotofacil/docs/*.png
           if ! git diff --cached --quiet; then
-            git commit -m "Atualiza relatório Markdown da Lotofácil"
+            git commit -m "Atualiza relatório e gráficos da Lotofácil"
             git push
           else
             echo "Nenhuma mudança para comitar."
-          fi
         env:
           GH_PAT: ${{ secrets.GH_PAT }}
 
