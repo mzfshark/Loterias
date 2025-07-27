@@ -27,7 +27,7 @@ jobs:
 
       - name: Rodar predição
         run: |
-          python ./Lotofacil/predicty.py
+          python Lotofacil/predict.py
 
       - name: Commit e push do relatório e gráficos
         run: |
