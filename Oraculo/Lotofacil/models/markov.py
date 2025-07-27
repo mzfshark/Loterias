@@ -3,7 +3,7 @@ import numpy as np
 from collections import defaultdict, Counter
 
 
-def carregar_dados(path='lotofacil/data/Lotofacil.csv'):
+def carregar_dados(path='Lotofacil/data/Lotofacil.csv'):
     df = pd.read_csv(path)
     colunas = [col for col in df.columns if 'Bola' in col or 'Numero' in col]
     return df[colunas].values.tolist()
