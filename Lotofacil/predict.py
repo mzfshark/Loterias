@@ -4,6 +4,7 @@ import os
 import random
 import plotly.graph_objects as go
 import plotly.io as pio
+from pathlib import Path
 
 
 def load_data(path='Lotofacil/data/Lotofacil.csv'):
