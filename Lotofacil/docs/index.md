@@ -3,8 +3,8 @@
 
 ## 🎯 Palpites Gerados
 - Curto Prazo (últimos 5): [1, 2, 4, 8, 9, 10, 11, 12, 13, 16, 19, 20, 23, 24, 25]
-- Médio Prazo (últimos 75): [1, 2, 5, 6, 8, 10, 11, 13, 14, 15, 16, 17, 19, 20, 23]
-- Longo Prazo (todos): [1, 2, 3, 4, 5, 9, 10, 11, 13, 14, 18, 20, 22, 24, 25]
+- Médio Prazo (últimos 75): [1, 2, 5, 6, 7, 8, 10, 11, 13, 14, 16, 17, 19, 20, 23]
+- Longo Prazo (todos): [1, 2, 3, 4, 5, 9, 10, 11, 12, 13, 14, 19, 20, 24, 25]
 
 ## 📊 Tabela Informacional
 |   Dezena |   Frequência (%) |   Média de Ocorrência |
