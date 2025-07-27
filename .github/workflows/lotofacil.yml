@@ -25,21 +25,21 @@ jobs:
         run: |
           pip install pandas numpy seaborn matplotlib tabulate plotly markdown2 jinja2
 
-      - name: Rodar predição
+      - name: Executar pipeline completa
         run: |
-          python Lotofacil/predict.py
+          python Lotofacil/pipeline/run_pipeline.py
 
       - name: Gerar HTML unificado
         run: |
           python scripts/generate_html.py
 
-      - name: Commit e push do relatório e gráficos
+      - name: Commit e push dos resultados
         run: |
           git config user.name "mzfshark"
           git config user.email "mzfshark@gmail.com"
-          git add Lotofacil/docs/index.md Lotofacil/docs/*.html index.html
+          git add Lotofacil/docs/index.md Lotofacil/docs/*.html index.html lotofacil/predictions/*.json
           if ! git diff --cached --quiet; then
-            git commit -m "Atualiza relatório interativo da Lotofácil"
+            git commit -m "Atualiza previsões e relatório da Lotofácil"
             git push
           else
             echo "Nenhuma mudança para comitar."
