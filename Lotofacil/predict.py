@@ -2,16 +2,41 @@ import pandas as pd
 import numpy as np
 import os
 import random
+import seaborn as sns
+import matplotlib.pyplot as plt
 
 
-def score_frequency(df, alpha=0.5, short_window=50):
-    hist = df.values.flatten()
-    freq_long = pd.Series(hist).value_counts(normalize=True)
-    freq_short = pd.Series(df.tail(short_window).values.flatten()).value_counts(normalize=True)
-    return {num: alpha * freq_long.get(num, 0) + (1-alpha) * freq_short.get(num, 0) for num in range(1, 26)}
+def load_data(path='Lotofacil/data/Lotofacil.csv'):
+    if not os.path.exists(path):
+        raise FileNotFoundError("CSV file not found at: " + path)
+    df_raw = pd.read_csv(path)
+    df_raw = df_raw.sort_values(by='Concurso', ascending=False).reset_index(drop=True)
+    df = df_raw[[f'Bola{i}' for i in range(1, 16)]]
+    df.columns = [f'Numero{i}' for i in range(1, 16)]
+    return df_raw, df
 
 
-def monte_carlo_opt(scores, trials=100000):
+def generate_heatmap(df, save_path='Lotofacil/docs/heatmap.png'):
+    all_numbers = df.values.flatten()
+    freq = pd.Series(all_numbers).value_counts(normalize=True).reindex(range(1, 26), fill_value=0)
+    heatmap_data = freq.values.reshape(5, 5)
+    plt.figure(figsize=(6, 4))
+    sns.heatmap(heatmap_data, annot=True, fmt=".0%", cmap="YlGnBu", xticklabels=False, yticklabels=False)
+    plt.title("Frequência das Dezenas (Histórico)")
+    os.makedirs(os.path.dirname(save_path), exist_ok=True)
+    plt.savefig(save_path)
+    plt.close()
+    top_15 = sorted(freq.sort_values(ascending=False).head(15).index.tolist())
+    return top_15, freq
+
+
+def score_frequency(df, alpha=0.5, window=None):
+    data = df.values.flatten() if window is None else df.tail(window).values.flatten()
+    freq = pd.Series(data).value_counts(normalize=True).reindex(range(1, 26), fill_value=0)
+    return {i: freq[i] for i in range(1, 26)}
+
+
+def monte_carlo_opt(scores, trials=100_000):
     p = np.array([scores[i] for i in range(1, 26)])
     p /= p.sum()
     best_set, best_score = None, -1
@@ -23,62 +48,61 @@ def monte_carlo_opt(scores, trials=100000):
     return sorted(best_set.tolist())
 
 
-def genetic_algorithm(scores, pop_size=100, generations=50, elite_frac=0.2, mutation_rate=0.1):
-    def fitness(ind): return sum(scores[i] for i in ind)
-    population = [random.sample(range(1, 26), 15) for _ in range(pop_size)]
-    elite_size = max(1, int(elite_frac * pop_size))
-    for _ in range(generations):
-        population.sort(key=fitness, reverse=True)
-        new_pop = population[:elite_size]
-        weights = [fitness(ind) for ind in population]
-        while len(new_pop) < pop_size:
-            p1, p2 = random.choices(population, weights=weights, k=2)
-            cut = random.randint(1, 14)
-            child = p1[:cut]
-            for g in p2:
-                if len(child) >= 15:
-                    break
-                if g not in child:
-                    child.append(g)
-            missing = [n for n in range(1,26) if n not in child]
-            while len(child) < 15:
-                child.append(random.choice(missing))
-            if random.random() < mutation_rate:
-                i, j = random.sample(range(15), 2)
-                child[i], child[j] = child[j], child[i]
-            new_pop.append(child)
-        population = new_pop
-    population.sort(key=fitness, reverse=True)
-    return sorted(population[0])
+def generate_predictions(df):
+    pred_short = monte_carlo_opt(score_frequency(df, window=5))
+    pred_mid = monte_carlo_opt(score_frequency(df, alpha=0.6, window=75))
+    pred_long = monte_carlo_opt(score_frequency(df))
+    return pred_short, pred_mid, pred_long
 
 
-def salvar_relatorio(mc_set, ga_set, df, path="Lotofacil/docs/index.md"):
+def track_performance(df, predictions, save_path='Lotofacil/docs/performance.png'):
+    accuracy = []
+    for idx in range(len(df)):
+        draw = set(df.iloc[idx].values)
+        acc = [len(draw & set(p)) for p in predictions]
+        accuracy.append(acc)
+    accuracy = np.array(accuracy[::-1])  # invert to align with ascending Concurso
+    plt.plot(accuracy[:, 0], label='Short')
+    plt.plot(accuracy[:, 1], label='Mid')
+    plt.plot(accuracy[:, 2], label='Long')
+    plt.xlabel("Concursos Passados")
+    plt.ylabel("Acertos")
+    plt.title("Histórico de Acertos por Estratégia")
+    plt.legend()
+    os.makedirs(os.path.dirname(save_path), exist_ok=True)
+    plt.savefig(save_path)
+    plt.close()
+    return accuracy
+
+
+def generate_info_table(df_raw, freq):
+    total_games = len(df_raw)
+    avg_numbers = df_raw[[f'Bola{i}' for i in range(1, 16)]].apply(pd.to_numeric).mean().to_dict()
+    info = pd.DataFrame({
+        'Dezena': list(freq.index),
+        'Frequência (%)': (freq.values * 100).round(2),
+        'Média de Ocorrência': [avg_numbers.get(i, 0) for i in range(1, 26)]
+    })
+    return info.sort_values(by='Dezena')
+
+
+def salvar_relatorio(df_raw, top_15, pred_short, pred_mid, pred_long, info_table, path="Lotofacil/docs/index.md"):
     os.makedirs(os.path.dirname(path), exist_ok=True)
-    freq = pd.Series(df.values.flatten()).value_counts(normalize=True).reindex(range(1, 26), fill_value=0)
-    df_freq = freq.rename_axis('Number').reset_index(name='Frequency')
-    headers = ['Number', 'Frequency']
-    rows = df_freq.values.tolist()
-    md_table = '| ' + ' | '.join(headers) + ' |\n'
-    md_table += '| ' + ' | '.join(['---'] * len(headers)) + ' |\n'
-    for num, freq_val in rows:
-        md_table += f'| {num} | {freq_val:.2%} |\n'
     with open(path, 'w', encoding='utf-8') as f:
-        f.write('## Frequência Histórica\n')
-        f.write(md_table + '\n')
-        f.write('## Conjunto Monte Carlo\n')
-        f.write(str(mc_set) + '\n\n')
-        f.write('## Conjunto Genetic Algorithm\n')
-        f.write(str(ga_set) + '\n')
+        f.write('## 🔥 Top 15 Dezenas Mais Frequentes (Histórico)\n')
+        f.write(', '.join(map(str, top_15)) + '\n\n')
+        f.write('## 🎯 Palpites Gerados\n')
+        f.write(f"- Curto Prazo (últimos 5): {pred_short}\n")
+        f.write(f"- Médio Prazo (últimos 75): {pred_mid}\n")
+        f.write(f"- Longo Prazo (todos): {pred_long}\n\n")
+        f.write('## 📊 Tabela Informacional\n')
+        f.write(info_table.to_markdown(index=False))
+
 
 if __name__ == '__main__':
-    csv_path = 'Lotofacil/data/Lotofacil.csv'
-    if not os.path.exists(csv_path):
-        print('Arquivo de dados não encontrado.')
-        exit(1)
-    df_raw = pd.read_csv(csv_path)
-    df = df_raw.iloc[:, 2:17]
-    df.columns = [f'Numero{i}' for i in range(1, 16)]
-    scores = score_frequency(df)
-    mc = monte_carlo_opt(scores)
-    ga = genetic_algorithm(scores)
-    salvar_relatorio(mc, ga, df)
+    df_raw, df = load_data()
+    top_15, freq = generate_heatmap(df)
+    pred_short, pred_mid, pred_long = generate_predictions(df)
+    acc_matrix = track_performance(df, [pred_short, pred_mid, pred_long])
+    info_table = generate_info_table(df_raw, freq)
+    salvar_relatorio(df_raw, top_15, pred_short, pred_mid, pred_long, info_table)
