@@ -4,9 +4,9 @@ from jinja2 import Template
 
 # Caminhos dos relatórios markdown gerados por cada jogo
 jogos = {
-    "Lotofácil": Path("Lotofacil/docs/index.md"),
-    "Super Sete": Path("SuperSete/docs/index.md"),
-    "Mega-Sena": Path("MegaSena/docs/index.md")
+    "Lotofácil": Path("Oraculo/Lotofacil/docs/index.md"),
+    "Super Sete": Path("Oraculo/SuperSete/docs/index.md"),
+    "Mega-Sena": Path("Oraculo/MegaSena/docs/index.md")
 }
 
 # Função para carregar e converter markdown em HTML

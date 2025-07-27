@@ -37,7 +37,7 @@ jobs:
         run: |
           git config user.name "mzfshark"
           git config user.email "mzfshark@gmail.com"
-          git add Lotofacil/docs/index.md Lotofacil/docs/*.html index.html Lotofacil/predictions/*.json
+          git add Oraculo/Lotofacil/docs/index.md Oraculo/Lotofacil/docs/*.html index.html Oraculo/Lotofacil/predictions/*.json
           if ! git diff --cached --quiet; then
             git commit -m "Atualiza previsões e relatório da Lotofácil"
             git push
