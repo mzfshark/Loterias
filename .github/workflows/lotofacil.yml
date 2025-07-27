@@ -23,7 +23,7 @@ jobs:
 
       - name: Instalar dependências
         run: |
-          pip install pandas numpy seaborn matplotlib tabulate plotly markdown2 jinja2
+          pip install pandas numpy seaborn matplotlib tabulate plotly markdown2 jinja2 scipy collections heapq random
 
       - name: Executar pipeline completa
         run: |
