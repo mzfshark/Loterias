@@ -2,93 +2,92 @@ import markdown2
 from pathlib import Path
 from jinja2 import Template
 
-# Caminhos
-supersete_md = Path("SuperSete/docs/index.md")
-lotofacil_md = Path("Lotofacil/docs/index.md")
-output_html = Path("index.html")
+# Caminhos dos relatórios markdown gerados por cada jogo
+jogos = {
+    "Lotofácil": Path("Lotofacil/docs/index.md"),
+    "Super Sete": Path("SuperSete/docs/index.md"),
+    "Mega-Sena": Path("MegaSena/docs/index.md")
+}
 
-# Função auxiliar para ler e converter markdown
-def read_and_convert(path: Path, title: str):
-    print(f"Verificando se o arquivo Markdown existe: {path}")
+# Função para carregar e converter markdown em HTML
+def read_and_convert(path: Path, title: str) -> str:
     if not path.exists():
-        print(f"Aviso: {path} não encontrado.")
-        return f"<h2>{title}</h2><p>Arquivo não encontrado.</p>"
-    print(f"Lendo conteúdo de {path}")
+        return f"<h2>{title}</h2><p><em>Relatório não encontrado.</em></p>"
     with path.open("r", encoding="utf-8") as f:
-        md = f.read()
-    print(f"Convertendo Markdown de {title} para HTML")
-    return f"<h2>{title}</h2>" + markdown2.markdown(md)
+        md_content = f.read()
+    return f"<div class='tabcontent' id='{title}'><h2>{title}</h2>" + markdown2.markdown(md_content) + "</div>"
 
-# Coleta dos conteúdos
-supersete_html = read_and_convert(supersete_md, "Super Sete")
-lotofacil_html = read_and_convert(lotofacil_md, "Lotofácil")
+# Coleta os conteúdos em abas
+abas_html = "\n".join([
+    read_and_convert(path, nome) for nome, path in jogos.items()
+])
 
-print("Criando template HTML unificado")
+# Criar estrutura de navegação por abas e renderizar template final
 html_template = Template("""
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>Relatórios Loterias</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Relatórios de Loterias</title>
   <style>
-    body {
-      font-family: system-ui, sans-serif;
-      max-width: 1000px;
-      margin: 2rem auto;
-      padding: 1rem;
-      background: #192532;
-      color: #e3e3e3;
-    }
-    h1, h2 {
+    body { font-family: system-ui, sans-serif; background: #111; color: #eee; padding: 2rem; }
+    h1 { color: #2fd39a; }
+    .tabs { display: flex; gap: 1rem; margin-bottom: 1rem; }
+    .tab-button {
+      padding: 0.5rem 1rem;
+      background: #222;
+      border: none;
       color: #2fd39a;
-      padding-bottom: 0.25rem;
+      cursor: pointer;
     }
-    cards{
-      display: flex;
-      flex-wrap: unset;
+    .tab-button.active { background: #2fd39a; color: #000; }
+    .tabcontent { display: none; animation: fadeIn 0.3s ease-in-out; }
+    .tabcontent.active { display: block; }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
     }
-    section {
-      margin: 1rem;
-      background: #000616;
-      padding: 1rem;
-      border-radius: 8px;
-      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
-      width: 49%;
-    }
-    table {
-      width: 100%;
+    table, th, td {
+      border: 1px solid #444;
       border-collapse: collapse;
-      margin-top: 1rem;
+      padding: 0.4rem;
     }
-    th, td {
-      border: 1px solid #ccc;
-      padding: 0.5rem;
-      text-align: center;
-    }
-    th {
-      background-color: #e3f2fd;
-    }
+    th { background: #2fd39a; color: #000; }
+    img { max-width: 100%; margin-top: 1rem; }
   </style>
 </head>
 <body>
-  <h1>Relatórios de Loterias</h1>
-  <cards>
-  <section>
-    {{ lotofacil | safe }}
-  </section>
-  <section>
-    {{ supersete | safe }}
-  </section>
-  </cards>
+  <h1>Relatórios Probabilísticos - Loterias</h1>
+  <div class="tabs">
+    {% for nome in jogos.keys() %}
+    <button class="tab-button" onclick="openTab('{{ nome }}')">{{ nome }}</button>
+    {% endfor %}
+  </div>
+  {{ abas_html | safe }}
+
+  <script>
+    function openTab(tabName) {
+      const contents = document.querySelectorAll('.tabcontent');
+      contents.forEach(c => c.classList.remove('active'));
+      const tabs = document.querySelectorAll('.tab-button');
+      tabs.forEach(t => t.classList.remove('active'));
+      document.getElementById(tabName).classList.add('active');
+      event.currentTarget.classList.add('active');
+    }
+    document.addEventListener('DOMContentLoaded', () => {
+      const firstTab = document.querySelector('.tab-button');
+      if (firstTab) firstTab.click();
+    });
+  </script>
 </body>
 </html>
 """)
 
-print("Renderizando HTML final")
-html_output = html_template.render(lotofacil=lotofacil_html, supersete=supersete_html)
-
-print(f"Salvando HTML em {output_html}")
-output_html.write_text(html_output, encoding="utf-8")
-
-print(f"HTML unificado gerado com sucesso em {output_html}")
+# Renderiza HTML final e salva
+html_output = html_template.render(
+    abas_html=abas_html,
+    jogos=jogos
+)
+Path("index.html").write_text(html_output, encoding="utf-8")
+print("index.html gerado com sucesso.")
