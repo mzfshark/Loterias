@@ -18,9 +18,11 @@ DATA_PATH = "Oraculo/SuperSete/data/SuperSete.csv"
 OUTPUT_PATH = "Oraculo/SuperSete/predictions"
 
 print("\n📊 Carregando dados históricos...")
-df = pd.read_csv(DATA_PATH)
-assert df.shape[1] == 7, "O dataset deve ter exatamente 7 colunas."
-print(f"Linhas carregadas: {len(df)} | Último sorteio: {df.index[-1]}")
+df_full = pd.read_csv(DATA_PATH)
+df_full = df_full.sort_values(by="Concurso").reset_index(drop=True)
+df = df_full[[f"Coluna {i}" for i in range(1, 8)]]
+
+print(f"Linhas carregadas: {len(df)} | Último sorteio: Concurso {df_full['Concurso'].iloc[-1]}")
 
 # -----------------------------
 # Estatísticas
