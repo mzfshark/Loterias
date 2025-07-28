@@ -1,6 +1,8 @@
 import markdown2
 from pathlib import Path
 from jinja2 import Template
+import json
+import pandas as pd
 
 # Caminhos dos relatórios markdown gerados por cada jogo
 jogos = {
@@ -9,17 +11,38 @@ jogos = {
         "extras": [
             Path("Oraculo/Lotofacil/docs/heatmap.html"),
             Path("Oraculo/Lotofacil/docs/performance.html")
-        ]
+        ],
+        "predictions": Path("Oraculo/Lotofacil/predictions")
     },
     "Super Sete": {
         "md": Path("Oraculo/SuperSete/docs/index.md"),
-        "extras": []
+        "extras": [],
+        "predictions": Path("Oraculo/SuperSete/predictions")
     },
     "Mega-Sena": {
         "md": Path("Oraculo/MegaSena/docs/index.md"),
-        "extras": []
+        "extras": [],
+        "predictions": Path("Oraculo/MegaSena/predictions")
     }
 }
+
+def gerar_tabela_previsoes(prediction_dir: Path) -> str:
+    if not prediction_dir.exists():
+        return "<p><em>Nenhuma previsão encontrada.</em></p>"
+
+    arquivos = sorted(prediction_dir.glob("*.json"), reverse=True)
+    if not arquivos:
+        return "<p><em>Sem arquivos de previsão.</em></p>"
+
+    mais_recente = arquivos[0]
+    df = pd.read_json(mais_recente)
+    csv_path = prediction_dir / (mais_recente.stem + ".csv")
+    df.to_csv(csv_path, index=False)
+
+    tabela_html = df.to_html(index=False, classes="prediction-table")
+    link = f"<a href='{csv_path.as_posix()}' download>📥 Baixar CSV</a>"
+
+    return f"<h3>Previsões Recentes</h3>{tabela_html}<br>{link}"
 
 # Função para carregar e converter markdown + extras em HTML
 def read_and_convert(jogo: str, paths: dict) -> str:
@@ -36,6 +59,7 @@ def read_and_convert(jogo: str, paths: dict) -> str:
         if extra_path.exists():
             html += f"<div class='plotly-container'>{extra_path.read_text(encoding='utf-8')}</div>"
 
+    html += gerar_tabela_previsoes(paths["predictions"])
     html += "</div>"
     return html
 
@@ -77,7 +101,9 @@ html_template = Template("""
       padding: 0.4rem;
     }
     th { background: #2fd39a; color: #000; }
-    img { max-width: 100%; margin-top: 1rem; }
+    .prediction-table { margin-top: 1rem; background: #000; }
+    .prediction-table th, .prediction-table td { text-align: center; }
+    a { color: #2fd39a; text-decoration: none; }
   </style>
 </head>
 <body>
