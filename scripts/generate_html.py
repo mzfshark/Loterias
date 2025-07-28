@@ -3,26 +3,21 @@ from pathlib import Path
 from jinja2 import Template
 import json
 import pandas as pd
+import plotly.express as px
 
-# Caminhos dos relatórios markdown gerados por cada jogo
+# Caminhos dos relatórios por jogo
 jogos = {
     "Lotofácil": {
-        "md": Path("Oraculo/Lotofacil/docs/index.md"),
-        "extras": [
-            Path("Oraculo/Lotofacil/docs/heatmap.html"),
-            Path("Oraculo/Lotofacil/docs/performance.html")
-        ],
-        "predictions": Path("Oraculo/Lotofacil/predictions")
+        "predictions": Path("Oraculo/Lotofacil/predictions"),
+        "title": "Lotofácil"
     },
     "Super Sete": {
-        "md": Path("Oraculo/SuperSete/docs/index.md"),
-        "extras": [],
-        "predictions": Path("Oraculo/SuperSete/predictions")
+        "predictions": Path("Oraculo/SuperSete/predictions"),
+        "title": "Super Sete"
     },
     "Mega-Sena": {
-        "md": Path("Oraculo/MegaSena/docs/index.md"),
-        "extras": [],
-        "predictions": Path("Oraculo/MegaSena/predictions")
+        "predictions": Path("Oraculo/MegaSena/predictions"),
+        "title": "Mega-Sena"
     }
 }
 
@@ -37,38 +32,57 @@ def gerar_tabela_previsoes(prediction_dir: Path) -> str:
     mais_recente = arquivos[0]
     df = pd.read_json(mais_recente)
     csv_path = prediction_dir / (mais_recente.stem + ".csv")
-    df.to_csv(csv_path, index=False)
+    if csv_path.exists():
+        df_csv = pd.read_csv(csv_path)
+    else:
+        df.to_csv(csv_path, index=False)
+        df_csv = df
 
-    tabela_html = df.to_html(index=False, classes="prediction-table")
+    tabela_html = df_csv.to_html(index=False, classes="prediction-table")
     link = f"<a href='{csv_path.as_posix()}' download>📥 Baixar CSV</a>"
-
     return f"<h3>Previsões Recentes</h3>{tabela_html}<br>{link}"
 
-# Função para carregar e converter markdown + extras em HTML
-def read_and_convert(jogo: str, paths: dict) -> str:
-    html = f"<div class='tabcontent' id='{jogo}'><h2>{jogo}</h2>"
+def gerar_heatmap(df: pd.DataFrame) -> str:
+    df_long = df.melt(var_name="Coluna", value_name="Dígito")
+    freq = df_long.groupby(["Coluna", "Dígito"]).size().reset_index(name="Frequência")
+    fig = px.density_heatmap(freq, x="Coluna", y="Dígito", z="Frequência",
+                             color_continuous_scale="Viridis", 
+                             labels={"Dígito": "Dígito", "Frequência": "Frequência"},
+                             height=400)
+    return fig.to_html(full_html=False, include_plotlyjs='cdn')
 
-    md_path = paths.get("md")
-    if md_path.exists():
-        with md_path.open("r", encoding="utf-8") as f:
-            html += markdown2.markdown(f.read())
-    else:
-        html += f"<p><em>Relatório não encontrado.</em></p>"
+def gerar_conteudo_jogo(nome: str, paths: dict) -> str:
+    html = f"<div class='tabcontent' id='{nome}'><h2>{paths['title']}</h2>"
 
-    for extra_path in paths.get("extras", []):
-        if extra_path.exists():
-            html += f"<div class='plotly-container'>{extra_path.read_text(encoding='utf-8')}</div>"
+    prediction_dir = paths["predictions"]
+    arquivos = sorted(prediction_dir.glob("*.csv"), reverse=True)
+    if not arquivos:
+        html += "<p><em>Sem dados disponíveis.</em></p></div>"
+        return html
 
-    html += gerar_tabela_previsoes(paths["predictions"])
+    mais_recente = arquivos[0]
+    df = pd.read_csv(mais_recente)
+
+    html += "<h3>📊 Frequência Histórica</h3>"
+    html += gerar_heatmap(df[[c for c in df.columns if c.startswith("col")]])
+
+    html += "<h3>🧠 Palpites Gerados</h3>"
+    html += gerar_tabela_previsoes(prediction_dir)
+
+    # Exibir resumo de estratégias
+    modelo_counts = df['modelo'].value_counts().to_frame().reset_index()
+    modelo_counts.columns = ['Modelo', 'Total']
+    html += f"<h4>Resumo de estratégias</h4>"
+    html += modelo_counts.to_html(index=False, classes="prediction-table")
+
     html += "</div>"
     return html
 
-# Coleta os conteúdos em abas
+# Coleta conteúdo por aba
 abas_html = "\n".join([
-    read_and_convert(nome, paths) for nome, paths in jogos.items()
+    gerar_conteudo_jogo(nome, paths) for nome, paths in jogos.items()
 ])
 
-# Criar estrutura de navegação por abas e renderizar template final
 html_template = Template("""
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -133,7 +147,6 @@ html_template = Template("""
 </html>
 """)
 
-# Renderiza HTML final e salva
 html_output = html_template.render(
     abas_html=abas_html,
     jogos=jogos
