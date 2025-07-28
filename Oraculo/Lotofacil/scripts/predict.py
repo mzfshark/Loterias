@@ -8,6 +8,9 @@ import plotly.io as pio
 from pathlib import Path
 from collections import Counter
 
+# Adiciona raiz do projeto ao sys.path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..')))
+
 from Oraculo.Lotofacil.models import beam_search
 from Oraculo.Lotofacil.models import mutation
 from Oraculo.Lotofacil.models import markov
