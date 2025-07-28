@@ -75,11 +75,8 @@ if __name__ == '__main__':
 
     # Palpite da Rodada
     all_jogos = [beam, mut, markov_pred, poisson_pred, freq_short, freq_mid, freq_long]
-    flattened = []
-    for jogo in all_jogos:
-        if isinstance(jogo, list):
-            flattened.extend(jogo)
-    palpite_rodada = [n for n, _ in Counter(flattened).most_common(15)]
+    flattened = [n for jogo in all_jogos if isinstance(jogo, list) for n in jogo]
+    palpite_rodada = sorted([n for n, _ in Counter(flattened).most_common(15)])[:15]
 
     print("\n🎯 Palpites gerados:")
     print(f"Beam: {beam}\nMutation: {mut}\nMarkov: {markov_pred}\nPoisson: {poisson_pred}")
