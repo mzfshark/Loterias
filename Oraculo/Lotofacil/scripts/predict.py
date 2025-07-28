@@ -17,13 +17,11 @@ from Oraculo.Lotofacil.models import mutation
 from Oraculo.Lotofacil.models import markov
 from Oraculo.Lotofacil.models import poisson
 
-
 def load_data(path='Oraculo/Lotofacil/data/Lotofacil.csv'):
     df_raw = pd.read_csv(path)
     df_raw = df_raw.sort_values(by='Concurso', ascending=False).reset_index(drop=True)
     df = df_raw[[f'Bola{i}' for i in range(1, 16)]]
     return df_raw, df
-
 
 def generate_heatmap(df):
     all_numbers = df.values.flatten()
@@ -40,7 +38,6 @@ def generate_heatmap(df):
     heatmap_fig.update_layout(title="Frequência das Dezenas (Histórico)", height=300)
     return pio.to_html(heatmap_fig, include_plotlyjs='cdn', full_html=False)
 
-
 def save_predictions(predictions, path_prefix):
     os.makedirs(os.path.dirname(path_prefix), exist_ok=True)
     # Save JSON
@@ -49,7 +46,6 @@ def save_predictions(predictions, path_prefix):
     # Save CSV
     df = pd.DataFrame([{**{f"dezena{i+1}": n for i, n in enumerate(p['jogo'])}, "modelo": p['modelo']} for p in predictions])
     df.to_csv(path_prefix + ".csv", index=False)
-
 
 if __name__ == '__main__':
     print("\n📊 Carregando dados históricos...")
@@ -79,7 +75,10 @@ if __name__ == '__main__':
 
     # Palpite da Rodada
     all_jogos = [beam, mut, markov_pred, poisson_pred, freq_short, freq_mid, freq_long]
-    flattened = [num for jogo in all_jogos if isinstance(jogo, list) for num in jogo]
+    flattened = []
+    for jogo in all_jogos:
+        if isinstance(jogo, list):
+            flattened.extend(jogo)
     palpite_rodada = [n for n, _ in Counter(flattened).most_common(15)]
 
     print("\n🎯 Palpites gerados:")
