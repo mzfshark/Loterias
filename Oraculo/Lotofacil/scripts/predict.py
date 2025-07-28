@@ -18,7 +18,7 @@ from Oraculo.Lotofacil.models import markov
 from Oraculo.Lotofacil.models import poisson
 
 
-def load_data(path='Lotofacil/data/Lotofacil.csv'):
+def load_data(path='Oraculo/Lotofacil/data/Lotofacil.csv'):
     df_raw = pd.read_csv(path)
     df_raw = df_raw.sort_values(by='Concurso', ascending=False).reset_index(drop=True)
     df = df_raw[[f'Bola{i}' for i in range(1, 16)]]
