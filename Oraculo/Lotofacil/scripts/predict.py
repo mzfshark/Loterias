@@ -73,10 +73,11 @@ if __name__ == '__main__':
     freq_mid = top_dezenas(mid_freq)
     freq_long = top_dezenas(full_freq)
 
-    # Palpite da Rodada
+    # Palpite da Rodada baseado nos 15 mais frequentes entre todos os palpites
     all_jogos = [beam, mut, markov_pred, poisson_pred, freq_short, freq_mid, freq_long]
-    flattened = [n for jogo in all_jogos for n in (jogo if isinstance(jogo, list) else [])]
-    palpite_rodada = sorted([n for n, _ in Counter(flattened).most_common(15)])[:15]
+    flattened = [n for jogo in all_jogos if isinstance(jogo, list) for n in jogo]
+    contagem = Counter(flattened)
+    palpite_rodada = sorted([n for n, _ in contagem.most_common(15)])[:15]
 
     print("\n🎯 Palpites gerados:")
     print(f"Beam: {beam}\nMutation: {mut}\nMarkov: {markov_pred}\nPoisson: {poisson_pred}")
