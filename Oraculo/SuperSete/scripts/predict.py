@@ -1,133 +1,115 @@
-import os
-import sys
-import json
-from datetime import datetime
 import pandas as pd
+import numpy as np
+import sys
+import os
+import random
+import json
 import plotly.graph_objects as go
+import plotly.io as pio
+from pathlib import Path
 from collections import Counter
 
 # Adiciona raiz do projeto ao sys.path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..')))
 
-from Oraculo.SuperSete.models import frequency
-from Oraculo.SuperSete.models import poisson
-from Oraculo.SuperSete.models import markov
-from Oraculo.SuperSete.models import bayesian
-from Oraculo.SuperSete.models import evolutionary
+from Oraculo.Lotofacil.models import beam_search
+from Oraculo.Lotofacil.models import mutation
+from Oraculo.Lotofacil.models import markov
+from Oraculo.Lotofacil.models import poisson
 
-# Configs
-DATA_PATH = "Oraculo/SuperSete/data/SuperSete.csv"
-OUTPUT_PATH = "Oraculo/SuperSete/predictions"
-DOCS_PATH = "Oraculo/SuperSete/docs"
+def load_data(path='Oraculo/Lotofacil/data/Lotofacil.csv'):
+    df_raw = pd.read_csv(path)
+    df_raw = df_raw.sort_values(by='Concurso', ascending=False).reset_index(drop=True)
+    df = df_raw[[f'Bola{i}' for i in range(1, 16)]]
+    return df_raw, df
 
-print("\n📊 Carregando dados históricos...")
-df_full = pd.read_csv(DATA_PATH)
-df_full = df_full.sort_values(by="Concurso").reset_index(drop=True)
-df = df_full[[f"Coluna {i}" for i in range(1, 8)]]
-print(f"Linhas carregadas: {len(df)} | Último sorteio: Concurso {df_full['Concurso'].iloc[-1]}")
+def generate_heatmap(df):
+    all_numbers = df.values.flatten()
+    freq = pd.Series(all_numbers).value_counts(normalize=True).reindex(range(1, 26), fill_value=0)
+    freq_matrix = freq.values.reshape(5, 5)
+    heatmap_fig = go.Figure(data=go.Heatmap(
+        z=freq_matrix,
+        x=[1, 2, 3, 4, 5],
+        y=[1, 2, 3, 4, 5],
+        colorscale='YlGnBu',
+        text=freq_matrix,
+        hoverinfo="z"
+    ))
+    heatmap_fig.update_layout(title="Frequência das Dezenas (Histórico)", height=300)
+    return pio.to_html(heatmap_fig, include_plotlyjs='cdn', full_html=False)
 
-# -----------------------------
-# Estatísticas
-# -----------------------------
-print("\n📈 Calculando estatísticas...")
-freqs = frequency.calculate_frequency_by_column(df)
-norm_freqs = frequency.normalize_frequency(freqs)
-poisson_scores = poisson.column_poisson_scores(freqs)
-markov_preds = markov.generate_predictions(df)
-priors = bayesian.initialize_priors()
-bayes_post = bayesian.update_posteriors(priors, df.tail(10))
-top_bayes = bayesian.get_top_candidates(bayes_post, top_n=3)
+def save_predictions(predictions, path_prefix):
+    os.makedirs(os.path.dirname(path_prefix), exist_ok=True)
+    # Save JSON
+    with open(path_prefix + ".json", 'w', encoding='utf-8') as f:
+        json.dump(predictions, f, ensure_ascii=False, indent=2)
+    # Save CSV
+    df = pd.DataFrame([{**{f"dezena{i+1}": n for i, n in enumerate(p['jogo'])}, "modelo": p['modelo']} for p in predictions])
+    df.to_csv(path_prefix + ".csv", index=False)
 
-print("\n🎯 Top 3 dígitos por coluna (modelo Bayesiano):")
-for col, digs in top_bayes.items():
-    print(f"{col}: {digs}")
+if __name__ == '__main__':
+    print("\n📊 Carregando dados históricos...")
+    df_raw, df = load_data()
+    print(f"Total de concursos: {len(df)} | Último concurso: {df_raw['Concurso'].iloc[0]}")
 
-# -----------------------------
-# Geração de Palpites
-# -----------------------------
-print("\n🎰 Gerando palpites...")
+    print("\n📈 Calculando estatísticas...")
 
-# Curto prazo (últimos 5)
-short_df = df.tail(5)
-short_freqs = frequency.calculate_frequency_by_column(short_df)
-short_guess = [max(col.items(), key=lambda x: x[1])[0] for col in short_freqs.values()]
+    # Modelos
+    beam = beam_search.beam_search(df)
+    mut = mutation.gerar_mutacoes(df)
+    markov_pred = markov.gerar_palpite(df)
+    poisson_pred = poisson.gerar_combinacao_poisson(df)
 
-# Médio prazo (últimos 20)
-mid_df = df.tail(20)
-mid_freqs = frequency.calculate_frequency_by_column(mid_df)
-mid_guess = [max(col.items(), key=lambda x: x[1])[0] for col in mid_freqs.values()]
+    # Frequência (curto, médio, longo)
+    short_freq = df.tail(5).values.flatten()
+    mid_freq = df.tail(75).values.flatten()
+    full_freq = df.values.flatten()
 
-# Longo prazo (histórico completo)
-long_guess = [max(col.items(), key=lambda x: x[1])[0] for col in freqs.values()]
+    def top_dezenas(data):
+        c = Counter(data)
+        return sorted([n for n, _ in c.most_common(15)])
 
-# Evolutivo
-evo_games = evolutionary.evolve_population(
-    evolutionary.initialize_population(50),
-    freqs,
-    generations=30
-)
+    freq_short = top_dezenas(short_freq)
+    freq_mid = top_dezenas(mid_freq)
+    freq_long = top_dezenas(full_freq)
 
-# Bayesian palpite
-bayes_guess = [top[0] for top in top_bayes.values()]
+    # Palpite da Rodada baseado nos 15 mais frequentes entre todos os palpites
+    all_jogos = [beam, mut, markov_pred, poisson_pred, freq_short, freq_mid, freq_long]
+  
+    # Garantir que todas as dezenas sejam planas em uma lista só
+    flattened = []
+    for jogo in all_jogos:
+        if isinstance(jogo, list):
+            if all(isinstance(n, int) for n in jogo):  # jogo é uma lista de ints (ex: beam)
+                flattened.extend(jogo)
+            elif all(isinstance(n, list) for n in jogo):  # jogo é uma lista de listas (ex: mutações)
+                for sub in jogo:
+                    flattened.extend(sub)
+    contagem = Counter(flattened)
+    palpite_rodada = sorted([n for n, _ in contagem.most_common(15)])[:15]
 
-# Markov palpite
-markov_guess = [max(pred.items(), key=lambda x: x[1])[0] for pred in markov_preds.values()]
+    print("\n🎯 Palpites gerados:")
+    print(f"Beam: {beam}\nMutation: {mut}\nMarkov: {markov_pred}\nPoisson: {poisson_pred}")
+    print(f"Frequência Curto: {freq_short}\nMédio: {freq_mid}\nLongo: {freq_long}")
+    print(f"Palpite da Rodada: {palpite_rodada}")
 
-# Poisson palpite
-poisson_guess = [max(scores.items(), key=lambda x: x[1])[0] for scores in poisson_scores.values()]
+    # Salvamento
+    print("\n💾 Salvando previsões...")
+    today = pd.Timestamp.today().strftime("%Y-%m-%d")
+    predictions = [
+        {"modelo": "beam_search", "jogo": beam},
+        {"modelo": "mutation", "jogo": mut},
+        {"modelo": "markov", "jogo": markov_pred},
+        {"modelo": "poisson", "jogo": poisson_pred},
+        {"modelo": "frequencia_curto", "jogo": freq_short},
+        {"modelo": "frequencia_medio", "jogo": freq_mid},
+        {"modelo": "frequencia_longo", "jogo": freq_long},
+        {"modelo": "palpite_rodada", "jogo": palpite_rodada},
+    ]
+    save_predictions(predictions, f"Lotofacil/predictions/prediction_{today}")
 
-# Palpite da rodada (baseado nas dezenas mais frequentes entre todos os palpites)
-all_jogos = [short_guess, mid_guess, long_guess, bayes_guess, markov_guess, poisson_guess] + evo_games
-palpite_rodada = [Counter([jogo[i] for jogo in all_jogos]).most_common(1)[0][0] for i in range(7)]
+    # Heatmap
+    heatmap_html = generate_heatmap(df)
+    Path(f"Lotofacil/docs/heatmap.html").write_text(heatmap_html, encoding="utf-8")
 
-# -----------------------------
-# Salvamento
-# -----------------------------
-print("\n💾 Salvando palpites...")
-today = datetime.now().strftime("%Y-%m-%d")
-os.makedirs(OUTPUT_PATH, exist_ok=True)
-
-output = [
-    {"modelo": "curto_prazo", "jogo": short_guess},
-    {"modelo": "medio_prazo", "jogo": mid_guess},
-    {"modelo": "longo_prazo", "jogo": long_guess},
-    {"modelo": "bayesiano", "jogo": bayes_guess},
-    {"modelo": "markov", "jogo": markov_guess},
-    {"modelo": "poisson", "jogo": poisson_guess},
-    {"modelo": "palpite_rodada", "jogo": palpite_rodada},
-]
-for j in evo_games:
-    output.append({"modelo": "evolutivo", "jogo": j})
-
-json_path = os.path.join(OUTPUT_PATH, f"prediction_{today}.json")
-with open(json_path, 'w', encoding='utf-8') as f:
-    json.dump(output, f, ensure_ascii=False, indent=2)
-
-csv_path = os.path.join(OUTPUT_PATH, f"prediction_{today}.csv")
-pd.DataFrame([{**{"col"+str(i+1): num for i, num in enumerate(x['jogo'])}, "modelo": x['modelo']} for x in output]).to_csv(csv_path, index=False)
-
-print(f"\n✅ Previsões salvas:")
-print(f"- JSON: {json_path}")
-print(f"- CSV : {csv_path}")
-
-# -----------------------------
-# Geração de Tabelas e Gráficos
-# -----------------------------
-os.makedirs(DOCS_PATH, exist_ok=True)
-
-# Tabela de frequência por coluna
-freq_table = pd.DataFrame.from_dict(freqs, orient="index").fillna(0).astype(int)
-freq_table = freq_table.reindex(columns=range(10)).fillna(0)
-freq_table.to_html(os.path.join(DOCS_PATH, "frequencia_absoluta.html"))
-
-# Heatmap completo
-fig = go.Figure(data=go.Heatmap(
-    z=freq_table.values,
-    x=[str(i) for i in range(10)],
-    y=[f"Coluna {i}" for i in range(1, 8)],
-    colorscale='Viridis'))
-fig.update_layout(title="Heatmap Geral de Frequência por Coluna")
-fig.write_html(os.path.join(DOCS_PATH, "heatmap_geral.html"))
-
-print("\n📊 Relatórios gerados na pasta docs.")
-print("\n🚀 Pipeline de previsão finalizada com sucesso.")
+    print("\n✅ Arquivos salvos com sucesso.")
