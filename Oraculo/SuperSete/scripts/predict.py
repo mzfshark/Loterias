@@ -117,19 +117,17 @@ os.makedirs(DOCS_PATH, exist_ok=True)
 
 # Tabela de frequência por coluna
 freq_table = pd.DataFrame.from_dict(freqs, orient="index").fillna(0).astype(int)
+freq_table = freq_table.reindex(columns=range(10)).fillna(0)
 freq_table.to_html(os.path.join(DOCS_PATH, "frequencia_absoluta.html"))
 
-# Heatmap por coluna
-for col in freq_table.index:
-    row = freq_table.loc[col]
-    fig = go.Figure(data=go.Heatmap(
-        z=[list(row.values)],
-        x=list(row.index),
-        y=[col],
-        colorscale='Viridis'
-    ))
-    fig.update_layout(title=f"Heatmap de Frequência - {col}")
-    fig.write_html(os.path.join(DOCS_PATH, f"heatmap_{col}.html"))
+# Heatmap completo
+fig = go.Figure(data=go.Heatmap(
+    z=freq_table.values,
+    x=[str(i) for i in range(10)],
+    y=[f"Coluna {i}" for i in range(1, 8)],
+    colorscale='Viridis'))
+fig.update_layout(title="Heatmap Geral de Frequência por Coluna")
+fig.write_html(os.path.join(DOCS_PATH, "heatmap_geral.html"))
 
 print("\n📊 Relatórios gerados na pasta docs.")
 print("\n🚀 Pipeline de previsão finalizada com sucesso.")
