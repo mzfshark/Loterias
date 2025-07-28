@@ -4,22 +4,44 @@ from jinja2 import Template
 
 # Caminhos dos relatórios markdown gerados por cada jogo
 jogos = {
-    "Lotofácil": Path("Oraculo/Lotofacil/docs/index.md"),
-    "Super Sete": Path("Oraculo/SuperSete/docs/index.md"),
-    "Mega-Sena": Path("Oraculo/MegaSena/docs/index.md")
+    "Lotofácil": {
+        "md": Path("Oraculo/Lotofacil/docs/index.md"),
+        "extras": [
+            Path("Oraculo/Lotofacil/docs/heatmap.html"),
+            Path("Oraculo/Lotofacil/docs/performance.html")
+        ]
+    },
+    "Super Sete": {
+        "md": Path("Oraculo/SuperSete/docs/index.md"),
+        "extras": []
+    },
+    "Mega-Sena": {
+        "md": Path("Oraculo/MegaSena/docs/index.md"),
+        "extras": []
+    }
 }
 
-# Função para carregar e converter markdown em HTML
-def read_and_convert(path: Path, title: str) -> str:
-    if not path.exists():
-        return f"<h2>{title}</h2><p><em>Relatório não encontrado.</em></p>"
-    with path.open("r", encoding="utf-8") as f:
-        md_content = f.read()
-    return f"<div class='tabcontent' id='{title}'><h2>{title}</h2>" + markdown2.markdown(md_content) + "</div>"
+# Função para carregar e converter markdown + extras em HTML
+def read_and_convert(jogo: str, paths: dict) -> str:
+    html = f"<div class='tabcontent' id='{jogo}'><h2>{jogo}</h2>"
+
+    md_path = paths.get("md")
+    if md_path.exists():
+        with md_path.open("r", encoding="utf-8") as f:
+            html += markdown2.markdown(f.read())
+    else:
+        html += f"<p><em>Relatório não encontrado.</em></p>"
+
+    for extra_path in paths.get("extras", []):
+        if extra_path.exists():
+            html += f"<div class='plotly-container'>{extra_path.read_text(encoding='utf-8')}</div>"
+
+    html += "</div>"
+    return html
 
 # Coleta os conteúdos em abas
 abas_html = "\n".join([
-    read_and_convert(path, nome) for nome, path in jogos.items()
+    read_and_convert(nome, paths) for nome, paths in jogos.items()
 ])
 
 # Criar estrutura de navegação por abas e renderizar template final
@@ -44,6 +66,7 @@ html_template = Template("""
     .tab-button.active { background: #2fd39a; color: #000; }
     .tabcontent { display: none; animation: fadeIn 0.3s ease-in-out; }
     .tabcontent.active { display: block; }
+    .plotly-container { margin-top: 1rem; }
     @keyframes fadeIn {
       from { opacity: 0; }
       to { opacity: 1; }
