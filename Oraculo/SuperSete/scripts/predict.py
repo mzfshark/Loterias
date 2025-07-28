@@ -102,11 +102,12 @@ freq_table = pd.DataFrame.from_dict(freqs, orient="index").fillna(0).astype(int)
 freq_table.to_html(os.path.join(DOCS_PATH, "frequencia_absoluta.html"))
 
 # Heatmap por coluna
-for col in freq_table.columns:
+for col in freq_table.index:
+    row = freq_table.loc[col]
     fig = go.Figure(data=go.Heatmap(
-        z=[[freq_table[col].loc[col]] for col in freq_table.index],
-        x=[col],
-        y=freq_table.index,
+        z=[list(row.values)],
+        x=list(row.index),
+        y=[col],
         colorscale='Viridis'
     ))
     fig.update_layout(title=f"Heatmap de Frequência - {col}")
