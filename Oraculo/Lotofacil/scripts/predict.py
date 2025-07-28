@@ -16,7 +16,7 @@ from Lotofacil.models.mutation import carregar_dados as dados_mut, gerar_mutacoe
 def salvar_previsoes(nome_modelo, jogos):
     # Força conversão para int puro (caso haja np.int64)
     jogos = [[int(n) for n in jogo] for jogo in jogos]
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    timestamp = datetime.now().strftime("%Y-%m-%d_%H%M%S")
     path = f"Lotofacil/predictions/{timestamp}_{nome_modelo}.json"
     os.makedirs(os.path.dirname(path), exist_ok=True)
     with open(path, 'w', encoding='utf-8') as f:

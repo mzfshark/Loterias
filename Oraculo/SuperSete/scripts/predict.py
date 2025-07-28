@@ -3,6 +3,7 @@ import sys
 import json
 from datetime import datetime
 import pandas as pd
+import plotly.graph_objects as go
 
 # Adiciona raiz do projeto ao sys.path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..')))
@@ -16,12 +17,12 @@ from Oraculo.SuperSete.models import evolutionary
 # Configs
 DATA_PATH = "Oraculo/SuperSete/data/SuperSete.csv"
 OUTPUT_PATH = "Oraculo/SuperSete/predictions"
+DOCS_PATH = "Oraculo/SuperSete/docs"
 
 print("\n📊 Carregando dados históricos...")
 df_full = pd.read_csv(DATA_PATH)
 df_full = df_full.sort_values(by="Concurso").reset_index(drop=True)
 df = df_full[[f"Coluna {i}" for i in range(1, 8)]]
-
 print(f"Linhas carregadas: {len(df)} | Último sorteio: Concurso {df_full['Concurso'].iloc[-1]}")
 
 # -----------------------------
@@ -29,6 +30,7 @@ print(f"Linhas carregadas: {len(df)} | Último sorteio: Concurso {df_full['Concu
 # -----------------------------
 print("\n📈 Calculando estatísticas...")
 freqs = frequency.calculate_frequency_by_column(df)
+norm_freqs = frequency.normalize_frequency(freqs)
 poisson_scores = poisson.column_poisson_scores(freqs)
 markov_preds = markov.generate_predictions(df)
 priors = bayesian.initialize_priors()
@@ -40,16 +42,24 @@ for col, digs in top_bayes.items():
     print(f"{col}: {digs}")
 
 # -----------------------------
-# Geração de apostas
+# Geração de Palpites
 # -----------------------------
-print("\n🎰 Gerando apostas...")
-freq_apostas = []
-for i in range(5):
-    jogo = [max(col.items(), key=lambda x: x[1])[0] for col in freqs.values()]
-    freq_apostas.append(jogo)
+print("\n🎰 Gerando palpites...")
 
-markov_apostas = [[v for v in col.keys()][0] for col in markov_preds.values()]
+# Curto prazo (últimos 5)
+short_df = df.tail(5)
+short_freqs = frequency.calculate_frequency_by_column(short_df)
+short_guess = [max(col.items(), key=lambda x: x[1])[0] for col in short_freqs.values()]
 
+# Médio prazo (últimos 20)
+mid_df = df.tail(20)
+mid_freqs = frequency.calculate_frequency_by_column(mid_df)
+mid_guess = [max(col.items(), key=lambda x: x[1])[0] for col in mid_freqs.values()]
+
+# Longo prazo (histórico completo)
+long_guess = [max(col.items(), key=lambda x: x[1])[0] for col in freqs.values()]
+
+# Evolutivo
 evo_games = evolutionary.evolve_population(
     evolutionary.initialize_population(50),
     freqs,
@@ -59,14 +69,15 @@ evo_games = evolutionary.evolve_population(
 # -----------------------------
 # Salvamento
 # -----------------------------
-print("\n💾 Salvando apostas...")
+print("\n💾 Salvando palpites...")
 today = datetime.now().strftime("%Y-%m-%d")
 os.makedirs(OUTPUT_PATH, exist_ok=True)
 
-output = []
-for j in freq_apostas:
-    output.append({"modelo": "frequencia", "jogo": j})
-output.append({"modelo": "markov", "jogo": markov_apostas})
+output = [
+    {"modelo": "curto_prazo", "jogo": short_guess},
+    {"modelo": "medio_prazo", "jogo": mid_guess},
+    {"modelo": "longo_prazo", "jogo": long_guess},
+]
 for j in evo_games:
     output.append({"modelo": "evolutivo", "jogo": j})
 
@@ -81,4 +92,25 @@ print(f"\n✅ Previsões salvas:")
 print(f"- JSON: {json_path}")
 print(f"- CSV : {csv_path}")
 
+# -----------------------------
+# Geração de Tabelas e Gráficos
+# -----------------------------
+os.makedirs(DOCS_PATH, exist_ok=True)
+
+# Tabela de frequência por coluna
+freq_table = pd.DataFrame.from_dict(freqs, orient="index").fillna(0).astype(int)
+freq_table.to_html(os.path.join(DOCS_PATH, "frequencia_absoluta.html"))
+
+# Heatmap por coluna
+for col in freq_table.columns:
+    fig = go.Figure(data=go.Heatmap(
+        z=[[freq_table[col].loc[col]] for col in freq_table.index],
+        x=[col],
+        y=freq_table.index,
+        colorscale='Viridis'
+    ))
+    fig.update_layout(title=f"Heatmap de Frequência - {col}")
+    fig.write_html(os.path.join(DOCS_PATH, f"heatmap_{col}.html"))
+
+print("\n📊 Relatórios gerados na pasta docs.")
 print("\n🚀 Pipeline de previsão finalizada com sucesso.")
