@@ -74,60 +74,60 @@
   {
     "modelo": "evolutivo",
     "jogo": [
-      7,
-      5,
+      9,
       0,
-      1,
-      9,
-      9,
-      0
-    ]
-  },
-  {
-    "modelo": "evolutivo",
-    "jogo": [
-      8,
       5,
-      2,
       3,
-      5,
-      1,
-      8
-    ]
-  },
-  {
-    "modelo": "evolutivo",
-    "jogo": [
-      4,
-      1,
       9,
-      6,
-      6,
-      7,
+      2,
       7
     ]
   },
   {
     "modelo": "evolutivo",
     "jogo": [
-      8,
+      2,
       6,
-      9,
-      0,
-      3,
       1,
-      9
+      9,
+      3,
+      8,
+      8
     ]
   },
   {
     "modelo": "evolutivo",
     "jogo": [
+      6,
+      7,
+      1,
       1,
       2,
-      0,
-      7,
-      9,
       1,
+      6
+    ]
+  },
+  {
+    "modelo": "evolutivo",
+    "jogo": [
+      6,
+      7,
+      7,
+      1,
+      7,
+      0,
+      2
+    ]
+  },
+  {
+    "modelo": "evolutivo",
+    "jogo": [
+      4,
+      2,
+      0,
+      1,
+      7,
+      2,
       6
     ]
   }
