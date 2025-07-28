@@ -1,0 +1,12 @@
+modelo,jogo
+frequencia,"[0, 7, 5, 6, 3, 7, 9]"
+frequencia,"[0, 7, 5, 6, 3, 7, 9]"
+frequencia,"[0, 7, 5, 6, 3, 7, 9]"
+frequencia,"[0, 7, 5, 6, 3, 7, 9]"
+frequencia,"[0, 7, 5, 6, 3, 7, 9]"
+markov,"[5, 7, 6, 9, 4, 6, 4]"
+evolutivo,"[9, 0, 5, 3, 9, 2, 7]"
+evolutivo,"[2, 6, 1, 9, 3, 8, 8]"
+evolutivo,"[6, 7, 1, 1, 2, 1, 6]"
+evolutivo,"[6, 7, 7, 1, 7, 0, 2]"
+evolutivo,"[4, 2, 0, 1, 7, 2, 6]"
