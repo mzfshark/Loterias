@@ -32,6 +32,18 @@ def gerar_tabela_probabilidades(freq_abs, freq_rel, ajuste_poisson):
     return df.sort_values(by='Dezena')
 
 
+def gerar_combinacao_poisson(df, n=15):
+    series = df.values.flatten()
+    series = pd.Series(series)
+    freq_abs, _ = calcular_frequencias(series)
+    ajuste, _ = ajustar_poisson(freq_abs)
+
+    # Ordena as dezenas com maiores probabilidades
+    ordenadas = sorted(ajuste.items(), key=lambda x: x[1], reverse=True)
+    combinacao = [int(dezena) for dezena, _ in ordenadas[:n]]
+    return sorted(combinacao)
+
+
 if __name__ == '__main__':
     series = carregar_dados()
     freq_abs, freq_rel = calcular_frequencias(series)
