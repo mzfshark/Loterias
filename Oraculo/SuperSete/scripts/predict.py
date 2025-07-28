@@ -4,6 +4,7 @@ import json
 from datetime import datetime
 import pandas as pd
 import plotly.graph_objects as go
+from collections import Counter
 
 # Adiciona raiz do projeto ao sys.path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..')))
@@ -66,6 +67,19 @@ evo_games = evolutionary.evolve_population(
     generations=30
 )
 
+# Bayesian palpite
+bayes_guess = [top[0] for top in top_bayes.values()]
+
+# Markov palpite
+markov_guess = [max(pred.items(), key=lambda x: x[1])[0] for pred in markov_preds.values()]
+
+# Poisson palpite
+poisson_guess = [max(scores.items(), key=lambda x: x[1])[0] for scores in poisson_scores.values()]
+
+# Palpite da rodada (baseado nas dezenas mais frequentes entre todos os palpites)
+all_jogos = [short_guess, mid_guess, long_guess, bayes_guess, markov_guess, poisson_guess] + evo_games
+palpite_rodada = [Counter([jogo[i] for jogo in all_jogos]).most_common(1)[0][0] for i in range(7)]
+
 # -----------------------------
 # Salvamento
 # -----------------------------
@@ -77,6 +91,10 @@ output = [
     {"modelo": "curto_prazo", "jogo": short_guess},
     {"modelo": "medio_prazo", "jogo": mid_guess},
     {"modelo": "longo_prazo", "jogo": long_guess},
+    {"modelo": "bayesiano", "jogo": bayes_guess},
+    {"modelo": "markov", "jogo": markov_guess},
+    {"modelo": "poisson", "jogo": poisson_guess},
+    {"modelo": "palpite_rodada", "jogo": palpite_rodada},
 ]
 for j in evo_games:
     output.append({"modelo": "evolutivo", "jogo": j})
