@@ -96,8 +96,8 @@ if __name__ == '__main__':
     print("\n💾 Salvando previsões...")
     today = pd.Timestamp.today().strftime("%Y-%m-%d")
     
-  def to_int_list(lst):
-    return [int(n) for n in lst] if isinstance(lst, list) else lst
+    def to_int_list(lst):
+        return [int(n) for n in lst] if isinstance(lst, list) else lst
 
     predictions = [
         {"modelo": "beam_search", "jogo": to_int_list(beam)},
