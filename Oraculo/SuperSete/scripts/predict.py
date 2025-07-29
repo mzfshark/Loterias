@@ -127,9 +127,9 @@ fig = go.Figure(data=go.Heatmap(
     x=freq_table.columns,
     y=freq_table.index,
     colorscale=[[0, '#f7fbec'], [1, '#afd355']],
-    text=freq_table.values,
+    text=freq_table.index,
     texttemplate="%{text}",
-    hoverinfo="text+z"
+    hoverinfo="text"
 ))
 fig.update_layout(
     title="Heatmap de Frequência por Coluna (0 a 9)",
