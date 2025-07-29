@@ -126,10 +126,10 @@ if __name__ == '__main__':
         {"modelo": "frequencia_longo", "jogo": freq_long},
         {"modelo": "palpite_rodada", "jogo": palpite_rodada},
     ]
-    save_predictions(predictions, f"Lotofacil/predictions/prediction_{today}")
+    save_predictions(predictions, f"Oraculo/Lotofacil/predictions/prediction_{today}")
 
     # Heatmap
     heatmap_html = generate_heatmap(df)
-    Path(f"Lotofacil/docs/heatmap.html").write_text(heatmap_html, encoding="utf-8")
+    Path(f"Oraculo/Lotofacil/docs/heatmap.html").write_text(heatmap_html, encoding="utf-8")
 
     print("\n✅ Arquivos salvos com sucesso.")
