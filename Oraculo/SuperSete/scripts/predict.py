@@ -118,23 +118,24 @@ os.makedirs(DOCS_PATH, exist_ok=True)
 # Tabela de frequência por coluna
 freq_table = pd.DataFrame.from_dict(freqs, orient="index").fillna(0).astype(int)
 freq_table = freq_table.reindex(columns=range(10)).fillna(0)
-freq_table.to_html(os.path.join(DOCS_PATH, "frequencia_absoluta.html"))
+freq_table = freq_table.T  # Transforma para que dezenas (0-9) fiquem no eixo Y e colunas (1-7) no eixo X
+freq_table.columns = [f"Coluna {i}" for i in range(1, 8)]
 
-# Heatmap consolidado com coloração baseada em #afd355
+# Heatmap consolidado
 fig = go.Figure(data=go.Heatmap(
     z=freq_table.values,
-    x=[f"Coluna {i}" for i in range(1, 8)],
-    y=[str(i) for i in range(10)],
+    x=freq_table.columns,
+    y=freq_table.index,
     colorscale=[[0, '#f7fbec'], [1, '#afd355']],
     text=freq_table.values,
     texttemplate="%{text}",
-    hoverinfo="text"
+    hoverinfo="text+z"
 ))
 fig.update_layout(
     title="Heatmap de Frequência por Coluna (0 a 9)",
-    xaxis_title="Dezenas",
-    yaxis_title="Colunas",
-    height=400,
+    xaxis_title="Colunas",
+    yaxis_title="Dezenas",
+    height=500,
 )
 fig.write_html(os.path.join(DOCS_PATH, "heatmap.html"))
 
