@@ -26,16 +26,25 @@ def load_data(path='Oraculo/Lotofacil/data/Lotofacil.csv'):
 def generate_heatmap(df):
     all_numbers = df.values.flatten()
     freq = pd.Series(all_numbers).value_counts(normalize=True).reindex(range(1, 26), fill_value=0)
-    freq_matrix = freq.values.reshape(5, 5)
+    freq_matrix = freq.values.reshape((5, 5), order='F')  # 5 colunas de 5 linhas (de cima para baixo)
+    labels_matrix = np.arange(1, 26).reshape((5, 5), order='F')
+
     heatmap_fig = go.Figure(data=go.Heatmap(
         z=freq_matrix,
-        x=[1, 2, 3, 4, 5],
-        y=[1, 2, 3, 4, 5],
-        colorscale='YlGnBu',
-        text=freq_matrix,
-        hoverinfo="z"
+        x=["Coluna 1", "Coluna 2", "Coluna 3", "Coluna 4", "Coluna 5"],
+        y=["Dezena 1", "Dezena 2", "Dezena 3", "Dezena 4", "Dezena 5"],
+        colorscale=[[0, '#f7f0f7'], [0.5, '#ff66f5'], [1, '#8200a8']],
+        text=labels_matrix,
+        texttemplate="%{text}",
+        hoverinfo="text+z",
+        showscale=True
     ))
-    heatmap_fig.update_layout(title="Frequência das Dezenas (Histórico)", height=300)
+    heatmap_fig.update_layout(
+        title="Heatmap de Frequência das Dezenas (1 a 25)",
+        xaxis_title="Colunas",
+        yaxis_title="Dezenas",
+        height=500
+    )
     return pio.to_html(heatmap_fig, include_plotlyjs='cdn', full_html=False)
 
 def save_predictions(predictions, path_prefix):
@@ -56,11 +65,11 @@ def save_predictions(predictions, path_prefix):
         jogo = p['jogo']
         if isinstance(jogo[0], list):  # Ex: mutações múltiplas
             for j in jogo:
-                row = {f"Bola{i+1}": int(n) for i, n in enumerate(j)}
+                row = {f"dezena{i+1}": int(n) for i, n in enumerate(j)}
                 row["modelo"] = p['modelo']
                 rows.append(row)
         else:
-            row = {f"Bola{i+1}": int(n) for i, n in enumerate(jogo)}
+            row = {f"dezena{i+1}": int(n) for i, n in enumerate(jogo)}
             row["modelo"] = p['modelo']
             rows.append(row)
 
