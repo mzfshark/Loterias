@@ -41,10 +41,16 @@ def generate_heatmap(df):
 def save_predictions(predictions, path_prefix):
     os.makedirs(os.path.dirname(path_prefix), exist_ok=True)
     # Save JSON
+    def convert(o):
+        if isinstance(o, (np.integer, np.int64)): return int(o)
+        if isinstance(o, (np.floating, np.float64)): return float(o)
+        if isinstance(o, np.ndarray): return o.tolist()
+        return o
+
     with open(path_prefix + ".json", 'w', encoding='utf-8') as f:
-        json.dump(predictions, f, ensure_ascii=False, indent=2)
+        json.dump(predictions, f, ensure_ascii=False, indent=2, default=convert)
     # Save CSV
-    df = pd.DataFrame([{**{f"dezena{i+1}": n for i, n in enumerate(p['jogo'])}, "modelo": p['modelo']} for p in predictions])
+    df = pd.DataFrame([{**{f"dezena{i+1}": int(n) for i, n in enumerate(p['jogo'])}, "modelo": p['modelo']} for p in predictions])
     df.to_csv(path_prefix + ".csv", index=False)
 
 if __name__ == '__main__':
@@ -67,7 +73,7 @@ if __name__ == '__main__':
 
     def top_dezenas(data):
         c = Counter(data)
-        return sorted([n for n, _ in c.most_common(15)])
+        return sorted([int(n) for n, _ in c.most_common(15)])
 
     freq_short = top_dezenas(short_freq)
     freq_mid = top_dezenas(mid_freq)
@@ -95,19 +101,16 @@ if __name__ == '__main__':
     # Salvamento
     print("\n💾 Salvando previsões...")
     today = pd.Timestamp.today().strftime("%Y-%m-%d")
-    
-    def to_int_list(lst):
-        return [int(n) for n in lst] if isinstance(lst, list) else lst
 
     predictions = [
-        {"modelo": "beam_search", "jogo": to_int_list(beam)},
-        {"modelo": "mutation", "jogo": [to_int_list(jogo) for jogo in mut] if isinstance(mut, list) else mut},
-        {"modelo": "markov", "jogo": to_int_list(markov_pred)},
-        {"modelo": "poisson", "jogo": to_int_list(poisson_pred)},
-        {"modelo": "frequencia_curto", "jogo": to_int_list(freq_short)},
-        {"modelo": "frequencia_medio", "jogo": to_int_list(freq_mid)},
-        {"modelo": "frequencia_longo", "jogo": to_int_list(freq_long)},
-        {"modelo": "palpite_rodada", "jogo": to_int_list(palpite_rodada)},
+        {"modelo": "beam_search", "jogo": beam},
+        {"modelo": "mutation", "jogo": mut},
+        {"modelo": "markov", "jogo": markov_pred},
+        {"modelo": "poisson", "jogo": poisson_pred},
+        {"modelo": "frequencia_curto", "jogo": freq_short},
+        {"modelo": "frequencia_medio", "jogo": freq_mid},
+        {"modelo": "frequencia_longo", "jogo": freq_long},
+        {"modelo": "palpite_rodada", "jogo": palpite_rodada},
     ]
     save_predictions(predictions, f"Lotofacil/predictions/prediction_{today}")
 
