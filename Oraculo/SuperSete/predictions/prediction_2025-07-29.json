@@ -1,0 +1,146 @@
+[
+  {
+    "modelo": "curto_prazo",
+    "jogo": [
+      0,
+      5,
+      4,
+      2,
+      4,
+      9,
+      1
+    ]
+  },
+  {
+    "modelo": "medio_prazo",
+    "jogo": [
+      0,
+      0,
+      6,
+      9,
+      4,
+      1,
+      1
+    ]
+  },
+  {
+    "modelo": "longo_prazo",
+    "jogo": [
+      0,
+      7,
+      5,
+      6,
+      3,
+      7,
+      3
+    ]
+  },
+  {
+    "modelo": "bayesiano",
+    "jogo": [
+      0,
+      0,
+      1,
+      1,
+      0,
+      1,
+      1
+    ]
+  },
+  {
+    "modelo": "markov",
+    "jogo": [
+      7,
+      4,
+      5,
+      5,
+      5,
+      2,
+      7
+    ]
+  },
+  {
+    "modelo": "poisson",
+    "jogo": [
+      9,
+      2,
+      8,
+      2,
+      0,
+      1,
+      7
+    ]
+  },
+  {
+    "modelo": "palpite_rodada",
+    "jogo": [
+      0,
+      3,
+      5,
+      2,
+      4,
+      1,
+      1
+    ]
+  },
+  {
+    "modelo": "evolutivo",
+    "jogo": [
+      3,
+      3,
+      9,
+      1,
+      4,
+      2,
+      4
+    ]
+  },
+  {
+    "modelo": "evolutivo",
+    "jogo": [
+      2,
+      4,
+      8,
+      5,
+      6,
+      0,
+      6
+    ]
+  },
+  {
+    "modelo": "evolutivo",
+    "jogo": [
+      0,
+      7,
+      0,
+      9,
+      3,
+      8,
+      7
+    ]
+  },
+  {
+    "modelo": "evolutivo",
+    "jogo": [
+      2,
+      3,
+      5,
+      3,
+      7,
+      0,
+      1
+    ]
+  },
+  {
+    "modelo": "evolutivo",
+    "jogo": [
+      0,
+      3,
+      2,
+      7,
+      2,
+      8,
+      8
+    ]
+  }
+]
