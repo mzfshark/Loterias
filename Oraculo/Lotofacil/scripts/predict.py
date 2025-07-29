@@ -45,12 +45,26 @@ def save_predictions(predictions, path_prefix):
         if isinstance(o, (np.integer, np.int64)): return int(o)
         if isinstance(o, (np.floating, np.float64)): return float(o)
         if isinstance(o, np.ndarray): return o.tolist()
+        if isinstance(o, list): return [convert(i) for i in o]
         return o
 
     with open(path_prefix + ".json", 'w', encoding='utf-8') as f:
         json.dump(predictions, f, ensure_ascii=False, indent=2, default=convert)
     # Save CSV
-    df = pd.DataFrame([{**{f"dezena{i+1}": int(n) for i, n in enumerate(p['jogo'])}, "modelo": p['modelo']} for p in predictions])
+    rows = []
+    for p in predictions:
+        jogo = p['jogo']
+        if isinstance(jogo[0], list):  # Ex: mutações múltiplas
+            for j in jogo:
+                row = {f"dezena{i+1}": int(n) for i, n in enumerate(j)}
+                row["modelo"] = p['modelo']
+                rows.append(row)
+        else:
+            row = {f"dezena{i+1}": int(n) for i, n in enumerate(jogo)}
+            row["modelo"] = p['modelo']
+            rows.append(row)
+
+    df = pd.DataFrame(rows)
     df.to_csv(path_prefix + ".csv", index=False)
 
 if __name__ == '__main__':
