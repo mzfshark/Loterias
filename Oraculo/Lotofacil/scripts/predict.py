@@ -95,15 +95,19 @@ if __name__ == '__main__':
     # Salvamento
     print("\n💾 Salvando previsões...")
     today = pd.Timestamp.today().strftime("%Y-%m-%d")
+    
+  def to_int_list(lst):
+    return [int(n) for n in lst] if isinstance(lst, list) else lst
+
     predictions = [
-        {"modelo": "beam_search", "jogo": beam},
-        {"modelo": "mutation", "jogo": mut},
-        {"modelo": "markov", "jogo": markov_pred},
-        {"modelo": "poisson", "jogo": poisson_pred},
-        {"modelo": "frequencia_curto", "jogo": freq_short},
-        {"modelo": "frequencia_medio", "jogo": freq_mid},
-        {"modelo": "frequencia_longo", "jogo": freq_long},
-        {"modelo": "palpite_rodada", "jogo": palpite_rodada},
+        {"modelo": "beam_search", "jogo": to_int_list(beam)},
+        {"modelo": "mutation", "jogo": [to_int_list(jogo) for jogo in mut] if isinstance(mut, list) else mut},
+        {"modelo": "markov", "jogo": to_int_list(markov_pred)},
+        {"modelo": "poisson", "jogo": to_int_list(poisson_pred)},
+        {"modelo": "frequencia_curto", "jogo": to_int_list(freq_short)},
+        {"modelo": "frequencia_medio", "jogo": to_int_list(freq_mid)},
+        {"modelo": "frequencia_longo", "jogo": to_int_list(freq_long)},
+        {"modelo": "palpite_rodada", "jogo": to_int_list(palpite_rodada)},
     ]
     save_predictions(predictions, f"Lotofacil/predictions/prediction_{today}")
 
