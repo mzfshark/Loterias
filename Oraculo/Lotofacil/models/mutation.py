@@ -4,7 +4,7 @@ import random
 from collections import Counter
 
 
-def carregar_dados(path='Oraculo/Lotofacil/data/Lotofacil.csv'):
+def carregar_dados(path='lotofacil/data/Lotofacil.csv'):
     df = pd.read_csv(path)
     colunas = [col for col in df.columns if 'Bola' in col or 'Numero' in col]
     return df[colunas].values.tolist()
@@ -23,15 +23,21 @@ def mutar(jogo_base, probs, taxa_mutacao=0.3):
     for i in range(len(jogo)):
         if random.random() < taxa_mutacao:
             candidatos = [n for n in range(1, 26) if n not in jogo]
-            pesos = [probs[n] for n in candidatos]
-            if candidatos:
+            pesos = [probs.get(n, 0) for n in candidatos]
+            if candidatos and sum(pesos) > 0:
                 novo = random.choices(candidatos, weights=pesos, k=1)[0]
                 jogo[i] = novo
     # Garantir que o jogo tenha 15 dezenas únicas
     jogo = sorted(set(jogo))
     while len(jogo) < 15:
         candidatos = [n for n in range(1, 26) if n not in jogo]
-        novo = random.choices(candidatos, weights=[probs[n] for n in candidatos], k=1)[0]
+        pesos = [probs.get(n, 0) for n in candidatos]
+        if candidatos and sum(pesos) > 0:
+            novo = random.choices(candidatos, weights=pesos, k=1)[0]
+        elif candidatos:
+            novo = random.choice(candidatos)
+        else:
+            break
         jogo.append(novo)
     return sorted(jogo[:15])
 

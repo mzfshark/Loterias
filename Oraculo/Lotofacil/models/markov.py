@@ -2,12 +2,10 @@ import pandas as pd
 import numpy as np
 from collections import defaultdict, Counter
 
-
 def carregar_dados(path='Oraculo/Lotofacil/data/Lotofacil.csv'):
     df = pd.read_csv(path)
     colunas = [col for col in df.columns if 'Bola' in col or 'Numero' in col]
     return df[colunas].values.tolist()
-
 
 def construir_matriz_transicao(sequencias):
     transicoes = defaultdict(Counter)
@@ -23,7 +21,6 @@ def construir_matriz_transicao(sequencias):
         total = sum(contagem.values())
         matriz[dezena] = {k: v / total for k, v in contagem.items()}
     return matriz
-
 
 def prever_proximas(matriz, estado_inicial, tamanho=15):
     atual = estado_inicial
@@ -42,10 +39,12 @@ def prever_proximas(matriz, estado_inicial, tamanho=15):
             previsao.append(candidato)
     return sorted(previsao)
 
+def gerar_palpite(dados):
+    matriz = construir_matriz_transicao(dados)
+    estado_inicial = np.random.choice(range(1, 26))
+    return prever_proximas(matriz, estado_inicial)
 
 if __name__ == '__main__':
     dados = carregar_dados()
-    matriz = construir_matriz_transicao(dados)
-    estado_inicial = np.random.choice(range(1, 26))
-    previsao = prever_proximas(matriz, estado_inicial)
-    print("Previsão baseada em Cadeia de Markov:", previsao)
+    palpite = gerar_palpite(dados)
+    print("Previsão baseada em Cadeia de Markov:", palpite)
