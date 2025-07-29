@@ -3,20 +3,22 @@ from pathlib import Path
 from jinja2 import Template
 import json
 import pandas as pd
-import plotly.express as px
 
 # Caminhos dos relatórios por jogo
 jogos = {
     "Lotofácil": {
         "predictions": Path("Oraculo/Lotofacil/predictions"),
+        "heatmap": Path("Oraculo/Lotofacil/docs/heatmap.html"),
         "title": "Lotofácil"
     },
     "Super Sete": {
         "predictions": Path("Oraculo/SuperSete/predictions"),
+        "heatmap": Path("Oraculo/SuperSete/docs/heatmap.html"),
         "title": "Super Sete"
     },
     "Mega-Sena": {
         "predictions": Path("Oraculo/MegaSena/predictions"),
+        "heatmap": Path("Oraculo/MegaSena/docs/heatmap.html"),
         "title": "Mega-Sena"
     }
 }
@@ -42,14 +44,10 @@ def gerar_tabela_previsoes(prediction_dir: Path) -> str:
     link = f"<a href='{csv_path.as_posix()}' download>📥 Baixar CSV</a>"
     return f"<h3>Previsões Recentes</h3>{tabela_html}<br>{link}"
 
-def gerar_heatmap(df: pd.DataFrame) -> str:
-    df_long = df.melt(var_name="Coluna", value_name="Dígito")
-    freq = df_long.groupby(["Coluna", "Dígito"]).size().reset_index(name="Frequência")
-    fig = px.density_heatmap(freq, x="Coluna", y="Dígito", z="Frequência",
-                             color_continuous_scale="Viridis", 
-                             labels={"Dígito": "Dígito", "Frequência": "Frequência"},
-                             height=400)
-    return fig.to_html(full_html=False, include_plotlyjs='cdn')
+def carregar_heatmap(path: Path) -> str:
+    if path.exists():
+        return path.read_text(encoding="utf-8")
+    return "<p><em>Heatmap não disponível.</em></p>"
 
 def gerar_conteudo_jogo(nome: str, paths: dict) -> str:
     html = f"<div class='tabcontent' id='{nome}'><h2>{paths['title']}</h2>"
@@ -60,16 +58,15 @@ def gerar_conteudo_jogo(nome: str, paths: dict) -> str:
         html += "<p><em>Sem dados disponíveis.</em></p></div>"
         return html
 
-    mais_recente = arquivos[0]
-    df = pd.read_csv(mais_recente)
-
     html += "<h3>📊 Frequência Histórica</h3>"
-    html += gerar_heatmap(df[[c for c in df.columns if c.startswith("col")]])
+    html += carregar_heatmap(paths["heatmap"])
 
     html += "<h3>🧠 Palpites Gerados</h3>"
     html += gerar_tabela_previsoes(prediction_dir)
 
     # Exibir resumo de estratégias
+    mais_recente = arquivos[0]
+    df = pd.read_csv(mais_recente)
     modelo_counts = df['modelo'].value_counts().to_frame().reset_index()
     modelo_counts.columns = ['Modelo', 'Total']
     html += f"<h4>Resumo de estratégias</h4>"
