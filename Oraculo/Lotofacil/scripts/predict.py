@@ -56,11 +56,11 @@ def save_predictions(predictions, path_prefix):
         jogo = p['jogo']
         if isinstance(jogo[0], list):  # Ex: mutações múltiplas
             for j in jogo:
-                row = {f"dezena{i+1}": int(n) for i, n in enumerate(j)}
+                row = {f"Bola{i+1}": int(n) for i, n in enumerate(j)}
                 row["modelo"] = p['modelo']
                 rows.append(row)
         else:
-            row = {f"dezena{i+1}": int(n) for i, n in enumerate(jogo)}
+            row = {f"Bola{i+1}": int(n) for i, n in enumerate(jogo)}
             row["modelo"] = p['modelo']
             rows.append(row)
 
