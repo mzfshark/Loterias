@@ -119,7 +119,7 @@ os.makedirs(DOCS_PATH, exist_ok=True)
 freq_table = pd.DataFrame.from_dict(freqs, orient="index").fillna(0).astype(int)
 freq_table = freq_table.reindex(columns=range(10)).fillna(0)
 freq_table = freq_table.T  # Transforma para que dezenas (0-9) fiquem no eixo Y e colunas (1-7) no eixo X
-freq_table = freq_table.sort_index(ascending=False)  # Garante que 0 fique no topo
+freq_table = freq_table.sort_index(descending=True)  # Garante que 0 fique no topo
 freq_table.columns = [f"Coluna {i}" for i in range(1, 8)]
 
 # Heatmap consolidado
