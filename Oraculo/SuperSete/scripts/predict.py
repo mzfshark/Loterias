@@ -123,12 +123,12 @@ freq_table.to_html(os.path.join(DOCS_PATH, "frequencia_absoluta.html"))
 # Heatmap consolidado com coloração baseada em #afd355
 fig = go.Figure(data=go.Heatmap(
     z=freq_table.values,
-    x=[str(i) for i in range(10)],
-    y=[f"Coluna {i}" for i in range(1, 8)],
+    x=[f"Coluna {i}" for i in range(1, 8)],
+    y=[str(i) for i in range(10)],
     colorscale=[[0, '#f7fbec'], [1, '#afd355']],
     text=freq_table.values,
     texttemplate="%{text}",
-    hoverinfo="text+z"
+    hoverinfo="text"
 ))
 fig.update_layout(
     title="Heatmap de Frequência por Coluna (0 a 9)",
