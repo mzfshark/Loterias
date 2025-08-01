@@ -55,9 +55,9 @@ def benchmark():
             continue
 
         nums_reais = row.drop(["Data", "Concurso"], errors="ignore").astype(int).tolist()
-        data_conc_dt = datetime.strptime(data_conc, "%Y-%m-%d")
+        data_conc_dt = datetime.strptime(data_conc, "%d/%m/%y")
 
-        palpites_validos = [p for p in preds if datetime.strptime(p["data"], "%Y-%m-%d") < data_conc_dt]
+        palpites_validos = [p for p in preds if datetime.strptime(p["data"], "%d/%m/%y") < data_conc_dt]
         if not palpites_validos:
             continue
 
