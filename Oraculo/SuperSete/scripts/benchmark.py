@@ -1,10 +1,10 @@
-# benchmark.py (exemplo aplicável tanto a SuperSete quanto Lotofacil, com ajustes mínimos por jogo)
 
 import pandas as pd
 import os
 import glob
 from datetime import datetime
 import matplotlib.pyplot as plt
+import json
 
 # === CONFIGURAÇÃO ===
 JOGO = "SuperSete"  # Ou "Lotofacil"
@@ -25,14 +25,18 @@ def load_dataset():
     return df.tail(N_VALID)
 
 def load_predictions():
-    arquivos = sorted(glob.glob(f"{PRED_PATH}/prediction_*.csv"))
+    arquivos = sorted(glob.glob(f"{PRED_PATH}/prediction_*.json"))
     dados = []
     for arq in arquivos:
-        data = arq.split("_")[-1].replace(".csv", "")
-        df = pd.read_csv(arq)
-        for _, row in df.iterrows():
-            jogo = [int(row[f"dezena{i+1}"]) for i in range(len(row)-1)]
-            dados.append({"data": data, "modelo": row["modelo"], "jogo": jogo})
+        nome_arquivo = os.path.basename(arq)
+        data = nome_arquivo.replace("prediction_", "").replace(".json", "")
+        with open(arq, "r") as f:
+            conteudo = json.load(f)
+            if isinstance(conteudo, list):
+                for entrada in conteudo:
+                    dados.append({"data": data, "modelo": entrada["modelo"], "jogo": entrada["jogo"]})
+            elif isinstance(conteudo, dict):
+                dados.append({"data": data, "modelo": conteudo["modelo"], "jogo": conteudo["jogo"]})
     return dados
 
 def comparar(palpite, real):
@@ -45,11 +49,14 @@ def benchmark():
     registros = []
 
     for _, row in df_real.iterrows():
-        data_conc = row["Data"] if "Data" in row else row["data"]
-        nums_reais = row.drop(["Data", "Concurso"], errors="ignore").astype(int).tolist()
-        data_conc_dt = datetime.strptime(data_conc, "%Y-%m-%d")
+        data_conc = row["Data"] if "Data" in row else None
+        if not data_conc:
+            continue
 
-        palpites_validos = [p for p in preds if datetime.strptime(p["data"], "%Y-%m-%d") < data_conc_dt]
+        nums_reais = row.drop(["Data", "Concurso"], errors="ignore").astype(int).tolist()
+        data_conc_dt = datetime.strptime(data_conc, "%d/%m/%y")
+
+        palpites_validos = [p for p in preds if datetime.strptime(p["data"], "%d/%m/%y") < data_conc_dt]
         if not palpites_validos:
             continue
 
@@ -58,7 +65,7 @@ def benchmark():
         acertos_por_coluna = "-"
 
         if JOGO == "SuperSete":
-            acertos_por_coluna = sum([1 for i in range(7) if pmais_recente["jogo"][i] == nums_reais[i]])
+            acertos_por_coluna = sum([1 for i in range(7) if i < len(pmais_recente["jogo"]) and i < len(nums_reais) and pmais_recente["jogo"][i] == nums_reais[i]])
 
         registros.append({
             "modelo": pmais_recente["modelo"],
@@ -68,11 +75,19 @@ def benchmark():
             "acertos_por_coluna": acertos_por_coluna
         })
 
+    if not registros:
+        print("⚠️ Nenhum registro válido para benchmarking.")
+        return pd.DataFrame()
+
     df_benchmark = pd.DataFrame(registros)
     df_benchmark.to_csv(RESULT_CSV, index=False)
     return df_benchmark
 
 def gerar_summary(df):
+    if df.empty:
+        print("⚠️ DataFrame vazio. Sumário não gerado.")
+        return
+
     resumo = df.groupby("modelo")["acertos_totais"].agg(["mean", "std", "count"]).reset_index()
     resumo.columns = ["modelo", "media_acertos", "desvio_padrao", "n"]
 
