@@ -31,7 +31,7 @@ def load_predictions():
         data = arq.split("_")[-1].replace(".csv", "")
         df = pd.read_csv(arq)
         for _, row in df.iterrows():
-            jogo = [int(row[f"dezena{i+1}"]) for i in range(len(row)-1)]
+            jogo = [int(row[f"Bola{i+1}"]) for i in range(len(row)-1)]
             dados.append({"data": data, "modelo": row["modelo"], "jogo": jogo})
     return dados
 
