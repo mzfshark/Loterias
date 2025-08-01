@@ -1,10 +1,10 @@
-# benchmark.py (exemplo aplicável tanto a SuperSete quanto Lotofacil, com ajustes mínimos por jogo)
 
 import pandas as pd
 import os
 import glob
 from datetime import datetime
 import matplotlib.pyplot as plt
+import json
 
 # === CONFIGURAÇÃO ===
 JOGO = "Lotofacil"  # Ou "Lotofacil"
@@ -25,14 +25,18 @@ def load_dataset():
     return df.tail(N_VALID)
 
 def load_predictions():
-    arquivos = sorted(glob.glob(f"{PRED_PATH}/prediction_*.csv"))
+    arquivos = sorted(glob.glob(f"{PRED_PATH}/prediction_*.json"))
     dados = []
     for arq in arquivos:
-        data = arq.split("_")[-1].replace(".csv", "")
-        df = pd.read_csv(arq)
-        for _, row in df.iterrows():
-            jogo = [int(row[f"Concurso{i+1}"]) for i in range(len(row)-1) if f"Concurso{i+1}" in row]
-            dados.append({"data": data, "modelo": row["modelo"], "jogo": jogo})
+        nome_arquivo = os.path.basename(arq)
+        data = nome_arquivo.replace("prediction_", "").replace(".json", "")
+        with open(arq, "r") as f:
+            conteudo = json.load(f)
+            if isinstance(conteudo, list):
+                for entrada in conteudo:
+                    dados.append({"data": data, "modelo": entrada["modelo"], "jogo": entrada["jogo"]})
+            elif isinstance(conteudo, dict):
+                dados.append({"data": data, "modelo": conteudo["modelo"], "jogo": conteudo["jogo"]})
     return dados
 
 def comparar(palpite, real):
