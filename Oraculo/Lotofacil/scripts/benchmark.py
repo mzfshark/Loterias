@@ -7,7 +7,7 @@ from datetime import datetime
 import matplotlib.pyplot as plt
 
 # === CONFIGURAÇÃO ===
-JOGO = "Lotofacil"  
+JOGO = "Lotofacil"  # Ou "Lotofacil"
 ROOT = f"Oraculo/{JOGO}"
 DATASET_PATH = f"{ROOT}/data/{JOGO}.csv"
 PRED_PATH = f"{ROOT}/predictions"
@@ -31,7 +31,7 @@ def load_predictions():
         data = arq.split("_")[-1].replace(".csv", "")
         df = pd.read_csv(arq)
         for _, row in df.iterrows():
-            jogo = [int(row[f"Bola{i+1}"]) for i in range(len(row)-1)]
+            jogo = [int(row[f"Concurso{i+1}"]) for i in range(len(row)-1) if f"Concurso{i+1}" in row]
             dados.append({"data": data, "modelo": row["modelo"], "jogo": jogo})
     return dados
 
@@ -45,7 +45,10 @@ def benchmark():
     registros = []
 
     for _, row in df_real.iterrows():
-        data_conc = row["Data"] if "Data" in row else row["data"]
+        data_conc = row["Data"] if "Data" in row else None
+        if not data_conc:
+            continue
+
         nums_reais = row.drop(["Data", "Concurso"], errors="ignore").astype(int).tolist()
         data_conc_dt = datetime.strptime(data_conc, "%Y-%m-%d")
 
@@ -58,7 +61,7 @@ def benchmark():
         acertos_por_coluna = "-"
 
         if JOGO == "SuperSete":
-            acertos_por_coluna = sum([1 for i in range(7) if pmais_recente["jogo"][i] == nums_reais[i]])
+            acertos_por_coluna = sum([1 for i in range(7) if i < len(pmais_recente["jogo"]) and i < len(nums_reais) and pmais_recente["jogo"][i] == nums_reais[i]])
 
         registros.append({
             "modelo": pmais_recente["modelo"],
