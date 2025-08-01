@@ -1,3 +1,4 @@
+# benchmark.py (exemplo aplicável tanto a SuperSete quanto Lotofacil, com ajustes mínimos por jogo)
 
 import pandas as pd
 import os
@@ -75,11 +76,19 @@ def benchmark():
             "acertos_por_coluna": acertos_por_coluna
         })
 
+    if not registros:
+        print("⚠️ Nenhum registro válido para benchmarking.")
+        return pd.DataFrame()
+
     df_benchmark = pd.DataFrame(registros)
     df_benchmark.to_csv(RESULT_CSV, index=False)
     return df_benchmark
 
 def gerar_summary(df):
+    if df.empty:
+        print("⚠️ DataFrame vazio. Sumário não gerado.")
+        return
+
     resumo = df.groupby("modelo")["acertos_totais"].agg(["mean", "std", "count"]).reset_index()
     resumo.columns = ["modelo", "media_acertos", "desvio_padrao", "n"]
 
