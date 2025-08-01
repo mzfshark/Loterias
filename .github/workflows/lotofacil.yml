@@ -23,7 +23,7 @@ jobs:
 
       - name: Instalar dependências
         run: |
-          pip install pandas numpy seaborn matplotlib tabulate plotly markdown2 jinja2 scipy
+          pip install pandas numpy seaborn matplotlib tabulate plotly markdown2 jinja2
 
       - name: Executar pipeline completa
         run: |
@@ -33,11 +33,15 @@ jobs:
         run: |
           python scripts/generate_html.py
 
+      - name: Executar benchmark
+        run: |
+          python Oraculo/Lotofacil/scripts/benchmark.py
+
       - name: Commit e push dos resultados
         run: |
           git config user.name "mzfshark"
           git config user.email "mzfshark@gmail.com"
-          git add .
+          git add Lotofacil/docs/index.md Lotofacil/docs/*.html index.html lotofacil/predictions/*.json Lotofacil/benchmark_results.csv Lotofacil/docs/charts/benchmark_summary.png Lotofacil/docs/benchmark_summary.md
           if ! git diff --cached --quiet; then
             git commit -m "Atualiza previsões e relatório da Lotofácil"
             git push
