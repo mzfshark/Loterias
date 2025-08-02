@@ -37,6 +37,7 @@ jobs:
         run: |
           git config user.name "mzfshark"
           git config user.email "mzfsharks@gmail.com"
+          git pull
           git add .
           if ! git diff --cached --quiet; then
             git commit -m "Atualiza relatório Markdown do Super Sete"
