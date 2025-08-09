@@ -3,7 +3,7 @@ name: SuperSete Auto Predict
 on:
   push:
     paths:
-      - 'SuperSete/data/SuperSete.csv'
+      - 'Oraculo/SuperSete/data/SuperSete.csv'
   schedule:
     - cron: '0 12 * * *' # Executa diariamente às 9h BRT (12h UTC)
   workflow_dispatch:
