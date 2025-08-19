@@ -3,7 +3,7 @@ name: Lotofacil Auto Predict
 on:
   push:
     paths:
-      - 'Lotofacil/data/lotofacil.csv'
+      - 'Oraculo/Lotofacil/data/Lotofacil.csv'
   schedule:
     - cron: '0 12 * * *' # Executa diariamente às 9h BRT (12h UTC)
   workflow_dispatch:
@@ -14,28 +14,37 @@ jobs:
 
     steps:
       - name: Checkout repositório
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Configurar Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
       - name: Instalar dependências
         run: |
-          pip install pandas numpy
+          pip install pandas numpy seaborn matplotlib tabulate plotly markdown2 jinja2 scipy
 
-      - name: Rodar predição
+      - name: Executar pipeline completa
         run: |
-          python Lotofacil/predict.py
+          python Oraculo/Lotofacil/scripts/predict.py
 
-      - name: Commit e push do relatório
+      - name: Gerar HTML unificado
+        run: |
+          python scripts/generate_html.py
+
+      - name: Executar benchmark
+        run: |
+          python Oraculo/Lotofacil/scripts/benchmark.py
+
+      - name: Commit e push dos resultados
         run: |
           git config user.name "mzfshark"
-          git config user.email "mzfsharks@gmail.com"
-          git add Lotofacil/docs/index.md
+          git config user.email "mzfshark@gmail.com"
+          git pull
+          git add .
           if ! git diff --cached --quiet; then
-            git commit -m "Atualiza relatório Markdown da Lotofácil"
+            git commit -m "Atualiza previsões e relatório da Lotofácil"
             git push
           else
             echo "Nenhuma mudança para comitar."
@@ -47,6 +56,6 @@ jobs:
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GH_PAT }}
-          publish_dir: ./Lotofacil/docs
+          publish_dir: ./
           publish_branch: gh-pages
           enable_jekyll: true

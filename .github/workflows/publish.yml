@@ -22,7 +22,7 @@ jobs:
 
       - name: Instalar dependências
         run: |
-          pip install markdown2 jinja2
+          pip install markdown2 jinja2 pathlib pandas plotly
 
       - name: Gerar HTML formatado a partir de Markdown
         run: |
@@ -35,8 +35,12 @@ jobs:
           git config user.email "mzfshark@gmail.com"
           git pull
           git add index.html
-          git commit -m "Atualiza apresentação HTML das loterias"
-          git push
+          if ! git diff --cached --quiet; then
+            git commit -m "Atualiza apresentação HTML das loterias"
+            git push
+          else
+            echo "Nenhuma alteração detectada. Nada para comitar."
+          fi
 
       - name: Publicar via GitHub Pages
         uses: peaceiris/actions-gh-pages@v3

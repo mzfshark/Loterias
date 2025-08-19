@@ -3,7 +3,7 @@ name: SuperSete Auto Predict
 on:
   push:
     paths:
-      - 'SuperSete/data/SuperSete.csv'
+      - 'Oraculo/SuperSete/data/SuperSete.csv'
   schedule:
     - cron: '0 12 * * *' # Executa diariamente às 9h BRT (12h UTC)
   workflow_dispatch:
@@ -23,17 +23,22 @@ jobs:
 
       - name: Instalar dependências
         run: |
-          pip install pandas numpy
+          pip install pandas numpy plotly matplotlib
 
       - name: Rodar predição
         run: |
-          python SuperSete/predict.py
+          python Oraculo/SuperSete/scripts/predict.py
+
+      - name: Executar benchmark
+        run: |
+          python Oraculo/Lotofacil/scripts/benchmark.py
 
       - name: Commit e push do relatório
         run: |
-          git config user.name "github-actions"
-          git config user.email "github-actions@github.com"
-          git add SuperSete/docs/index.md
+          git config user.name "mzfshark"
+          git config user.email "mzfsharks@gmail.com"
+          git pull
+          git add .
           if ! git diff --cached --quiet; then
             git commit -m "Atualiza relatório Markdown do Super Sete"
             git push
