@@ -1,0 +1,13 @@
+col1,col2,col3,col4,col5,col6,col7,modelo
+1,2,5,0,3,6,8,curto_prazo
+0,1,5,1,0,8,3,medio_prazo
+0,7,5,6,5,0,3,longo_prazo
+1,1,5,0,0,8,3,bayesiano
+1,8,2,9,3,9,1,markov
+7,1,2,2,0,8,7,poisson
+1,1,5,0,0,8,3,palpite_rodada
+5,3,5,0,0,1,2,evolutivo
+8,5,2,4,5,8,5,evolutivo
+4,4,1,1,6,4,9,evolutivo
+1,9,8,8,5,4,1,evolutivo
+7,7,6,3,6,5,0,evolutivo
