@@ -1,0 +1,2 @@
+lottery,timestamp,model,prediction,confidence
+MegaSena,2025-09-28_14-19-51,mutation,"[3, 16, 22, 26, 32, 46]",0.6
