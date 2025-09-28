@@ -345,6 +345,15 @@ class NeuralEnsembleLotofacil:
             'top_numbers_with_probs': sorted_probs[:15]
         }
 
+    # ---- Stub mínimo para compatibilidade com o ModelAdapter ----
+    def train_and_predict(self, historical_data: List[List[int]], lookback: int = 10):
+        """
+        Interface simplificada esperada pelo adapter.
+        Retorna (prediction, confidence).
+        """
+        result = self.generate_prediction(historical_data, lookback=lookback)
+        return result['prediction'], float(result.get('confidence', 0.6))
+
 
 def carregar_dados(path='Oraculo/Lotofacil/data/Lotofacil.csv') -> List[List[int]]:
     """Load historical Lotofacil data."""

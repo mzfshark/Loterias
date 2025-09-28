@@ -121,7 +121,16 @@ def carregar_heatmap(path: Path) -> str:
 
 def gerar_conteudo_jogo(slug: str, cfg: dict) -> str:
   html = [f"<section class='tabcontent' id='{slug}'>"]
-  html.append(f"<header class='section-header'><h2>{cfg['emoji']} {cfg['title']}</h2></header>")
+  # Cabeçalho com logo como ícone (125px de largura)
+  logo_path = cfg.get('logo', '')
+  titulo = cfg.get('title', slug.title())
+  cabecalho = (
+    f"<header class='section-header'>"
+    f"<img src='{logo_path}' alt='{titulo} logo' width='125' height='auto' />"
+    f"<h2>{titulo}</h2>"
+    f"</header>"
+  )
+  html.append(cabecalho)
 
   prediction_dir = cfg["predictions"]
   arquivos = sorted(prediction_dir.glob("*.csv"), reverse=True)

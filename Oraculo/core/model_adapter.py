@@ -36,8 +36,8 @@ class ModelAdapter:
     def adapt_bayesian_model(self, data: List[List[int]]) -> Optional[Dict[str, Any]]:
         """Adapt Bayesian model for current lottery configuration."""
         try:
-            # Import the Lotofacil Bayesian model
-            from Oraculo.Lotofacil.models.bayesian import BayesianLotofacilPredictor
+            # Import shared Bayesian predictor (backed by Lotofacil implementation)
+            from Oraculo.common.models.bayesian import BayesianPredictor as BayesianLotofacilPredictor
             
             # Create predictor with standard parameters
             predictor = BayesianLotofacilPredictor()
@@ -73,7 +73,7 @@ class ModelAdapter:
     def adapt_neural_ensemble_model(self, data: List[List[int]]) -> Optional[Dict[str, Any]]:
         """Adapt Neural Ensemble model for current lottery configuration."""
         try:
-            from Oraculo.Lotofacil.models.neural_ensemble import NeuralEnsembleLotofacil
+            from Oraculo.common.models.neural_ensemble import NeuralEnsemblePredictor as NeuralEnsembleLotofacil
             
             # Create predictor
             predictor = NeuralEnsembleLotofacil()
@@ -110,7 +110,7 @@ class ModelAdapter:
     def adapt_monte_carlo_model(self, data: List[List[int]]) -> Optional[Dict[str, Any]]:
         """Adapt Monte Carlo model for current lottery configuration."""
         try:
-            from Oraculo.Lotofacil.models.monte_carlo import MonteCarloLotofacilSimulator
+            from Oraculo.common.models.monte_carlo import MonteCarloSimulator as MonteCarloLotofacilSimulator
             
             # Create simulator
             # Usa verbose=False para silenciar logs de progresso
@@ -140,7 +140,7 @@ class ModelAdapter:
     def adapt_time_series_model(self, data: List[List[int]]) -> Optional[Dict[str, Any]]:
         """Adapt Time Series model for current lottery configuration."""
         try:
-            from Oraculo.Lotofacil.models.time_series import TimeSeriesLotofacilPredictor
+            from Oraculo.common.models.time_series import TimeSeriesPredictor as TimeSeriesLotofacilPredictor
             
             # Create predictor
             predictor = TimeSeriesLotofacilPredictor()

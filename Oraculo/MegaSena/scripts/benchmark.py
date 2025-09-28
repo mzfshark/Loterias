@@ -1,5 +1,3 @@
-# benchmark.py (exemplo aplicável tanto a SuperSete quanto Lotofacil, com ajustes mínimos por jogo)
-
 import pandas as pd
 import os
 import glob
@@ -8,7 +6,7 @@ import matplotlib.pyplot as plt
 import json
 
 # === CONFIGURAÇÃO ===
-JOGO = "Lotofacil"  # Ou "Lotofacil"
+JOGO = "MegaSena"
 ROOT = f"Oraculo/{JOGO}"
 DATASET_PATH = f"{ROOT}/data/{JOGO}.csv"
 PRED_PATH = f"{ROOT}/predictions"
@@ -18,6 +16,7 @@ CHART_IMG = f"{ROOT}/docs/charts/benchmark_summary.png"
 
 # === PARÂMETROS ===
 N_VALID = 300
+
 
 def parse_date_multi(s: str):
     """Tenta converter datas em múltiplos formatos comuns."""
@@ -31,11 +30,12 @@ def parse_date_multi(s: str):
             continue
     return None
 
-# === FUNÇÕES ===
+
 def load_dataset():
     df = pd.read_csv(DATASET_PATH)
     df = df.sort_values(by="Concurso")
     return df.tail(N_VALID)
+
 
 def load_predictions():
     arquivos = sorted(glob.glob(f"{PRED_PATH}/prediction_*.json"))
@@ -47,6 +47,7 @@ def load_predictions():
             with open(arq, "r", encoding="utf-8") as f:
                 raw = f.read().strip()
                 if not raw:
+                    # Arquivo vazio: ignora
                     continue
                 conteudo = json.loads(raw)
         except Exception as e:
@@ -58,7 +59,6 @@ def load_predictions():
                 if isinstance(entrada, dict) and "modelo" in entrada and "jogo" in entrada:
                     dados.append({"data": data, "modelo": entrada["modelo"], "jogo": entrada["jogo"]})
         elif isinstance(conteudo, dict):
-            # Formato novo: dict com chave 'models' contendo lista de {modelo, jogo, confidence}
             if "models" in conteudo and isinstance(conteudo["models"], list):
                 for m in conteudo["models"]:
                     if isinstance(m, dict) and "modelo" in m and "jogo" in m:
@@ -67,9 +67,11 @@ def load_predictions():
                 dados.append({"data": data, "modelo": conteudo["modelo"], "jogo": conteudo["jogo"]})
     return dados
 
+
 def comparar(palpite, real):
     acertos = len(set(palpite) & set(real))
     return acertos
+
 
 def benchmark():
     df_real = load_dataset()
@@ -77,13 +79,17 @@ def benchmark():
     registros = []
 
     for _, row in df_real.iterrows():
-        # Data pode variar em formato; coluna é típica "Data"
-        data_conc = row["Data"] if "Data" in row else None
+        # Coluna de data pode variar
+        data_conc = None
+        if "Data" in row:
+            data_conc = row["Data"]
+        elif "Data Sorteio" in row:
+            data_conc = row["Data Sorteio"]
         if not data_conc:
             continue
 
-        # Converte números reais com tolerância a NaN e strings
-        real_series = row.drop(["Data", "Concurso"], errors="ignore")
+        # Converte colunas numéricas e ignora linhas incompletas
+        real_series = row.drop(["Data", "Data Sorteio", "Concurso"], errors="ignore")
         real_series = pd.to_numeric(real_series, errors="coerce")
         if real_series.isna().any():
             continue
@@ -94,7 +100,7 @@ def benchmark():
 
         palpites_validos = []
         for p in preds:
-            p_dt = parse_date_multi(p["data"])  # nossos geradores tendem a usar YYYY-MM-DD
+            p_dt = parse_date_multi(p["data"])  # tenta múltiplos formatos
             if p_dt and p_dt < data_conc_dt:
                 palpites_validos.append(p)
         if not palpites_validos:
@@ -102,27 +108,25 @@ def benchmark():
 
         pmais_recente = max(palpites_validos, key=lambda x: parse_date_multi(x["data"]))
         acertos = comparar(pmais_recente["jogo"], nums_reais)
-        acertos_por_coluna = "-"
-
-        if JOGO == "SuperSete":
-            acertos_por_coluna = sum([1 for i in range(7) if i < len(pmais_recente["jogo"]) and i < len(nums_reais) and pmais_recente["jogo"][i] == nums_reais[i]])
 
         registros.append({
             "modelo": pmais_recente["modelo"],
             "data_palpite": pmais_recente["data"],
             "data_concurso": data_conc,
             "acertos_totais": acertos,
-            "acertos_por_coluna": acertos_por_coluna
         })
 
     if not registros:
         print("⚠️ Nenhum registro válido para benchmarking.")
         return pd.DataFrame()
 
-    df_benchmark = pd.DataFrame(registros)
+    # Garante diretórios de saída
     os.makedirs(os.path.dirname(RESULT_CSV), exist_ok=True)
+
+    df_benchmark = pd.DataFrame(registros)
     df_benchmark.to_csv(RESULT_CSV, index=False)
     return df_benchmark
+
 
 def gerar_summary(df):
     if df.empty:
@@ -132,21 +136,25 @@ def gerar_summary(df):
     resumo = df.groupby("modelo")["acertos_totais"].agg(["mean", "std", "count"]).reset_index()
     resumo.columns = ["modelo", "media_acertos", "desvio_padrao", "n"]
 
-    with open(SUMMARY_MD, "w") as f:
-        f.write("# Benchmark Summary\n\n")
-        f.write(resumo.to_markdown(index=False))
-
-    # Gráfico
-    # Garante diretório para a imagem
+    # Garante diretório para a imagem e markdown
+    os.makedirs(os.path.dirname(SUMMARY_MD), exist_ok=True)
     charts_dir = os.path.dirname(CHART_IMG)
     os.makedirs(charts_dir, exist_ok=True)
 
-    plt.figure(figsize=(10,6))
+    with open(SUMMARY_MD, "w", encoding="utf-8") as f:
+        f.write("# Benchmark Summary\n\n")
+        try:
+            f.write(resumo.to_markdown(index=False))
+        except Exception:
+            f.write(resumo.to_string(index=False))
+
+    plt.figure(figsize=(10, 6))
     plt.bar(resumo["modelo"], resumo["media_acertos"], yerr=resumo["desvio_padrao"], capsize=5)
     plt.title("Média de Acertos por Modelo")
     plt.ylabel("Acertos")
     plt.savefig(CHART_IMG)
     plt.close()
+
 
 if __name__ == "__main__":
     print("\n🔍 Executando benchmark...")
