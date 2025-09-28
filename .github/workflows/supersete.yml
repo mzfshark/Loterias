@@ -31,9 +31,9 @@ jobs:
       - name: Instalar dependências
         run: |
           pip install pandas numpy seaborn matplotlib tabulate plotly markdown2 jinja2 scipy requests beautifulsoup4 lxml
-      - name: Baixar resultados oficiais (xlsx -> csv)
+      - name: Sincronizar resultados oficiais (API -> CSV)
         run: |
-          python scripts/fetch_results.py --game supersete
+          python scripts/fetch_results.py --game supersete --mode api || true
 
 
       - name: Executar pipeline completa
