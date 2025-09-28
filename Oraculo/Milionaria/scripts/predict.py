@@ -9,11 +9,94 @@ JSON/CSV em Oraculo/Milionaria/predictions.
 import os
 import sys
 import traceback
+from math import ceil
+from collections import Counter
+
+import pandas as pd
+import plotly.graph_objects as go
 
 # Adiciona a raiz do projeto ao sys.path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..')))
 
 from Oraculo.Milionaria.scripts.enhanced_predict import EnhancedMilionariaPredictor
+
+DATA_PATH = os.path.join("Oraculo", "+Milionária".replace("+", "Milionaria"), "data", "Milionaria.csv")
+DOCS_PATH = os.path.join("Oraculo", "+Milionária".replace("+", "Milionaria"), "docs")
+
+
+def gerar_heatmap_milionaria():
+    try:
+        # Ajuste de caminho (pasta chama Milionaria sem '+')
+        data_path = os.path.join("Oraculo", "Milionaria", "data", "Milionaria.csv")
+        docs_path = os.path.join("Oraculo", "Milionaria", "docs")
+        if not os.path.isfile(data_path):
+            print(f"ℹ️ Heatmap: arquivo de dados não encontrado em {data_path}")
+            return
+
+        df = pd.read_csv(data_path)
+        # Colunas de números principais (1..50). Ignorar trevos (1..6)
+        main_cols = [
+            c for c in df.columns
+            if any(k in c.lower() for k in ["bola", "dezena", "numero"]) or c.lower().startswith("n")
+        ]
+        if not main_cols:
+            main_cols = [c for c in df.select_dtypes(include=["int64", "float64"]).columns if c.lower() != "concurso"]
+
+        vals: list[int] = []
+        for c in main_cols:
+            try:
+                s = pd.to_numeric(df[c], errors="coerce").dropna().astype(int)
+                # Filtra apenas dezenas principais 1..50
+                s = s[(s >= 1) & (s <= 50)]
+                if not s.empty:
+                    vals.extend(s.tolist())
+            except Exception:
+                continue
+
+        if not vals:
+            print("ℹ️ Heatmap: nenhuma dezena válida encontrada (1..50).")
+            return
+
+        freq = Counter(vals)
+        vetor = [freq.get(i, 0) for i in range(1, 51)]
+
+        cols = 10
+        rows = ceil(50 / cols)
+        z, text = [], []
+        for r in range(rows):
+            zr, tr = [], []
+            for c in range(cols):
+                n = r * cols + c + 1
+                if n <= 50:
+                    zr.append(vetor[n - 1])
+                    tr.append(str(n))
+                else:
+                    zr.append(None)
+                    tr.append("")
+            z.append(zr)
+            text.append(tr)
+
+        os.makedirs(docs_path, exist_ok=True)
+        fig = go.Figure(data=go.Heatmap(
+            z=z,
+            x=[f"Col {i}" for i in range(1, cols + 1)],
+            y=[f"Linha {i}" for i in range(1, rows + 1)],
+            colorscale=[[0, '#f7fbec'], [0.5, '#afd355'], [1, '#6b8c21']],
+            text=text,
+            texttemplate="%{text}",
+            hovertemplate="Dezena %{text}: %{z} ocorrências<extra></extra>"
+        ))
+        fig.update_layout(
+            title="Heatmap de Frequência das Dezenas (1 a 50)",
+            xaxis_title="Colunas",
+            yaxis_title="Linhas",
+            height=500,
+        )
+        out_path = os.path.join(docs_path, "heatmap.html")
+        fig.write_html(out_path)
+        print(f"📊 Heatmap gerado em {out_path}")
+    except Exception as e:
+        print(f"⚠️ Falha ao gerar heatmap +Milionária: {e}")
 
 
 def main() -> int:
@@ -24,6 +107,7 @@ def main() -> int:
         if not results:
             print("⚠️ Nenhum resultado foi gerado.")
             return 2
+        gerar_heatmap_milionaria()
         print("\n✅ Pipeline +Milionária finalizada com sucesso.")
         return 0
     except KeyboardInterrupt:
