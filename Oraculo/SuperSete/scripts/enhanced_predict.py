@@ -42,6 +42,22 @@ class EnhancedSuperSetePredictor(BaseLotteryPredictor):
             'poisson': {'weight': 0.16, 'enabled': True},
             'mutation': {'weight': 0.05, 'enabled': True},
         }
+        self._merge_auto_weights()
+
+    def _merge_auto_weights(self):
+        import json, os
+        base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+        path = os.path.join(base_dir, 'models', 'weights.auto.json')
+        try:
+            if os.path.isfile(path):
+                with open(path, 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+                w = data.get('weights', {})
+                for k, v in w.items():
+                    if k in self.models and isinstance(v, (int, float)):
+                        self.models[k]['weight'] = float(v)
+        except Exception:
+            pass
     
     def _parse_data(self, df: pd.DataFrame) -> List[List[int]]:
         """Parse SuperSete data from DataFrame."""

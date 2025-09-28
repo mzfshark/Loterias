@@ -37,11 +37,18 @@ jobs:
 
       - name: Instalar dependências
         run: |
-          pip install jinja2 pandas
+          pip install jinja2 pandas numpy scipy scikit-learn
 
       - name: Gerar HTML unificado
         run: |
           python scripts/generate_html.py
+
+      - name: Calibrar pesos automaticamente (opcional)
+        continue-on-error: true
+        run: |
+          echo "Iniciando calibração de pesos (lookback=20)..."
+          python Oraculo/core/auto_calibrator.py --game all --lookback 20 || true
+          echo "Calibração concluída (se aplicável)."
 
       - name: Commit e push do HTML
         shell: bash
@@ -49,7 +56,7 @@ jobs:
           git config user.name "mzfshark"
           git config user.email "mzfshark@gmail.com"
           git pull
-          git add index.html styles.css
+          git add index.html styles.css Oraculo/**/models/weights.auto.json
           if ! git diff --cached --quiet; then
             git commit -m "Atualiza apresentação HTML das loterias"
             git push
