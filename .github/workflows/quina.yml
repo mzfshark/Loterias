@@ -30,7 +30,11 @@ jobs:
 
       - name: Instalar dependências
         run: |
-          pip install pandas numpy seaborn matplotlib tabulate plotly markdown2 jinja2 scipy
+          pip install pandas numpy seaborn matplotlib tabulate plotly markdown2 jinja2 scipy requests beautifulsoup4 lxml
+      - name: Baixar resultados oficiais (xlsx -> csv)
+        run: |
+          python scripts/fetch_results.py --game quina
+
 
       - name: Executar pipeline completa
         run: |
