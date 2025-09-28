@@ -226,8 +226,8 @@ class BaseLotteryPredictor(ABC):
         save_data = {
             'lottery': self.config.name,
             'timestamp': timestamp,
-            'ensemble_prediction': results.get('ensemble_prediction', []),
-            'ensemble_confidence': results.get('ensemble_confidence', 0.0),
+            'ensemble_prediction': self._serialize_prediction(results.get('ensemble_prediction', [])),
+            'ensemble_confidence': float(results.get('ensemble_confidence', 0.0)),
             'models': []
         }
         
@@ -235,8 +235,8 @@ class BaseLotteryPredictor(ABC):
         for model_name, result in results.get('model_results', {}).items():
             save_data['models'].append({
                 'modelo': model_name,
-                'jogo': result.get('prediction', []),
-                'confidence': result.get('confidence', 0.0)
+                'jogo': self._serialize_prediction(result.get('prediction', [])),
+                'confidence': float(result.get('confidence', 0.0))
             })
         
         # Save JSON
@@ -260,6 +260,27 @@ class BaseLotteryPredictor(ABC):
         csv_df.to_csv(csv_path, index=False)
         
         return str(json_path), str(csv_path)
+    
+    def _serialize_prediction(self, prediction: List[Any]) -> List[int]:
+        """Convert prediction to JSON-serializable format."""
+        if not prediction:
+            return []
+        
+        serialized = []
+        for item in prediction:
+            if hasattr(item, 'item'):  # numpy types
+                serialized.append(int(item.item()))
+            elif isinstance(item, (int, np.integer)):
+                serialized.append(int(item))
+            elif isinstance(item, (float, np.floating)):
+                serialized.append(int(item))
+            else:
+                try:
+                    serialized.append(int(item))
+                except (ValueError, TypeError):
+                    serialized.append(0)  # fallback
+        
+        return serialized
     
     def run_complete_analysis(self) -> Dict[str, Any]:
         """Run complete prediction analysis."""

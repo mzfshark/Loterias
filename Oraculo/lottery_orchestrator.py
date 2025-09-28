@@ -52,10 +52,8 @@ def run_lottery_prediction(lottery_name: str, selected_models: List[str] = None)
             from Milionaria.scripts.enhanced_predict import EnhancedMilionariaPredictor
             predictor = EnhancedMilionariaPredictor()
         elif lottery_name.lower() == 'supersete':
-            from SuperSete.scripts.predict import main as supersete_main
-            # For SuperSete, use existing script for now
-            print("⚠️ SuperSete usando sistema existente (será aprimorado na próxima fase)")
-            return supersete_main()
+            from SuperSete.scripts.enhanced_predict import EnhancedSuperSetePredictor
+            predictor = EnhancedSuperSetePredictor()
         else:
             raise ValueError(f"Unsupported lottery: {lottery_name}")
         

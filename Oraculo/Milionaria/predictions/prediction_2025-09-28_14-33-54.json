@@ -1,0 +1,39 @@
+{
+  "lottery": "Milionaria",
+  "timestamp": "2025-09-28_14-33-54",
+  "ensemble_prediction": [
+    1,
+    4,
+    6,
+    7,
+    9,
+    11
+  ],
+  "ensemble_confidence": 0.6555555555555556,
+  "models": [
+    {
+      "modelo": "beam_search",
+      "jogo": [
+        1,
+        4,
+        6,
+        7,
+        9,
+        11
+      ],
+      "confidence": 0.7
+    },
+    {
+      "modelo": "markov",
+      "jogo": [
+        1,
+        2,
+        3,
+        4,
+        6,
+        8
+      ],
+      "confidence": 0.6
+    }
+  ]
+}
