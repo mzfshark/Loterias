@@ -28,6 +28,18 @@ class EnhancedMegaSenaPredictor(BaseLotteryPredictor):
         """Initialize MegaSena predictor with configuration."""
         super().__init__(MEGASENA_CONFIG)
         self.adapter = ModelAdapter(self.config)
+        # Estratégia Mega-Sena: maior ênfase em bayesian/monte_carlo/poisson,
+        # menor influência de beam/mutation/time_series.
+        self.models = {
+            'bayesian': {'weight': 0.25, 'enabled': True},
+            'neural_ensemble': {'weight': 0.14, 'enabled': True},
+            'monte_carlo': {'weight': 0.22, 'enabled': True},
+            'time_series': {'weight': 0.08, 'enabled': True},
+            'beam_search': {'weight': 0.04, 'enabled': True},
+            'markov': {'weight': 0.10, 'enabled': True},
+            'poisson': {'weight': 0.15, 'enabled': True},
+            'mutation': {'weight': 0.02, 'enabled': True},
+        }
     
     def _parse_data(self, df: pd.DataFrame) -> List[List[int]]:
         """Parse MegaSena data from DataFrame."""

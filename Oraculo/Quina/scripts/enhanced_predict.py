@@ -28,6 +28,18 @@ class EnhancedQuinaPredictor(BaseLotteryPredictor):
         """Initialize Quina predictor with configuration."""
         super().__init__(QUINA_CONFIG)
         self.adapter = ModelAdapter(self.config)
+        # Estratégia Quina: foco em bayesian/monte_carlo/poisson, reforço moderado em markov;
+        # menor influência de time_series/beam/mutation.
+        self.models = {
+            'bayesian': {'weight': 0.24, 'enabled': True},
+            'neural_ensemble': {'weight': 0.14, 'enabled': True},
+            'monte_carlo': {'weight': 0.20, 'enabled': True},
+            'time_series': {'weight': 0.07, 'enabled': True},
+            'beam_search': {'weight': 0.05, 'enabled': True},
+            'markov': {'weight': 0.12, 'enabled': True},
+            'poisson': {'weight': 0.15, 'enabled': True},
+            'mutation': {'weight': 0.03, 'enabled': True},
+        }
     
     def _parse_data(self, df: pd.DataFrame) -> List[List[int]]:
         """Parse Quina data from DataFrame."""

@@ -25,12 +25,9 @@ from typing import Dict, List, Any
 # Add project root to path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..')))
 
-# Import all models
-from Oraculo.Lotofacil.models import beam_search, mutation, markov, poisson
-from Oraculo.Lotofacil.models.bayesian import gerar_predicao_bayesiana
-from Oraculo.Lotofacil.models.neural_ensemble import gerar_predicao_neural_ensemble
-from Oraculo.Lotofacil.models.monte_carlo import gerar_predicao_monte_carlo
-from Oraculo.Lotofacil.models.time_series import gerar_predicao_time_series
+# Importação preguiçosa (lazy) dos modelos será feita dentro dos blocos try
+# para permitir que a execução degrade graciosamente caso SciPy/sklearn
+# não estejam instalados no ambiente local.
 
 
 class EnhancedLotofacilPredictor:
@@ -38,14 +35,14 @@ class EnhancedLotofacilPredictor:
     
     def __init__(self):
         self.models = {
-            'bayesian': {'weight': 0.20, 'enabled': True},
-            'neural_ensemble': {'weight': 0.18, 'enabled': True},
-            'monte_carlo': {'weight': 0.15, 'enabled': True},
-            'time_series': {'weight': 0.15, 'enabled': True},
-            'beam_search': {'weight': 0.10, 'enabled': True},
-            'markov': {'weight': 0.08, 'enabled': True},
-            'poisson': {'weight': 0.07, 'enabled': True},
-            'mutation': {'weight': 0.07, 'enabled': True}
+            'bayesian': {'weight': 0.18, 'enabled': True},
+            'neural_ensemble': {'weight': 0.14, 'enabled': True},
+            'monte_carlo': {'weight': 0.12, 'enabled': True},
+            'time_series': {'weight': 0.20, 'enabled': True},
+            'beam_search': {'weight': 0.12, 'enabled': True},
+            'markov': {'weight': 0.07, 'enabled': True},
+            'poisson': {'weight': 0.05, 'enabled': True},
+            'mutation': {'weight': 0.12, 'enabled': True}
         }
         
         self.results = {}
@@ -69,6 +66,7 @@ class EnhancedLotofacilPredictor:
         if self.models['bayesian']['enabled']:
             print("\n🎯 Modelo Bayesiano Avançado...")
             try:
+                from Oraculo.Lotofacil.models.bayesian import gerar_predicao_bayesiana
                 result = gerar_predicao_bayesiana(data)
                 model_results['bayesian'] = {
                     'prediction': result['map_prediction'],
@@ -86,6 +84,7 @@ class EnhancedLotofacilPredictor:
         if self.models['neural_ensemble']['enabled']:
             print("\n🧠 Ensemble Neural...")
             try:
+                from Oraculo.Lotofacil.models.neural_ensemble import gerar_predicao_neural_ensemble
                 result = gerar_predicao_neural_ensemble(data)
                 model_results['neural_ensemble'] = {
                     'prediction': result['prediction'],
@@ -102,6 +101,7 @@ class EnhancedLotofacilPredictor:
         if self.models['monte_carlo']['enabled']:
             print("\n🎲 Simulação Monte Carlo...")
             try:
+                from Oraculo.Lotofacil.models.monte_carlo import gerar_predicao_monte_carlo
                 result = gerar_predicao_monte_carlo(data, n_simulations=3000, strategy='ensemble')
                 model_results['monte_carlo'] = {
                     'prediction': result['ensemble_prediction'],
@@ -118,6 +118,7 @@ class EnhancedLotofacilPredictor:
         if self.models['time_series']['enabled']:
             print("\n📈 Análise de Séries Temporais...")
             try:
+                from Oraculo.Lotofacil.models.time_series import gerar_predicao_time_series
                 result = gerar_predicao_time_series(data, sequence_length=60)
                 model_results['time_series'] = {
                     'prediction': result['prediction'],
@@ -136,6 +137,7 @@ class EnhancedLotofacilPredictor:
         # Beam Search
         if self.models['beam_search']['enabled']:
             try:
+                from Oraculo.Lotofacil.models import beam_search
                 result = beam_search.beam_search(data)
                 model_results['beam_search'] = {
                     'prediction': result[0] if result else [],
@@ -150,6 +152,7 @@ class EnhancedLotofacilPredictor:
         # Markov Chain
         if self.models['markov']['enabled']:
             try:
+                from Oraculo.Lotofacil.models import markov
                 result = markov.gerar_palpite(data)
                 # Convert numpy integers to regular integers
                 result = [int(x) for x in result]
@@ -165,6 +168,7 @@ class EnhancedLotofacilPredictor:
         # Poisson
         if self.models['poisson']['enabled']:
             try:
+                from Oraculo.Lotofacil.models import poisson
                 result = poisson.gerar_combinacao_poisson(pd.DataFrame(data))
                 model_results['poisson'] = {
                     'prediction': result,
@@ -178,6 +182,7 @@ class EnhancedLotofacilPredictor:
         # Mutation (Genetic Algorithm)
         if self.models['mutation']['enabled']:
             try:
+                from Oraculo.Lotofacil.models import mutation
                 result = mutation.gerar_mutacoes(data, num_mutantes=5)
                 # Take the first mutation as the primary prediction
                 primary_prediction = result[0] if result else []

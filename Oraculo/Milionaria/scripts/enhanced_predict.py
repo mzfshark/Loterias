@@ -29,6 +29,19 @@ class EnhancedMilionariaPredictor(BaseLotteryPredictor):
         """Initialize +Milionaria predictor with configuration."""
         super().__init__(MILIONARIA_CONFIG)
         self.adapter = ModelAdapter(self.config)
+        # Estratégia +Milionária (números principais):
+        # Dar ênfase a bayesian/monte_carlo/poisson e bom peso a markov/neural.
+        # Heurísticas e séries temporais com menor influência.
+        self.models = {
+            'bayesian': {'weight': 0.24, 'enabled': True},
+            'neural_ensemble': {'weight': 0.14, 'enabled': True},
+            'monte_carlo': {'weight': 0.20, 'enabled': True},
+            'time_series': {'weight': 0.06, 'enabled': True},
+            'beam_search': {'weight': 0.06, 'enabled': True},
+            'markov': {'weight': 0.12, 'enabled': True},
+            'poisson': {'weight': 0.14, 'enabled': True},
+            'mutation': {'weight': 0.04, 'enabled': True},
+        }
     
     def _parse_data(self, df: pd.DataFrame) -> List[List[int]]:
         """Parse +Milionaria data from DataFrame."""

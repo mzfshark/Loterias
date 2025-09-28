@@ -29,6 +29,19 @@ class EnhancedSuperSetePredictor(BaseLotteryPredictor):
         """Initialize SuperSete predictor with configuration."""
         super().__init__(SUPERSETE_CONFIG)
         self.adapter = ModelAdapter(self.config)
+        # Estratégia SuperSete: formato posicional (7 dígitos 0-9) favorece modelos
+        # de transição (Markov) e distribuição de frequência (Poisson/Bayes).
+        # Neural/MonteCarlo ajudam como suporte; TimeSeries/Beam/Mutation têm menor influência.
+        self.models = {
+            'bayesian': {'weight': 0.28, 'enabled': True},
+            'neural_ensemble': {'weight': 0.10, 'enabled': True},
+            'monte_carlo': {'weight': 0.12, 'enabled': True},
+            'time_series': {'weight': 0.06, 'enabled': True},
+            'beam_search': {'weight': 0.05, 'enabled': True},
+            'markov': {'weight': 0.18, 'enabled': True},
+            'poisson': {'weight': 0.16, 'enabled': True},
+            'mutation': {'weight': 0.05, 'enabled': True},
+        }
     
     def _parse_data(self, df: pd.DataFrame) -> List[List[int]]:
         """Parse SuperSete data from DataFrame."""
