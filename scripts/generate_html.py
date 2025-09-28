@@ -1,143 +1,212 @@
-import markdown2
 from pathlib import Path
 from jinja2 import Template
-import json
 import pandas as pd
+import json
+from typing import Optional
+from datetime import datetime
 
-# Caminhos dos relatórios por jogo
+# Configuração dos relatórios por jogo (ids em slug, títulos para exibição)
 jogos = {
-    "Lotofácil": {
-        "predictions": Path("Oraculo/Lotofacil/predictions"),
-        "heatmap": Path("Oraculo/Lotofacil/docs/heatmap.html"),
-        "title": "Lotofácil"
-    },
-    "Super Sete": {
-        "predictions": Path("Oraculo/SuperSete/predictions"),
-        "heatmap": Path("Oraculo/SuperSete/docs/heatmap.html"),
-        "title": "Super Sete"
-    },
-    "Mega-Sena": {
-        "predictions": Path("Oraculo/MegaSena/predictions"),
-        "heatmap": Path("Oraculo/MegaSena/docs/heatmap.html"),
-        "title": "Mega-Sena"
-    }
+  "lotofacil": {
+    "predictions": Path("Oraculo/Lotofacil/predictions"),
+    "heatmap": Path("Oraculo/Lotofacil/docs/heatmap.html"),
+    "title": "Lotofácil",
+    "emoji": "🎯"
+  },
+  "supersete": {
+    "predictions": Path("Oraculo/SuperSete/predictions"),
+    "heatmap": Path("Oraculo/SuperSete/docs/heatmap.html"),
+    "title": "Super Sete",
+    "emoji": "🧩"
+  },
+  "megasena": {
+    "predictions": Path("Oraculo/MegaSena/predictions"),
+    "heatmap": Path("Oraculo/MegaSena/docs/heatmap.html"),
+    "title": "Mega-Sena",
+    "emoji": "💰"
+  },
+  "quina": {
+    "predictions": Path("Oraculo/Quina/predictions"),
+    "heatmap": Path("Oraculo/Quina/docs/heatmap.html"),
+    "title": "Quina",
+    "emoji": "⭐"
+  },
+  "milionaria": {
+    "predictions": Path("Oraculo/Milionaria/predictions"),
+    "heatmap": Path("Oraculo/Milionaria/docs/heatmap.html"),
+    "title": "+Milionária",
+    "emoji": "🍀"
+  }
 }
 
+def _arquivo_recente(prediction_dir: Path) -> Optional[Path]:
+  arquivos = sorted(
+    list(prediction_dir.glob("*.csv")) + list(prediction_dir.glob("*.json")),
+    reverse=True
+  )
+  return arquivos[0] if arquivos else None
+
+def _df_de_arquivo(path: Path) -> pd.DataFrame:
+  try:
+    if path.suffix.lower() == ".csv":
+      return pd.read_csv(path)
+    # JSON: tentar com pandas primeiro
+    try:
+      return pd.read_json(path, lines=True)
+    except Exception:
+      try:
+        return pd.read_json(path)
+      except Exception:
+        with path.open("r", encoding="utf-8") as f:
+          data = json.load(f)
+        if isinstance(data, list):
+          return pd.DataFrame(data)
+        if isinstance(data, dict):
+          # Se houver listas de tamanhos diferentes, alinhar pelo menor comprimento
+          list_keys = [k for k, v in data.items() if isinstance(v, list)]
+          if list_keys:
+            min_len = min((len(data[k]) for k in list_keys if len(data[k]) > 0), default=0)
+            rows = []
+            for i in range(min_len):
+              row = {}
+              for k, v in data.items():
+                if isinstance(v, list):
+                  if i < len(v):
+                    row[k] = v[i]
+                else:
+                  row[k] = v
+              rows.append(row)
+            return pd.DataFrame(rows)
+          # Dicionário escalar -> uma linha
+          return pd.DataFrame([data])
+  except Exception:
+    return pd.DataFrame()
+
 def gerar_tabela_previsoes(prediction_dir: Path) -> str:
-    if not prediction_dir.exists():
-        return "<p><em>Nenhuma previsão encontrada.</em></p>"
+  if not prediction_dir.exists():
+    return "<p class='muted'>Nenhuma previsão encontrada.</p>"
 
-    arquivos = sorted(prediction_dir.glob("*.json"), reverse=True)
-    if not arquivos:
-        return "<p><em>Sem arquivos de previsão.</em></p>"
+  mais_recente = _arquivo_recente(prediction_dir)
+  if not mais_recente:
+    return "<p class='muted'>Sem arquivos de previsão.</p>"
 
-    mais_recente = arquivos[0]
-    df = pd.read_json(mais_recente)
+  df = _df_de_arquivo(mais_recente)
+  if df.empty:
+    return "<p class='muted'>Não foi possível interpretar as previsões.</p>"
+
+  # Garante CSV correspondente
+  if mais_recente.suffix.lower() == ".csv":
+    csv_path = mais_recente
+    df_csv = df
+  else:
     csv_path = prediction_dir / (mais_recente.stem + ".csv")
     if csv_path.exists():
-        df_csv = pd.read_csv(csv_path)
+      df_csv = pd.read_csv(csv_path)
     else:
-        df.to_csv(csv_path, index=False)
-        df_csv = df
+      df.to_csv(csv_path, index=False)
+      df_csv = df
 
-    tabela_html = df_csv.to_html(index=False, classes="prediction-table")
-    link = f"<a href='{csv_path.as_posix()}' download>📥 Baixar CSV</a>"
-    return f"<h3>Previsões Recentes</h3>{tabela_html}<br>{link}"
+  # Limita visualização para mobile se muito grande
+  preview_rows = 100 if len(df_csv) > 100 else len(df_csv)
+  tabela_html = df_csv.head(preview_rows).to_html(index=False, classes="table")
+  link = f"<a class='btn' href='{csv_path.as_posix()}' download>📥 Baixar CSV</a>"
+  count_info = f"<span class='muted'>Exibindo {preview_rows} de {len(df_csv)} linhas</span>" if len(df_csv) > preview_rows else ""
+  return f"<div class='card'><h3 class='card-title'>Previsões Recentes</h3><div class='table-wrap'>{tabela_html}</div><div class='actions'>{link}{count_info}</div></div>"
 
 def carregar_heatmap(path: Path) -> str:
-    if path.exists():
-        return path.read_text(encoding="utf-8")
-    return "<p><em>Heatmap não disponível.</em></p>"
+  if path.exists():
+    return path.read_text(encoding="utf-8")
+  return "<p class='muted'>Heatmap não disponível.</p>"
 
-def gerar_conteudo_jogo(nome: str, paths: dict) -> str:
-    html = f"<div class='tabcontent' id='{nome}'><h2>{paths['title']}</h2>"
+def gerar_conteudo_jogo(slug: str, cfg: dict) -> str:
+  html = [f"<section class='tabcontent' id='{slug}'>"]
+  html.append(f"<header class='section-header'><h2>{cfg['emoji']} {cfg['title']}</h2></header>")
 
-    prediction_dir = paths["predictions"]
-    arquivos = sorted(prediction_dir.glob("*.csv"), reverse=True)
-    if not arquivos:
-        html += "<p><em>Sem dados disponíveis.</em></p></div>"
-        return html
+  prediction_dir = cfg["predictions"]
+  arquivos = sorted(prediction_dir.glob("*.csv"), reverse=True)
+  if not arquivos:
+    html.append("<p class='muted'>Sem dados disponíveis.</p>")
+    html.append("</section>")
+    return "".join(html)
 
-    html += "<h3>📊 Frequência Histórica</h3>"
-    html += carregar_heatmap(paths["heatmap"])
+  # Heatmap / frequência
+  html.append("<div class='card'><h3 class='card-title'>📊 Frequência Histórica</h3>")
+  html.append("<div class='heatmap-wrap'>" + carregar_heatmap(cfg["heatmap"]) + "</div></div>")
 
-    html += "<h3>🧠 Palpites Gerados</h3>"
-    html += gerar_tabela_previsoes(prediction_dir)
+  # Tabela de palpites
+  html.append(gerar_tabela_previsoes(prediction_dir))
 
-    # Exibir resumo de estratégias
-    mais_recente = arquivos[0]
-    df = pd.read_csv(mais_recente)
-    modelo_counts = df['modelo'].value_counts().to_frame().reset_index()
-    modelo_counts.columns = ['Modelo', 'Total']
-    html += f"<h4>Resumo de estratégias</h4>"
-    html += modelo_counts.to_html(index=False, classes="prediction-table")
+  # Resumo de estratégias (se coluna existir)
+  try:
+    mais_recente_misto = _arquivo_recente(prediction_dir)
+    if mais_recente_misto is not None:
+      df_resumo = _df_de_arquivo(mais_recente_misto)
+      if not df_resumo.empty and 'modelo' in df_resumo.columns:
+        modelo_counts = df_resumo['modelo'].value_counts().to_frame().reset_index()
+        modelo_counts.columns = ['Modelo', 'Total']
+        resumo_html = modelo_counts.to_html(index=False, classes="table")
+        html.append(f"<div class='card'><h3 class='card-title'>Resumo de Estratégias</h3><div class='table-wrap'>{resumo_html}</div></div>")
+  except Exception:
+    pass
 
-    html += "</div>"
-    return html
+  html.append("</section>")
+  return "".join(html)
 
 # Coleta conteúdo por aba
 abas_html = "\n".join([
-    gerar_conteudo_jogo(nome, paths) for nome, paths in jogos.items()
+  gerar_conteudo_jogo(slug, cfg) for slug, cfg in jogos.items()
 ])
 
 html_template = Template("""
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Relatórios de Loterias</title>
-  <style>
-    body { font-family: system-ui, sans-serif; background: #111; color: #eee; padding: 2rem; }
-    h1 { color: #2fd39a; }
-    .tabs { display: flex; gap: 1rem; margin-bottom: 1rem; }
-    .tab-button {
-      padding: 0.5rem 1rem;
-      background: #222;
-      border: none;
-      color: #2fd39a;
-      cursor: pointer;
-    }
-    .tab-button.active { background: #2fd39a; color: #000; }
-    .tabcontent { display: none; animation: fadeIn 0.3s ease-in-out; }
-    .tabcontent.active { display: block; }
-    .plotly-container { margin-top: 1rem; }
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-    table, th, td {
-      border: 1px solid #444;
-      border-collapse: collapse;
-      padding: 0.4rem;
-    }
-    th { background: #2fd39a; color: #000; }
-    .prediction-table { margin-top: 1rem; background: #000; }
-    .prediction-table th, .prediction-table td { text-align: center; }
-    a { color: #2fd39a; text-decoration: none; }
-  </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Loterias • Relatórios Probabilísticos</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <h1>Relatórios Probabilísticos - Loterias</h1>
-  <div class="tabs">
-    {% for nome in jogos.keys() %}
-    <button class="tab-button" onclick="openTab('{{ nome }}')">{{ nome }}</button>
+  <header class="site-header">
+    <div class="container">
+      <h1>Relatórios Probabilísticos</h1>
+      <p class="subtitle">Análises e palpites gerados por modelos estatísticos e ML. <span class="muted">Atualizado em {{ atualizado_em }}</span></p>
+    </div>
+  </header>
+
+  <nav class="tabs container" aria-label="Seleção de jogo">
+    {% for slug, cfg in jogos.items() %}
+    <button class="tab-button" data-target="{{ slug }}">{{ cfg.title }}</button>
     {% endfor %}
-  </div>
-  {{ abas_html | safe }}
+  </nav>
+
+  <main class="container">
+    {{ abas_html | safe }}
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p class="muted small">Nota: resultados de loteria são aleatórios. Utilize as análises de forma responsável.</p>
+    </div>
+  </footer>
 
   <script>
-    function openTab(tabName) {
-      const contents = document.querySelectorAll('.tabcontent');
-      contents.forEach(c => c.classList.remove('active'));
-      const tabs = document.querySelectorAll('.tab-button');
-      tabs.forEach(t => t.classList.remove('active'));
-      document.getElementById(tabName).classList.add('active');
-      event.currentTarget.classList.add('active');
+    function activateTab(targetId, btn){
+      document.querySelectorAll('.tabcontent').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.tab-button').forEach(el => el.classList.remove('active'));
+      const section = document.getElementById(targetId);
+      if(section) section.classList.add('active');
+      if(btn) btn.classList.add('active');
     }
     document.addEventListener('DOMContentLoaded', () => {
-      const firstTab = document.querySelector('.tab-button');
-      if (firstTab) firstTab.click();
+      const buttons = document.querySelectorAll('.tab-button');
+      buttons.forEach(btn => {
+        btn.addEventListener('click', () => activateTab(btn.dataset.target, btn));
+      });
+      if(buttons.length){ activateTab(buttons[0].dataset.target, buttons[0]); }
     });
   </script>
 </body>
@@ -145,8 +214,9 @@ html_template = Template("""
 """)
 
 html_output = html_template.render(
-    abas_html=abas_html,
-    jogos=jogos
+  abas_html=abas_html,
+  jogos=jogos,
+  atualizado_em=datetime.now().strftime('%d/%m/%Y %H:%M')
 )
 Path("index.html").write_text(html_output, encoding="utf-8")
 print("index.html gerado com sucesso.")

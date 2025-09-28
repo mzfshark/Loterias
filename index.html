@@ -2,52 +2,39 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Relatórios de Loterias</title>
-  <style>
-    body { font-family: system-ui, sans-serif; background: #111; color: #eee; padding: 2rem; }
-    h1 { color: #2fd39a; }
-    .tabs { display: flex; gap: 1rem; margin-bottom: 1rem; }
-    .tab-button {
-      padding: 0.5rem 1rem;
-      background: #222;
-      border: none;
-      color: #2fd39a;
-      cursor: pointer;
-    }
-    .tab-button.active { background: #2fd39a; color: #000; }
-    .tabcontent { display: none; animation: fadeIn 0.3s ease-in-out; }
-    .tabcontent.active { display: block; }
-    .plotly-container { margin-top: 1rem; }
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-    table, th, td {
-      border: 1px solid #444;
-      border-collapse: collapse;
-      padding: 0.4rem;
-    }
-    th { background: #2fd39a; color: #000; }
-    .prediction-table { margin-top: 1rem; background: #000; }
-    .prediction-table th, .prediction-table td { text-align: center; }
-    a { color: #2fd39a; text-decoration: none; }
-  </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Loterias • Relatórios Probabilísticos</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <h1>Relatórios Probabilísticos - Loterias</h1>
-  <div class="tabs">
+  <header class="site-header">
+    <div class="container">
+      <h1>Relatórios Probabilísticos</h1>
+      <p class="subtitle">Análises e palpites gerados por modelos estatísticos e ML. <span class="muted">Atualizado em 28/09/2025 17:07</span></p>
+    </div>
+  </header>
+
+  <nav class="tabs container" aria-label="Seleção de jogo">
     
-    <button class="tab-button" onclick="openTab('Lotofácil')">Lotofácil</button>
+    <button class="tab-button" data-target="lotofacil">Lotofácil</button>
     
-    <button class="tab-button" onclick="openTab('Super Sete')">Super Sete</button>
+    <button class="tab-button" data-target="supersete">Super Sete</button>
     
-    <button class="tab-button" onclick="openTab('Mega-Sena')">Mega-Sena</button>
+    <button class="tab-button" data-target="megasena">Mega-Sena</button>
     
-  </div>
-  <div class='tabcontent' id='Lotofácil'><h2>Lotofácil</h2><h3>📊 Frequência Histórica</h3><div>                        <script type="text/javascript">window.PlotlyConfig = {MathJaxConfig: 'local'};</script>
-        <script charset="utf-8" src="https://cdn.plot.ly/plotly-3.1.0.min.js" integrity="sha256-Ei4740bWZhaUTQuD6q9yQlgVCMPBz6CZWhevDYPv93A=" crossorigin="anonymous"></script>                <div id="e64b1e1f-7c3d-4c8e-b89c-dba7d7c8b625" class="plotly-graph-div" style="height:500px; width:100%;"></div>            <script type="text/javascript">                window.PLOTLYENV=window.PLOTLYENV || {};                                if (document.getElementById("e64b1e1f-7c3d-4c8e-b89c-dba7d7c8b625")) {                    Plotly.newPlot(                        "e64b1e1f-7c3d-4c8e-b89c-dba7d7c8b625",                        [{"colorscale":[[0,"#f7f0f7"],[0.5,"#ff66f5"],[1,"#8200a8"]],"hoverinfo":"text+z","showscale":true,"text":{"dtype":"i1","bdata":"AQYLEBUCBwwRFgMIDRIXBAkOExgFCg8UGQ==","shape":"5, 5"},"texttemplate":"%{text}","x":["Coluna 1","Coluna 2","Coluna 3","Coluna 4","Coluna 5"],"y":["Dezena 1","Dezena 2","Dezena 3","Dezena 4","Dezena 5"],"z":{"dtype":"f8","bdata":"Yo5exO6dpD9e+r\u002ftNQqkP\u002fQX0UOWBKU\u002fcIcYzISKoz9blWcfS0GkPxNo0WNec6Q\u002fUTcYrLwbpD8picgYZoekPy9TebU7GaQ\u002fzZ+TdlxupD8\u002fqr\u002fNbZukP0o+IQcZv6M\u002fPEVn\u002f4LSpD+H11WJWmmkPyX1KUKt86M\u002fHMYg1+yYpD+H11WJWmmkP+BbMl15uaQ\u002fLO4g51BQpD8mJHBKe76kPwalKSLlhKQ\u002fNnu2Yq1ApT\u002fDQUQDzkikP+Tv0DMyTaU\u002fzs7Zfio5pT8=","shape":"5, 5"},"type":"heatmap"}],                        {"template":{"data":{"histogram2dcontour":[{"type":"histogram2dcontour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"choropleth":[{"type":"choropleth","colorbar":{"outlinewidth":0,"ticks":""}}],"histogram2d":[{"type":"histogram2d","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"heatmap":[{"type":"heatmap","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"contourcarpet":[{"type":"contourcarpet","colorbar":{"outlinewidth":0,"ticks":""}}],"contour":[{"type":"contour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"surface":[{"type":"surface","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"mesh3d":[{"type":"mesh3d","colorbar":{"outlinewidth":0,"ticks":""}}],"scatter":[{"fillpattern":{"fillmode":"overlay","size":10,"solidity":0.2},"type":"scatter"}],"parcoords":[{"type":"parcoords","line":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolargl":[{"type":"scatterpolargl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"bar":[{"error_x":{"color":"#2a3f5f"},"error_y":{"color":"#2a3f5f"},"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"bar"}],"scattergeo":[{"type":"scattergeo","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolar":[{"type":"scatterpolar","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"histogram":[{"marker":{"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"histogram"}],"scattergl":[{"type":"scattergl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatter3d":[{"type":"scatter3d","line":{"colorbar":{"outlinewidth":0,"ticks":""}},"marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermap":[{"type":"scattermap","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermapbox":[{"type":"scattermapbox","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterternary":[{"type":"scatterternary","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattercarpet":[{"type":"scattercarpet","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"carpet":[{"aaxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"baxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"type":"carpet"}],"table":[{"cells":{"fill":{"color":"#EBF0F8"},"line":{"color":"white"}},"header":{"fill":{"color":"#C8D4E3"},"line":{"color":"white"}},"type":"table"}],"barpolar":[{"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"barpolar"}],"pie":[{"automargin":true,"type":"pie"}]},"layout":{"autotypenumbers":"strict","colorway":["#636efa","#EF553B","#00cc96","#ab63fa","#FFA15A","#19d3f3","#FF6692","#B6E880","#FF97FF","#FECB52"],"font":{"color":"#2a3f5f"},"hovermode":"closest","hoverlabel":{"align":"left"},"paper_bgcolor":"white","plot_bgcolor":"#E5ECF6","polar":{"bgcolor":"#E5ECF6","angularaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"radialaxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"ternary":{"bgcolor":"#E5ECF6","aaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"baxis":{"gridcolor":"white","linecolor":"white","ticks":""},"caxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"coloraxis":{"colorbar":{"outlinewidth":0,"ticks":""}},"colorscale":{"sequential":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"sequentialminus":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"diverging":[[0,"#8e0152"],[0.1,"#c51b7d"],[0.2,"#de77ae"],[0.3,"#f1b6da"],[0.4,"#fde0ef"],[0.5,"#f7f7f7"],[0.6,"#e6f5d0"],[0.7,"#b8e186"],[0.8,"#7fbc41"],[0.9,"#4d9221"],[1,"#276419"]]},"xaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"yaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"scene":{"xaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"yaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"zaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2}},"shapedefaults":{"line":{"color":"#2a3f5f"}},"annotationdefaults":{"arrowcolor":"#2a3f5f","arrowhead":0,"arrowwidth":1},"geo":{"bgcolor":"white","landcolor":"#E5ECF6","subunitcolor":"white","showland":true,"showlakes":true,"lakecolor":"white"},"title":{"x":0.05},"mapbox":{"style":"light"}}},"title":{"text":"Heatmap de Frequ\u00eancia das Dezenas (1 a 25)"},"xaxis":{"title":{"text":"Colunas"}},"yaxis":{"title":{"text":"Dezenas"}},"height":500},                        {"responsive": true}                    )                };            </script>        </div><h3>🧠 Palpites Gerados</h3><h3>Previsões Recentes</h3><table border="1" class="dataframe prediction-table">
+    <button class="tab-button" data-target="quina">Quina</button>
+    
+    <button class="tab-button" data-target="milionaria">+Milionária</button>
+    
+  </nav>
+
+  <main class="container">
+    <section class='tabcontent' id='lotofacil'><header class='section-header'><h2>🎯 Lotofácil</h2></header><div class='card'><h3 class='card-title'>📊 Frequência Histórica</h3><div class='heatmap-wrap'><div>                        <script type="text/javascript">window.PlotlyConfig = {MathJaxConfig: 'local'};</script>
+        <script charset="utf-8" src="https://cdn.plot.ly/plotly-3.1.0.min.js" integrity="sha256-Ei4740bWZhaUTQuD6q9yQlgVCMPBz6CZWhevDYPv93A=" crossorigin="anonymous"></script>                <div id="df2c1448-a764-4e3f-9b49-9f31e3774dc1" class="plotly-graph-div" style="height:500px; width:100%;"></div>            <script type="text/javascript">                window.PLOTLYENV=window.PLOTLYENV || {};                                if (document.getElementById("df2c1448-a764-4e3f-9b49-9f31e3774dc1")) {                    Plotly.newPlot(                        "df2c1448-a764-4e3f-9b49-9f31e3774dc1",                        [{"colorscale":[[0,"#f7f0f7"],[0.5,"#ff66f5"],[1,"#8200a8"]],"hoverinfo":"text+z","showscale":true,"text":{"dtype":"i1","bdata":"AQYLEBUCBwwRFgMIDRIXBAkOExgFCg8UGQ==","shape":"5, 5"},"texttemplate":"%{text}","x":["Coluna 1","Coluna 2","Coluna 3","Coluna 4","Coluna 5"],"y":["Dezena 1","Dezena 2","Dezena 3","Dezena 4","Dezena 5"],"z":{"dtype":"f8","bdata":"Yo5exO6dpD9e+r\u002ftNQqkP\u002fQX0UOWBKU\u002fcIcYzISKoz9blWcfS0GkPxNo0WNec6Q\u002fUTcYrLwbpD8picgYZoekPy9TebU7GaQ\u002fzZ+TdlxupD8\u002fqr\u002fNbZukP0o+IQcZv6M\u002fPEVn\u002f4LSpD+H11WJWmmkPyX1KUKt86M\u002fHMYg1+yYpD+H11WJWmmkP+BbMl15uaQ\u002fLO4g51BQpD8mJHBKe76kPwalKSLlhKQ\u002fNnu2Yq1ApT\u002fDQUQDzkikP+Tv0DMyTaU\u002fzs7Zfio5pT8=","shape":"5, 5"},"type":"heatmap"}],                        {"template":{"data":{"histogram2dcontour":[{"type":"histogram2dcontour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"choropleth":[{"type":"choropleth","colorbar":{"outlinewidth":0,"ticks":""}}],"histogram2d":[{"type":"histogram2d","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"heatmap":[{"type":"heatmap","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"contourcarpet":[{"type":"contourcarpet","colorbar":{"outlinewidth":0,"ticks":""}}],"contour":[{"type":"contour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"surface":[{"type":"surface","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"mesh3d":[{"type":"mesh3d","colorbar":{"outlinewidth":0,"ticks":""}}],"scatter":[{"fillpattern":{"fillmode":"overlay","size":10,"solidity":0.2},"type":"scatter"}],"parcoords":[{"type":"parcoords","line":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolargl":[{"type":"scatterpolargl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"bar":[{"error_x":{"color":"#2a3f5f"},"error_y":{"color":"#2a3f5f"},"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"bar"}],"scattergeo":[{"type":"scattergeo","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolar":[{"type":"scatterpolar","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"histogram":[{"marker":{"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"histogram"}],"scattergl":[{"type":"scattergl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatter3d":[{"type":"scatter3d","line":{"colorbar":{"outlinewidth":0,"ticks":""}},"marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermap":[{"type":"scattermap","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermapbox":[{"type":"scattermapbox","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterternary":[{"type":"scatterternary","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattercarpet":[{"type":"scattercarpet","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"carpet":[{"aaxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"baxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"type":"carpet"}],"table":[{"cells":{"fill":{"color":"#EBF0F8"},"line":{"color":"white"}},"header":{"fill":{"color":"#C8D4E3"},"line":{"color":"white"}},"type":"table"}],"barpolar":[{"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"barpolar"}],"pie":[{"automargin":true,"type":"pie"}]},"layout":{"autotypenumbers":"strict","colorway":["#636efa","#EF553B","#00cc96","#ab63fa","#FFA15A","#19d3f3","#FF6692","#B6E880","#FF97FF","#FECB52"],"font":{"color":"#2a3f5f"},"hovermode":"closest","hoverlabel":{"align":"left"},"paper_bgcolor":"white","plot_bgcolor":"#E5ECF6","polar":{"bgcolor":"#E5ECF6","angularaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"radialaxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"ternary":{"bgcolor":"#E5ECF6","aaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"baxis":{"gridcolor":"white","linecolor":"white","ticks":""},"caxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"coloraxis":{"colorbar":{"outlinewidth":0,"ticks":""}},"colorscale":{"sequential":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"sequentialminus":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"diverging":[[0,"#8e0152"],[0.1,"#c51b7d"],[0.2,"#de77ae"],[0.3,"#f1b6da"],[0.4,"#fde0ef"],[0.5,"#f7f7f7"],[0.6,"#e6f5d0"],[0.7,"#b8e186"],[0.8,"#7fbc41"],[0.9,"#4d9221"],[1,"#276419"]]},"xaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"yaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"scene":{"xaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"yaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"zaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2}},"shapedefaults":{"line":{"color":"#2a3f5f"}},"annotationdefaults":{"arrowcolor":"#2a3f5f","arrowhead":0,"arrowwidth":1},"geo":{"bgcolor":"white","landcolor":"#E5ECF6","subunitcolor":"white","showland":true,"showlakes":true,"lakecolor":"white"},"title":{"x":0.05},"mapbox":{"style":"light"}}},"title":{"text":"Heatmap de Frequ\u00eancia das Dezenas (1 a 25)"},"xaxis":{"title":{"text":"Colunas"}},"yaxis":{"title":{"text":"Dezenas"}},"height":500},                        {"responsive": true}                    )                };            </script>        </div></div></div><div class='card'><h3 class='card-title'>Previsões Recentes</h3><div class='table-wrap'><table border="1" class="dataframe table">
   <thead>
     <tr style="text-align: right;">
       <th>Bola1</th>
@@ -71,30 +58,66 @@
   <tbody>
     <tr>
       <td>2</td>
+      <td>3</td>
       <td>4</td>
-      <td>6</td>
-      <td>7</td>
+      <td>5</td>
       <td>9</td>
       <td>10</td>
+      <td>11</td>
       <td>12</td>
       <td>13</td>
-      <td>14</td>
+      <td>15</td>
       <td>16</td>
       <td>17</td>
       <td>19</td>
-      <td>20</td>
       <td>22</td>
-      <td>25</td>
+      <td>23</td>
       <td>beam_search</td>
     </tr>
     <tr>
       <td>3</td>
       <td>4</td>
+      <td>5</td>
       <td>6</td>
       <td>7</td>
       <td>8</td>
-      <td>10</td>
+      <td>9</td>
+      <td>11</td>
       <td>13</td>
+      <td>17</td>
+      <td>19</td>
+      <td>21</td>
+      <td>23</td>
+      <td>24</td>
+      <td>25</td>
+      <td>beam_search</td>
+    </tr>
+    <tr>
+      <td>1</td>
+      <td>4</td>
+      <td>5</td>
+      <td>6</td>
+      <td>11</td>
+      <td>12</td>
+      <td>14</td>
+      <td>15</td>
+      <td>16</td>
+      <td>17</td>
+      <td>20</td>
+      <td>22</td>
+      <td>23</td>
+      <td>24</td>
+      <td>25</td>
+      <td>beam_search</td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td>5</td>
+      <td>7</td>
+      <td>8</td>
+      <td>9</td>
+      <td>11</td>
+      <td>14</td>
       <td>15</td>
       <td>16</td>
       <td>19</td>
@@ -106,26 +129,43 @@
       <td>beam_search</td>
     </tr>
     <tr>
+      <td>1</td>
       <td>2</td>
-      <td>3</td>
-      <td>4</td>
       <td>5</td>
-      <td>7</td>
       <td>8</td>
-      <td>10</td>
+      <td>9</td>
+      <td>11</td>
+      <td>13</td>
       <td>15</td>
-      <td>16</td>
       <td>17</td>
-      <td>19</td>
+      <td>18</td>
+      <td>20</td>
+      <td>21</td>
       <td>22</td>
       <td>23</td>
       <td>24</td>
-      <td>25</td>
       <td>beam_search</td>
     </tr>
     <tr>
       <td>1</td>
-      <td>3</td>
+      <td>4</td>
+      <td>5</td>
+      <td>6</td>
+      <td>8</td>
+      <td>11</td>
+      <td>12</td>
+      <td>13</td>
+      <td>15</td>
+      <td>16</td>
+      <td>17</td>
+      <td>19</td>
+      <td>20</td>
+      <td>22</td>
+      <td>25</td>
+      <td>beam_search</td>
+    </tr>
+    <tr>
+      <td>2</td>
       <td>4</td>
       <td>6</td>
       <td>7</td>
@@ -134,28 +174,11 @@
       <td>10</td>
       <td>12</td>
       <td>13</td>
-      <td>17</td>
-      <td>19</td>
-      <td>21</td>
-      <td>24</td>
-      <td>25</td>
-      <td>beam_search</td>
-    </tr>
-    <tr>
-      <td>1</td>
-      <td>2</td>
-      <td>3</td>
-      <td>5</td>
-      <td>6</td>
-      <td>7</td>
-      <td>9</td>
-      <td>10</td>
-      <td>11</td>
       <td>14</td>
       <td>15</td>
-      <td>16</td>
-      <td>17</td>
-      <td>20</td>
+      <td>19</td>
+      <td>21</td>
+      <td>22</td>
       <td>23</td>
       <td>beam_search</td>
     </tr>
@@ -163,150 +186,78 @@
       <td>2</td>
       <td>3</td>
       <td>4</td>
-      <td>7</td>
-      <td>8</td>
-      <td>9</td>
-      <td>11</td>
-      <td>12</td>
-      <td>17</td>
-      <td>18</td>
-      <td>19</td>
-      <td>20</td>
-      <td>21</td>
-      <td>22</td>
-      <td>24</td>
-      <td>beam_search</td>
-    </tr>
-    <tr>
-      <td>1</td>
-      <td>2</td>
-      <td>3</td>
       <td>6</td>
       <td>8</td>
-      <td>9</td>
-      <td>10</td>
-      <td>11</td>
-      <td>13</td>
-      <td>15</td>
-      <td>16</td>
-      <td>17</td>
-      <td>19</td>
-      <td>20</td>
-      <td>21</td>
-      <td>beam_search</td>
-    </tr>
-    <tr>
-      <td>1</td>
-      <td>5</td>
-      <td>6</td>
-      <td>8</td>
-      <td>9</td>
-      <td>10</td>
-      <td>11</td>
-      <td>12</td>
-      <td>13</td>
-      <td>16</td>
-      <td>18</td>
-      <td>19</td>
-      <td>20</td>
-      <td>23</td>
-      <td>25</td>
-      <td>beam_search</td>
-    </tr>
-    <tr>
-      <td>1</td>
-      <td>2</td>
-      <td>3</td>
-      <td>4</td>
-      <td>5</td>
-      <td>8</td>
-      <td>9</td>
-      <td>12</td>
-      <td>13</td>
-      <td>14</td>
-      <td>15</td>
-      <td>16</td>
-      <td>17</td>
-      <td>18</td>
-      <td>21</td>
-      <td>beam_search</td>
-    </tr>
-    <tr>
-      <td>2</td>
-      <td>5</td>
-      <td>6</td>
-      <td>7</td>
-      <td>8</td>
-      <td>9</td>
-      <td>13</td>
-      <td>14</td>
-      <td>15</td>
-      <td>17</td>
-      <td>18</td>
-      <td>19</td>
-      <td>20</td>
-      <td>22</td>
-      <td>24</td>
-      <td>beam_search</td>
-    </tr>
-    <tr>
-      <td>2</td>
-      <td>5</td>
-      <td>6</td>
-      <td>7</td>
-      <td>9</td>
       <td>10</td>
       <td>14</td>
       <td>15</td>
-      <td>18</td>
-      <td>19</td>
-      <td>20</td>
-      <td>21</td>
-      <td>22</td>
-      <td>24</td>
-      <td>25</td>
-      <td>mutation</td>
-    </tr>
-    <tr>
-      <td>1</td>
-      <td>7</td>
-      <td>8</td>
-      <td>10</td>
-      <td>11</td>
-      <td>15</td>
       <td>16</td>
-      <td>17</td>
       <td>18</td>
       <td>19</td>
-      <td>20</td>
       <td>21</td>
       <td>22</td>
       <td>23</td>
+      <td>24</td>
+      <td>beam_search</td>
+    </tr>
+    <tr>
+      <td>5</td>
+      <td>6</td>
+      <td>7</td>
+      <td>9</td>
+      <td>10</td>
+      <td>11</td>
+      <td>13</td>
+      <td>14</td>
+      <td>17</td>
+      <td>19</td>
+      <td>21</td>
+      <td>22</td>
+      <td>23</td>
+      <td>24</td>
       <td>25</td>
+      <td>beam_search</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td>5</td>
+      <td>6</td>
+      <td>7</td>
+      <td>9</td>
+      <td>10</td>
+      <td>11</td>
+      <td>13</td>
+      <td>14</td>
+      <td>15</td>
+      <td>16</td>
+      <td>19</td>
+      <td>20</td>
+      <td>21</td>
+      <td>23</td>
+      <td>beam_search</td>
+    </tr>
+    <tr>
+      <td>1</td>
+      <td>2</td>
+      <td>6</td>
+      <td>7</td>
+      <td>8</td>
+      <td>10</td>
+      <td>11</td>
+      <td>12</td>
+      <td>13</td>
+      <td>15</td>
+      <td>16</td>
+      <td>17</td>
+      <td>20</td>
+      <td>21</td>
+      <td>23</td>
       <td>mutation</td>
     </tr>
     <tr>
       <td>1</td>
       <td>2</td>
       <td>4</td>
-      <td>5</td>
-      <td>6</td>
-      <td>8</td>
-      <td>12</td>
-      <td>13</td>
-      <td>14</td>
-      <td>15</td>
-      <td>16</td>
-      <td>19</td>
-      <td>21</td>
-      <td>22</td>
-      <td>24</td>
-      <td>mutation</td>
-    </tr>
-    <tr>
-      <td>3</td>
-      <td>4</td>
-      <td>5</td>
       <td>6</td>
       <td>7</td>
       <td>8</td>
@@ -316,94 +267,76 @@
       <td>19</td>
       <td>20</td>
       <td>21</td>
+      <td>22</td>
       <td>23</td>
       <td>24</td>
-      <td>25</td>
-      <td>mutation</td>
-    </tr>
-    <tr>
-      <td>2</td>
-      <td>5</td>
-      <td>7</td>
-      <td>8</td>
-      <td>9</td>
-      <td>10</td>
-      <td>12</td>
-      <td>15</td>
-      <td>16</td>
-      <td>17</td>
-      <td>20</td>
-      <td>21</td>
-      <td>23</td>
-      <td>24</td>
-      <td>25</td>
       <td>mutation</td>
     </tr>
     <tr>
       <td>1</td>
       <td>2</td>
-      <td>3</td>
-      <td>4</td>
-      <td>6</td>
-      <td>7</td>
+      <td>8</td>
       <td>9</td>
       <td>10</td>
       <td>11</td>
       <td>13</td>
       <td>14</td>
+      <td>16</td>
       <td>18</td>
+      <td>19</td>
       <td>20</td>
       <td>22</td>
       <td>23</td>
+      <td>25</td>
       <td>mutation</td>
     </tr>
     <tr>
       <td>1</td>
-      <td>3</td>
+      <td>2</td>
+      <td>4</td>
+      <td>7</td>
+      <td>8</td>
+      <td>9</td>
+      <td>13</td>
+      <td>14</td>
+      <td>15</td>
+      <td>16</td>
+      <td>17</td>
+      <td>19</td>
+      <td>21</td>
+      <td>22</td>
+      <td>25</td>
+      <td>mutation</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td>4</td>
       <td>5</td>
       <td>6</td>
       <td>8</td>
-      <td>9</td>
+      <td>10</td>
       <td>12</td>
+      <td>13</td>
+      <td>14</td>
       <td>15</td>
       <td>17</td>
-      <td>19</td>
-      <td>20</td>
-      <td>21</td>
+      <td>18</td>
       <td>23</td>
       <td>24</td>
       <td>25</td>
       <td>mutation</td>
     </tr>
     <tr>
+      <td>1</td>
       <td>2</td>
       <td>4</td>
-      <td>5</td>
       <td>7</td>
-      <td>8</td>
-      <td>10</td>
+      <td>9</td>
+      <td>11</td>
       <td>12</td>
       <td>13</td>
-      <td>14</td>
+      <td>15</td>
       <td>16</td>
-      <td>17</td>
-      <td>21</td>
-      <td>22</td>
-      <td>23</td>
-      <td>25</td>
-      <td>mutation</td>
-    </tr>
-    <tr>
-      <td>2</td>
-      <td>3</td>
-      <td>4</td>
-      <td>6</td>
-      <td>7</td>
-      <td>8</td>
-      <td>9</td>
-      <td>12</td>
-      <td>14</td>
-      <td>17</td>
       <td>18</td>
       <td>21</td>
       <td>22</td>
@@ -413,18 +346,72 @@
     </tr>
     <tr>
       <td>1</td>
+      <td>3</td>
+      <td>4</td>
+      <td>5</td>
+      <td>6</td>
+      <td>10</td>
+      <td>11</td>
+      <td>14</td>
+      <td>16</td>
+      <td>17</td>
+      <td>18</td>
+      <td>19</td>
+      <td>20</td>
+      <td>22</td>
+      <td>25</td>
+      <td>mutation</td>
+    </tr>
+    <tr>
+      <td>1</td>
+      <td>2</td>
+      <td>3</td>
+      <td>5</td>
+      <td>6</td>
+      <td>7</td>
+      <td>9</td>
+      <td>12</td>
+      <td>13</td>
+      <td>15</td>
+      <td>16</td>
+      <td>17</td>
+      <td>20</td>
+      <td>22</td>
+      <td>24</td>
+      <td>mutation</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td>3</td>
+      <td>5</td>
+      <td>6</td>
+      <td>7</td>
+      <td>8</td>
+      <td>9</td>
+      <td>11</td>
+      <td>12</td>
+      <td>13</td>
+      <td>15</td>
+      <td>16</td>
+      <td>20</td>
+      <td>21</td>
+      <td>23</td>
+      <td>mutation</td>
+    </tr>
+    <tr>
+      <td>1</td>
+      <td>3</td>
       <td>6</td>
       <td>7</td>
       <td>8</td>
       <td>9</td>
       <td>10</td>
       <td>11</td>
-      <td>13</td>
+      <td>12</td>
       <td>14</td>
+      <td>16</td>
       <td>17</td>
-      <td>19</td>
-      <td>21</td>
-      <td>23</td>
+      <td>20</td>
       <td>24</td>
       <td>25</td>
       <td>mutation</td>
@@ -432,18 +419,18 @@
     <tr>
       <td>2</td>
       <td>3</td>
-      <td>4</td>
-      <td>5</td>
+      <td>6</td>
       <td>7</td>
       <td>9</td>
-      <td>10</td>
-      <td>11</td>
       <td>12</td>
-      <td>13</td>
       <td>14</td>
+      <td>15</td>
       <td>16</td>
       <td>17</td>
       <td>20</td>
+      <td>21</td>
+      <td>22</td>
+      <td>23</td>
       <td>24</td>
       <td>markov</td>
     </tr>
@@ -522,23 +509,23 @@
     <tr>
       <td>1</td>
       <td>2</td>
-      <td>5</td>
+      <td>4</td>
       <td>6</td>
       <td>8</td>
-      <td>10</td>
+      <td>9</td>
+      <td>11</td>
       <td>12</td>
       <td>13</td>
-      <td>14</td>
-      <td>19</td>
+      <td>15</td>
+      <td>17</td>
+      <td>18</td>
       <td>20</td>
-      <td>21</td>
-      <td>23</td>
-      <td>24</td>
+      <td>22</td>
       <td>25</td>
       <td>palpite_rodada</td>
     </tr>
   </tbody>
-</table><br><a href='Oraculo/Lotofacil/predictions/prediction_2025-09-28.csv' download>📥 Baixar CSV</a><h4>Resumo de estratégias</h4><table border="1" class="dataframe prediction-table">
+</table></div><div class='actions'><a class='btn' href='Oraculo/Lotofacil/predictions/prediction_2025-09-28.csv' download>📥 Baixar CSV</a></div></div><div class='card'><h3 class='card-title'>Resumo de Estratégias</h3><div class='table-wrap'><table border="1" class="dataframe table">
   <thead>
     <tr style="text-align: right;">
       <th>Modelo</th>
@@ -548,11 +535,11 @@
   <tbody>
     <tr>
       <td>beam_search</td>
-      <td>10</td>
+      <td>1</td>
     </tr>
     <tr>
       <td>mutation</td>
-      <td>10</td>
+      <td>1</td>
     </tr>
     <tr>
       <td>markov</td>
@@ -579,8 +566,8 @@
       <td>1</td>
     </tr>
   </tbody>
-</table></div>
-<div class='tabcontent' id='Super Sete'><h2>Super Sete</h2><h3>📊 Frequência Histórica</h3><html>
+</table></div></div></section>
+<section class='tabcontent' id='supersete'><header class='section-header'><h2>🧩 Super Sete</h2></header><div class='card'><h3 class='card-title'>📊 Frequência Histórica</h3><div class='heatmap-wrap'><html>
 <head><meta charset="utf-8" /></head>
 <body>
     <div>                        <script type="text/javascript">window.PlotlyConfig = {MathJaxConfig: 'local'};</script>
@@ -4465,199 +4452,138 @@ maplibre-gl/dist/maplibre-gl.js:
 
 window.Plotly = Plotly;
 return Plotly;
-}));</script>                <div id="f36d8162-22b8-433f-acfb-6e90c7b385e4" class="plotly-graph-div" style="height:500px; width:100%;"></div>            <script type="text/javascript">                window.PLOTLYENV=window.PLOTLYENV || {};                                if (document.getElementById("f36d8162-22b8-433f-acfb-6e90c7b385e4")) {                    Plotly.newPlot(                        "f36d8162-22b8-433f-acfb-6e90c7b385e4",                        [{"colorscale":[[0,"#f7fbec"],[0.5,"#afd355"],[1,"#6b8c21"]],"hoverinfo":"y+z","text":{"dtype":"i1","bdata":"AAAAAAAAAAEBAQEBAQECAgICAgICAwMDAwMDAwQEBAQEBAQFBQUFBQUFBgYGBgYGBgcHBwcHBwcICAgICAgICQkJCQkJCQ==","shape":"10, 7"},"texttemplate":"%{text}","x":["Coluna 1","Coluna 2","Coluna 3","Coluna 4","Coluna 5","Coluna 6","Coluna 7"],"y":{"dtype":"i1","bdata":"AAECAwQFBgcICQ=="},"z":{"dtype":"i1","bdata":"VkVFQktUR0lKUE4xR0pFS0tJRENLUE1KQFJDUU1ETERKUUdPUFhNVDtLSU1CWU9QS0hQTVJPVElCSkk9UUpISElFWUxQUA==","shape":"10, 7"},"type":"heatmap"}],                        {"template":{"data":{"histogram2dcontour":[{"type":"histogram2dcontour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"choropleth":[{"type":"choropleth","colorbar":{"outlinewidth":0,"ticks":""}}],"histogram2d":[{"type":"histogram2d","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"heatmap":[{"type":"heatmap","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"contourcarpet":[{"type":"contourcarpet","colorbar":{"outlinewidth":0,"ticks":""}}],"contour":[{"type":"contour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"surface":[{"type":"surface","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"mesh3d":[{"type":"mesh3d","colorbar":{"outlinewidth":0,"ticks":""}}],"scatter":[{"fillpattern":{"fillmode":"overlay","size":10,"solidity":0.2},"type":"scatter"}],"parcoords":[{"type":"parcoords","line":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolargl":[{"type":"scatterpolargl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"bar":[{"error_x":{"color":"#2a3f5f"},"error_y":{"color":"#2a3f5f"},"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"bar"}],"scattergeo":[{"type":"scattergeo","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolar":[{"type":"scatterpolar","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"histogram":[{"marker":{"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"histogram"}],"scattergl":[{"type":"scattergl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatter3d":[{"type":"scatter3d","line":{"colorbar":{"outlinewidth":0,"ticks":""}},"marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermap":[{"type":"scattermap","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermapbox":[{"type":"scattermapbox","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterternary":[{"type":"scatterternary","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattercarpet":[{"type":"scattercarpet","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"carpet":[{"aaxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"baxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"type":"carpet"}],"table":[{"cells":{"fill":{"color":"#EBF0F8"},"line":{"color":"white"}},"header":{"fill":{"color":"#C8D4E3"},"line":{"color":"white"}},"type":"table"}],"barpolar":[{"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"barpolar"}],"pie":[{"automargin":true,"type":"pie"}]},"layout":{"autotypenumbers":"strict","colorway":["#636efa","#EF553B","#00cc96","#ab63fa","#FFA15A","#19d3f3","#FF6692","#B6E880","#FF97FF","#FECB52"],"font":{"color":"#2a3f5f"},"hovermode":"closest","hoverlabel":{"align":"left"},"paper_bgcolor":"white","plot_bgcolor":"#E5ECF6","polar":{"bgcolor":"#E5ECF6","angularaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"radialaxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"ternary":{"bgcolor":"#E5ECF6","aaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"baxis":{"gridcolor":"white","linecolor":"white","ticks":""},"caxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"coloraxis":{"colorbar":{"outlinewidth":0,"ticks":""}},"colorscale":{"sequential":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"sequentialminus":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"diverging":[[0,"#8e0152"],[0.1,"#c51b7d"],[0.2,"#de77ae"],[0.3,"#f1b6da"],[0.4,"#fde0ef"],[0.5,"#f7f7f7"],[0.6,"#e6f5d0"],[0.7,"#b8e186"],[0.8,"#7fbc41"],[0.9,"#4d9221"],[1,"#276419"]]},"xaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"yaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"scene":{"xaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"yaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"zaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2}},"shapedefaults":{"line":{"color":"#2a3f5f"}},"annotationdefaults":{"arrowcolor":"#2a3f5f","arrowhead":0,"arrowwidth":1},"geo":{"bgcolor":"white","landcolor":"#E5ECF6","subunitcolor":"white","showland":true,"showlakes":true,"lakecolor":"white"},"title":{"x":0.05},"mapbox":{"style":"light"}}},"title":{"text":"Heatmap de Frequ\u00eancia por Coluna (0 a 9)"},"xaxis":{"title":{"text":"Colunas"}},"yaxis":{"title":{"text":"Dezenas"}},"height":500},                        {"responsive": true}                    )                };            </script>        </div>
+}));</script>                <div id="961fa683-7795-4db5-be4d-979250cc145d" class="plotly-graph-div" style="height:500px; width:100%;"></div>            <script type="text/javascript">                window.PLOTLYENV=window.PLOTLYENV || {};                                if (document.getElementById("961fa683-7795-4db5-be4d-979250cc145d")) {                    Plotly.newPlot(                        "961fa683-7795-4db5-be4d-979250cc145d",                        [{"colorscale":[[0,"#f7fbec"],[0.5,"#afd355"],[1,"#6b8c21"]],"hoverinfo":"y+z","text":{"dtype":"i1","bdata":"AAAAAAAAAAEBAQEBAQECAgICAgICAwMDAwMDAwQEBAQEBAQFBQUFBQUFBgYGBgYGBgcHBwcHBwcICAgICAgICQkJCQkJCQ==","shape":"10, 7"},"texttemplate":"%{text}","x":["Coluna 1","Coluna 2","Coluna 3","Coluna 4","Coluna 5","Coluna 6","Coluna 7"],"y":{"dtype":"i1","bdata":"AAECAwQFBgcICQ=="},"z":{"dtype":"i1","bdata":"VkVFQktUR0lKUE4xR0pFS0tJRENLUE1KQFJDUU1ETERKUUdPUFhNVDtLSU1CWU9QS0hQTVJPVElCSkk9UUpISElFWUxQUA==","shape":"10, 7"},"type":"heatmap"}],                        {"template":{"data":{"histogram2dcontour":[{"type":"histogram2dcontour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"choropleth":[{"type":"choropleth","colorbar":{"outlinewidth":0,"ticks":""}}],"histogram2d":[{"type":"histogram2d","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"heatmap":[{"type":"heatmap","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"contourcarpet":[{"type":"contourcarpet","colorbar":{"outlinewidth":0,"ticks":""}}],"contour":[{"type":"contour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"surface":[{"type":"surface","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"mesh3d":[{"type":"mesh3d","colorbar":{"outlinewidth":0,"ticks":""}}],"scatter":[{"fillpattern":{"fillmode":"overlay","size":10,"solidity":0.2},"type":"scatter"}],"parcoords":[{"type":"parcoords","line":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolargl":[{"type":"scatterpolargl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"bar":[{"error_x":{"color":"#2a3f5f"},"error_y":{"color":"#2a3f5f"},"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"bar"}],"scattergeo":[{"type":"scattergeo","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolar":[{"type":"scatterpolar","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"histogram":[{"marker":{"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"histogram"}],"scattergl":[{"type":"scattergl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatter3d":[{"type":"scatter3d","line":{"colorbar":{"outlinewidth":0,"ticks":""}},"marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermap":[{"type":"scattermap","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermapbox":[{"type":"scattermapbox","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterternary":[{"type":"scatterternary","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattercarpet":[{"type":"scattercarpet","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"carpet":[{"aaxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"baxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"type":"carpet"}],"table":[{"cells":{"fill":{"color":"#EBF0F8"},"line":{"color":"white"}},"header":{"fill":{"color":"#C8D4E3"},"line":{"color":"white"}},"type":"table"}],"barpolar":[{"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"barpolar"}],"pie":[{"automargin":true,"type":"pie"}]},"layout":{"autotypenumbers":"strict","colorway":["#636efa","#EF553B","#00cc96","#ab63fa","#FFA15A","#19d3f3","#FF6692","#B6E880","#FF97FF","#FECB52"],"font":{"color":"#2a3f5f"},"hovermode":"closest","hoverlabel":{"align":"left"},"paper_bgcolor":"white","plot_bgcolor":"#E5ECF6","polar":{"bgcolor":"#E5ECF6","angularaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"radialaxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"ternary":{"bgcolor":"#E5ECF6","aaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"baxis":{"gridcolor":"white","linecolor":"white","ticks":""},"caxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"coloraxis":{"colorbar":{"outlinewidth":0,"ticks":""}},"colorscale":{"sequential":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"sequentialminus":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"diverging":[[0,"#8e0152"],[0.1,"#c51b7d"],[0.2,"#de77ae"],[0.3,"#f1b6da"],[0.4,"#fde0ef"],[0.5,"#f7f7f7"],[0.6,"#e6f5d0"],[0.7,"#b8e186"],[0.8,"#7fbc41"],[0.9,"#4d9221"],[1,"#276419"]]},"xaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"yaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"scene":{"xaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"yaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"zaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2}},"shapedefaults":{"line":{"color":"#2a3f5f"}},"annotationdefaults":{"arrowcolor":"#2a3f5f","arrowhead":0,"arrowwidth":1},"geo":{"bgcolor":"white","landcolor":"#E5ECF6","subunitcolor":"white","showland":true,"showlakes":true,"lakecolor":"white"},"title":{"x":0.05},"mapbox":{"style":"light"}}},"title":{"text":"Heatmap de Frequ\u00eancia por Coluna (0 a 9)"},"xaxis":{"title":{"text":"Colunas"}},"yaxis":{"title":{"text":"Dezenas"}},"height":500},                        {"responsive": true}                    )                };            </script>        </div>
 </body>
-</html><h3>🧠 Palpites Gerados</h3><h3>Previsões Recentes</h3><table border="1" class="dataframe prediction-table">
+</html></div></div><div class='card'><h3 class='card-title'>Previsões Recentes</h3><div class='table-wrap'><table border="1" class="dataframe table">
   <thead>
     <tr style="text-align: right;">
-      <th>col1</th>
-      <th>col2</th>
-      <th>col3</th>
-      <th>col4</th>
-      <th>col5</th>
-      <th>col6</th>
-      <th>col7</th>
-      <th>modelo</th>
+      <th>lottery</th>
+      <th>timestamp</th>
+      <th>model</th>
+      <th>prediction</th>
+      <th>confidence</th>
     </tr>
   </thead>
   <tbody>
     <tr>
-      <td>1</td>
-      <td>5</td>
-      <td>2</td>
-      <td>4</td>
-      <td>9</td>
-      <td>7</td>
-      <td>1</td>
-      <td>curto_prazo</td>
+      <td>SuperSete</td>
+      <td>2025-09-28_14-33-54</td>
+      <td>beam_search</td>
+      <td>[1, 2, 3, 4, 5, 6, 7]</td>
+      <td>0.7</td>
     </tr>
     <tr>
-      <td>1</td>
-      <td>1</td>
-      <td>2</td>
-      <td>3</td>
-      <td>9</td>
-      <td>8</td>
-      <td>8</td>
-      <td>medio_prazo</td>
-    </tr>
-    <tr>
-      <td>0</td>
-      <td>7</td>
-      <td>5</td>
-      <td>6</td>
-      <td>5</td>
-      <td>7</td>
-      <td>3</td>
-      <td>longo_prazo</td>
-    </tr>
-    <tr>
-      <td>1</td>
-      <td>3</td>
-      <td>0</td>
-      <td>4</td>
-      <td>5</td>
-      <td>4</td>
-      <td>5</td>
-      <td>bayesiano</td>
-    </tr>
-    <tr>
-      <td>1</td>
-      <td>5</td>
-      <td>1</td>
-      <td>9</td>
-      <td>3</td>
-      <td>1</td>
-      <td>2</td>
+      <td>SuperSete</td>
+      <td>2025-09-28_14-33-54</td>
       <td>markov</td>
-    </tr>
-    <tr>
-      <td>6</td>
-      <td>8</td>
-      <td>3</td>
-      <td>2</td>
-      <td>4</td>
-      <td>8</td>
-      <td>1</td>
-      <td>poisson</td>
-    </tr>
-    <tr>
-      <td>1</td>
-      <td>7</td>
-      <td>2</td>
-      <td>4</td>
-      <td>5</td>
-      <td>7</td>
-      <td>1</td>
-      <td>palpite_rodada</td>
-    </tr>
-    <tr>
-      <td>0</td>
-      <td>7</td>
-      <td>6</td>
-      <td>5</td>
-      <td>5</td>
-      <td>4</td>
-      <td>9</td>
-      <td>evolutivo</td>
-    </tr>
-    <tr>
-      <td>1</td>
-      <td>7</td>
-      <td>1</td>
-      <td>7</td>
-      <td>0</td>
-      <td>1</td>
-      <td>7</td>
-      <td>evolutivo</td>
-    </tr>
-    <tr>
-      <td>1</td>
-      <td>5</td>
-      <td>6</td>
-      <td>6</td>
-      <td>4</td>
-      <td>8</td>
-      <td>9</td>
-      <td>evolutivo</td>
-    </tr>
-    <tr>
-      <td>0</td>
-      <td>7</td>
-      <td>5</td>
-      <td>4</td>
-      <td>2</td>
-      <td>4</td>
-      <td>4</td>
-      <td>evolutivo</td>
-    </tr>
-    <tr>
-      <td>2</td>
-      <td>9</td>
-      <td>0</td>
-      <td>3</td>
-      <td>5</td>
-      <td>7</td>
-      <td>0</td>
-      <td>evolutivo</td>
+      <td>[1, 2, 3, 4, 6, 7, 8]</td>
+      <td>0.6</td>
     </tr>
   </tbody>
-</table><br><a href='Oraculo/SuperSete/predictions/prediction_2025-09-28.csv' download>📥 Baixar CSV</a><h4>Resumo de estratégias</h4><table border="1" class="dataframe prediction-table">
+</table></div><div class='actions'><a class='btn' href='Oraculo/SuperSete/predictions/prediction_2025-09-28_14-33-54.csv' download>📥 Baixar CSV</a></div></div></section>
+<section class='tabcontent' id='megasena'><header class='section-header'><h2>💰 Mega-Sena</h2></header><div class='card'><h3 class='card-title'>📊 Frequência Histórica</h3><div class='heatmap-wrap'><p class='muted'>Heatmap não disponível.</p></div></div><div class='card'><h3 class='card-title'>Previsões Recentes</h3><div class='table-wrap'><table border="1" class="dataframe table">
   <thead>
     <tr style="text-align: right;">
-      <th>Modelo</th>
-      <th>Total</th>
+      <th>lottery</th>
+      <th>timestamp</th>
+      <th>model</th>
+      <th>prediction</th>
+      <th>confidence</th>
     </tr>
   </thead>
   <tbody>
     <tr>
-      <td>evolutivo</td>
-      <td>5</td>
+      <td>MegaSena</td>
+      <td>2025-09-28_14-33-54</td>
+      <td>beam_search</td>
+      <td>[1, 5, 6, 7, 9, 11]</td>
+      <td>0.7</td>
     </tr>
     <tr>
-      <td>curto_prazo</td>
-      <td>1</td>
-    </tr>
-    <tr>
-      <td>longo_prazo</td>
-      <td>1</td>
-    </tr>
-    <tr>
-      <td>medio_prazo</td>
-      <td>1</td>
-    </tr>
-    <tr>
-      <td>bayesiano</td>
-      <td>1</td>
-    </tr>
-    <tr>
+      <td>MegaSena</td>
+      <td>2025-09-28_14-33-54</td>
       <td>markov</td>
-      <td>1</td>
-    </tr>
-    <tr>
-      <td>poisson</td>
-      <td>1</td>
-    </tr>
-    <tr>
-      <td>palpite_rodada</td>
-      <td>1</td>
+      <td>[1, 4, 7, 11, 15, 18]</td>
+      <td>0.6</td>
     </tr>
   </tbody>
-</table></div>
-<div class='tabcontent' id='Mega-Sena'><h2>Mega-Sena</h2><p><em>Sem dados disponíveis.</em></p></div>
+</table></div><div class='actions'><a class='btn' href='Oraculo/MegaSena/predictions/prediction_2025-09-28_14-33-54.csv' download>📥 Baixar CSV</a></div></div></section>
+<section class='tabcontent' id='quina'><header class='section-header'><h2>⭐ Quina</h2></header><div class='card'><h3 class='card-title'>📊 Frequência Histórica</h3><div class='heatmap-wrap'><p class='muted'>Heatmap não disponível.</p></div></div><div class='card'><h3 class='card-title'>Previsões Recentes</h3><div class='table-wrap'><table border="1" class="dataframe table">
+  <thead>
+    <tr style="text-align: right;">
+      <th>lottery</th>
+      <th>timestamp</th>
+      <th>model</th>
+      <th>prediction</th>
+      <th>confidence</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Quina</td>
+      <td>2025-09-28_14-33-54</td>
+      <td>beam_search</td>
+      <td>[1, 4, 5, 6, 7]</td>
+      <td>0.7</td>
+    </tr>
+    <tr>
+      <td>Quina</td>
+      <td>2025-09-28_14-33-54</td>
+      <td>markov</td>
+      <td>[2, 6, 11, 16, 21]</td>
+      <td>0.6</td>
+    </tr>
+  </tbody>
+</table></div><div class='actions'><a class='btn' href='Oraculo/Quina/predictions/prediction_2025-09-28_14-33-54.csv' download>📥 Baixar CSV</a></div></div></section>
+<section class='tabcontent' id='milionaria'><header class='section-header'><h2>🍀 +Milionária</h2></header><div class='card'><h3 class='card-title'>📊 Frequência Histórica</h3><div class='heatmap-wrap'><p class='muted'>Heatmap não disponível.</p></div></div><div class='card'><h3 class='card-title'>Previsões Recentes</h3><div class='table-wrap'><table border="1" class="dataframe table">
+  <thead>
+    <tr style="text-align: right;">
+      <th>lottery</th>
+      <th>timestamp</th>
+      <th>model</th>
+      <th>prediction</th>
+      <th>confidence</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Milionaria</td>
+      <td>2025-09-28_14-33-54</td>
+      <td>beam_search</td>
+      <td>[1, 4, 6, 7, 9, 11]</td>
+      <td>0.7</td>
+    </tr>
+    <tr>
+      <td>Milionaria</td>
+      <td>2025-09-28_14-33-54</td>
+      <td>markov</td>
+      <td>[1, 2, 3, 4, 6, 8]</td>
+      <td>0.6</td>
+    </tr>
+  </tbody>
+</table></div><div class='actions'><a class='btn' href='Oraculo/Milionaria/predictions/prediction_2025-09-28_14-33-54.csv' download>📥 Baixar CSV</a></div></div></section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p class="muted small">Nota: resultados de loteria são aleatórios. Utilize as análises de forma responsável.</p>
+    </div>
+  </footer>
 
   <script>
-    function openTab(tabName) {
-      const contents = document.querySelectorAll('.tabcontent');
-      contents.forEach(c => c.classList.remove('active'));
-      const tabs = document.querySelectorAll('.tab-button');
-      tabs.forEach(t => t.classList.remove('active'));
-      document.getElementById(tabName).classList.add('active');
-      event.currentTarget.classList.add('active');
+    function activateTab(targetId, btn){
+      document.querySelectorAll('.tabcontent').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.tab-button').forEach(el => el.classList.remove('active'));
+      const section = document.getElementById(targetId);
+      if(section) section.classList.add('active');
+      if(btn) btn.classList.add('active');
     }
     document.addEventListener('DOMContentLoaded', () => {
-      const firstTab = document.querySelector('.tab-button');
-      if (firstTab) firstTab.click();
+      const buttons = document.querySelectorAll('.tab-button');
+      buttons.forEach(btn => {
+        btn.addEventListener('click', () => activateTab(btn.dataset.target, btn));
+      });
+      if(buttons.length){ activateTab(buttons[0].dataset.target, buttons[0]); }
     });
   </script>
 </body>

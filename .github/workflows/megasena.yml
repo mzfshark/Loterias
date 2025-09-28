@@ -1,9 +1,9 @@
-name: SuperSete Auto Predict
+name: MegaSena Auto Predict
 
 on:
   push:
     paths:
-      - 'Oraculo/SuperSete/data/SuperSete.csv'
+      - 'Oraculo/MegaSena/data/MegaSena.csv'
   schedule:
     - cron: '0 12 * * *' # Executa diariamente às 9h BRT (12h UTC)
   workflow_dispatch:
@@ -34,10 +34,10 @@ jobs:
 
       - name: Executar pipeline completa
         run: |
-          if [ -f Oraculo/SuperSete/scripts/predict.py ]; then
-            python Oraculo/SuperSete/scripts/predict.py
+          if [ -f Oraculo/MegaSena/scripts/predict.py ]; then
+            python Oraculo/MegaSena/scripts/predict.py
           else
-            echo "Arquivo predict.py não encontrado em Oraculo/SuperSete/scripts. Pulando predição."
+            echo "Arquivo predict.py não encontrado em Oraculo/MegaSena/scripts. Pulando predição."
           fi
 
       - name: Gerar HTML unificado
@@ -46,8 +46,8 @@ jobs:
 
       - name: Executar benchmark (opcional)
         run: |
-          if [ -f Oraculo/SuperSete/scripts/benchmark.py ]; then
-            python Oraculo/SuperSete/scripts/benchmark.py
+          if [ -f Oraculo/MegaSena/scripts/benchmark.py ]; then
+            python Oraculo/MegaSena/scripts/benchmark.py
           else
             echo "Benchmark não encontrado, pulando."
           fi
@@ -59,8 +59,16 @@ jobs:
           git pull
           git add .
           if ! git diff --cached --quiet; then
-            git commit -m "Atualiza previsões e relatório do Super Sete"
-            git push
+            git commit -m "Atualiza previsões e relatório da Mega-Sena"
+            for i in 1 2 3; do
+              if git push; then
+                break
+              else
+                echo "Push falhou (tentativa $i). Rebaseando e tentando novamente...";
+                git pull --rebase || true
+                sleep 2
+              fi
+            done
           else
             echo "Nenhuma mudança para comitar."
           fi
