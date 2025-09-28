@@ -88,6 +88,10 @@ def gerar_heatmap_megasena():
             xaxis_title="Colunas",
             yaxis_title="Linhas",
             height=500,
+            paper_bgcolor="#0b0f14",
+            plot_bgcolor="#0f1720",
+            font=dict(color="#e8eef5"),
+            margin=dict(l=40, r=20, t=60, b=40)
         )
         out_path = os.path.join(DOCS_PATH, "heatmap.html")
         fig.write_html(out_path)

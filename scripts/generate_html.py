@@ -34,6 +34,7 @@ jogos = {
   "milionaria": {
     "predictions": Path("Oraculo/Milionaria/predictions"),
     "heatmap": Path("Oraculo/Milionaria/docs/heatmap.html"),
+    "heatmap_trevos": Path("Oraculo/Milionaria/docs/heatmap_trevos.html"),
     "title": "+Milionária",
     "emoji": "🍀"
   }
@@ -132,6 +133,13 @@ def gerar_conteudo_jogo(slug: str, cfg: dict) -> str:
   # Heatmap / frequência
   html.append("<div class='card'><h3 class='card-title'>📊 Frequência Histórica</h3>")
   html.append("<div class='heatmap-wrap'>" + carregar_heatmap(cfg["heatmap"]) + "</div></div>")
+
+  # Mini-heatmap de trevos (apenas +Milionária)
+  if 'heatmap_trevos' in cfg:
+    trevos_path = cfg['heatmap_trevos']
+    if trevos_path.exists():
+      html.append("<div class='card'><h3 class='card-title'>🍀 Trevos (1–6)</h3>")
+      html.append("<div class='heatmap-wrap'>" + carregar_heatmap(trevos_path) + "</div></div>")
 
   # Tabela de palpites
   html.append(gerar_tabela_previsoes(prediction_dir))

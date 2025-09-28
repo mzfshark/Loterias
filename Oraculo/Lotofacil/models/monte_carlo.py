@@ -12,14 +12,16 @@ class MonteCarloLotofacilSimulator:
     Advanced Monte Carlo simulation for Lotofacil prediction with multiple sampling strategies.
     """
     
-    def __init__(self, n_simulations: int = 10000):
+    def __init__(self, n_simulations: int = 10000, verbose: bool = False):
         """
         Initialize Monte Carlo simulator.
         
         Args:
             n_simulations: Number of Monte Carlo simulations to run
         """
-        self.n_simulations = n_simulations
+    self.n_simulations = n_simulations
+    # Controla verbosidade de logs (progresso de simulação, etc.)
+    self.verbose = verbose
         self.numbers_range = list(range(1, 26))
         self.combination_size = 15
         self.historical_data = []
@@ -223,10 +225,11 @@ class MonteCarloLotofacilSimulator:
         all_simulations = []
         number_appearance_count = Counter()
         
-        print(f"🎲 Executando {self.n_simulations} simulações Monte Carlo ({strategy})...")
+        if self.verbose:
+            print(f"🎲 Executando {self.n_simulations} simulações Monte Carlo ({strategy})...")
         
         for i in range(self.n_simulations):
-            if i % (self.n_simulations // 10) == 0:
+            if self.verbose and self.n_simulations >= 10 and i % max(1, (self.n_simulations // 10)) == 0:
                 print(f"  Progresso: {i/self.n_simulations*100:.0f}%")
             
             simulation = sampling_method()
@@ -274,14 +277,16 @@ class MonteCarloLotofacilSimulator:
         Returns:
             Dictionary containing ensemble results
         """
-        print("🎯 Executando ensemble de simulações Monte Carlo...")
+        if self.verbose:
+            print("🎯 Executando ensemble de simulações Monte Carlo...")
         
         strategy_results = {}
         ensemble_predictions = []
         
         # Run each strategy
         for strategy in self.sampling_strategies:
-            print(f"\n📊 Estratégia: {strategy}")
+            if self.verbose:
+                print(f"\n📊 Estratégia: {strategy}")
             result = self.run_monte_carlo_simulation(strategy)
             strategy_results[strategy] = result
             ensemble_predictions.append(result['prediction'])

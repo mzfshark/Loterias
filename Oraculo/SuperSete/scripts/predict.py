@@ -137,6 +137,10 @@ fig.update_layout(
     xaxis_title="Colunas",
     yaxis_title="Dezenas",
     height=500,
+    paper_bgcolor="#0b0f14",
+    plot_bgcolor="#0f1720",
+    font=dict(color="#e8eef5"),
+    margin=dict(l=40, r=20, t=60, b=40)
 )
 fig.write_html(os.path.join(DOCS_PATH, "heatmap.html"))
 

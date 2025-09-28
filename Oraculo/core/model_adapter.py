@@ -113,7 +113,8 @@ class ModelAdapter:
             from Oraculo.Lotofacil.models.monte_carlo import MonteCarloLotofacilSimulator
             
             # Create simulator
-            simulator = MonteCarloLotofacilSimulator()
+            # Usa verbose=False para silenciar logs de progresso
+            simulator = MonteCarloLotofacilSimulator(verbose=False)
             
             # Adapt configuration
             simulator.numbers_range = self.config.get_number_list()
@@ -125,10 +126,11 @@ class ModelAdapter:
             # Run simulation
             result = simulator.run_ensemble_simulation()
             
+            # Chaves retornadas pelo ensemble
             return {
-                'prediction': result['best_prediction'],
-                'confidence': result['ensemble_confidence'],
-                'all_strategies': result['strategy_results']
+                'prediction': result.get('ensemble_prediction', []),
+                'confidence': result.get('ensemble_confidence', 0.0),
+                'all_strategies': result.get('strategy_results', {})
             }
             
         except Exception as e:
