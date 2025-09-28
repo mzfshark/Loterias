@@ -11,32 +11,32 @@ jogos = {
     "predictions": Path("Oraculo/Lotofacil/predictions"),
     "heatmap": Path("Oraculo/Lotofacil/docs/heatmap.html"),
     "title": "Lotofácil",
-    "emoji": "🎯"
+    "logo": "Oraculo/Lotofacil/docs/lotofacil.png"
   },
   "supersete": {
     "predictions": Path("Oraculo/SuperSete/predictions"),
     "heatmap": Path("Oraculo/SuperSete/docs/heatmap.html"),
     "title": "Super Sete",
-    "emoji": "🧩"
+    "logo": "Oraculo/SuperSete/docs/supersete.png"
   },
   "megasena": {
     "predictions": Path("Oraculo/MegaSena/predictions"),
     "heatmap": Path("Oraculo/MegaSena/docs/heatmap.html"),
     "title": "Mega-Sena",
-    "emoji": "💰"
+    "logo": "Oraculo/MegaSena/docs/megasena.png"
   },
   "quina": {
     "predictions": Path("Oraculo/Quina/predictions"),
     "heatmap": Path("Oraculo/Quina/docs/heatmap.html"),
     "title": "Quina",
-    "emoji": "⭐"
+    "logo": "Oraculo/Quina/docs/quina.png"
   },
   "milionaria": {
     "predictions": Path("Oraculo/Milionaria/predictions"),
     "heatmap": Path("Oraculo/Milionaria/docs/heatmap.html"),
     "heatmap_trevos": Path("Oraculo/Milionaria/docs/heatmap_trevos.html"),
     "title": "+Milionária",
-    "emoji": "🍀"
+    "logo": "Oraculo/Milionaria/docs/milionaria.webp"
   }
 }
 
@@ -143,6 +143,29 @@ def gerar_conteudo_jogo(slug: str, cfg: dict) -> str:
 
   # Tabela de palpites
   html.append(gerar_tabela_previsoes(prediction_dir))
+
+  # Backtest / Acertos reais (se existir)
+  try:
+    base = Path(cfg["predictions"]).parents[0]  # Oraculo/Jogo
+    summary_md = base / "validation" / "benchmark_summary.md"
+    result_csv = base / "validation" / "benchmark_results.csv"
+    chart_img = base / "docs" / "charts" / "benchmark_summary.png"
+    if summary_md.exists() or result_csv.exists() or chart_img.exists():
+      html.append("<div class='card'><h3 class='card-title'>📈 Backtest / Acertos Reais</h3>")
+      links = []
+      if result_csv.exists():
+        links.append(f"<a class='btn' href='{result_csv.as_posix()}' download>📥 Baixar resultados (CSV)</a>")
+      if summary_md.exists():
+        # Render simples do markdown como preformatado para evitar dependências
+        md_text = summary_md.read_text(encoding='utf-8')
+        html.append(f"<details open><summary>Sumário</summary><pre class='md'>{md_text}</pre></details>")
+      if chart_img.exists():
+        html.append(f"<div class='img-wrap'><img src='{chart_img.as_posix()}' alt='Resumo de acertos' /></div>")
+      if links:
+        html.append("<div class='actions'>" + " ".join(links) + "</div>")
+      html.append("</div>")
+  except Exception:
+    pass
 
   # Resumo de estratégias (se coluna existir)
   try:
