@@ -194,8 +194,9 @@ class TimeSeriesLotofacilPredictor:
             seasonal_series = self.seasonal_data[num]
             
             if len(seasonal_series) > 0:
-                # Use the last seasonal value as next prediction
-                predictions[num] = seasonal_series[-1]
+                # Use the last seasonal value as next prediction, but ensure it's non-negative
+                seasonal_value = seasonal_series[-1]
+                predictions[num] = max(0.0, seasonal_value)
             else:
                 predictions[num] = 0.0
         
