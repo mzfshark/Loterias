@@ -1,13 +1,17 @@
 #!/usr/bin/env python3
 """
-Auto Calibrator - Ajuste fino de pesos por modelo usando backtest recente
-
-Executa um backtest simples nos últimos N concursos para estimar a taxa de acerto
-de cada modelo e gerar pesos normalizados para o ensemble.
+Auto Calibrator - Ajuste fino de pesos por modelo usando:
+ - backtest recente (histórico puro)
+ - online (acertos observados das predições gravadas)
+ - híbrido (combina os dois com fator alpha)
 
 Uso (CLI):
-  python Oraculo/core/auto_calibrator.py --game all --lookback 20
-  python Oraculo/core/auto_calibrator.py --game megasena --lookback 30
+    # Backtest puro
+    python Oraculo/core/auto_calibrator.py --game all --mode backtest --lookback-history 20
+    # Online puro (últimas 10 predições)
+    python Oraculo/core/auto_calibrator.py --game megasena --mode online --lookback-preds 10
+    # Híbrido (alpha = 0.6 para online)
+    python Oraculo/core/auto_calibrator.py --game all --mode hybrid --alpha 0.6 --lookback-history 20 --lookback-preds 10
 
 Autor: Enhanced AI System
 """
@@ -16,7 +20,7 @@ import os
 import sys
 import json
 from datetime import datetime
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Tuple
 
 import numpy as np
 import pandas as pd
@@ -127,7 +131,139 @@ def backtest_models(lottery: str, lookback: int = 20) -> Dict[str, float]:
     return norm
 
 
-def save_weights(lottery: str, weights: Dict[str, float]):
+def _parse_date_str(s: str) -> pd.Timestamp:
+    # Tenta formatos mais comuns (BR/PT-BR) e ISO
+    for fmt in ("%d/%m/%Y", "%Y-%m-%d", "%d-%m-%Y"):
+        try:
+            return pd.to_datetime(s, format=fmt)
+        except Exception:
+            continue
+    # Fallback genérico
+    return pd.to_datetime(s, dayfirst=True, errors='coerce')
+
+
+def _get_date_column(df: pd.DataFrame) -> str:
+    for c in df.columns:
+        lc = c.lower()
+        if 'data' in lc:
+            return c
+    # fallback
+    return 'Data Sorteio' if 'Data Sorteio' in df.columns else df.columns[0]
+
+
+def _extract_actual_numbers(row: pd.Series, lottery: str, numbers_per_game: int) -> List[int]:
+    lot = lottery.lower()
+    if lot == 'supersete':
+        cols = [c for c in row.index if 'coluna' in c.lower() or 'col' in c.lower()]
+        cols = cols[:7]
+        return [int(row[c]) for c in cols if pd.notna(row[c])][:7]
+    # Demais: procurar bolas/dezenas
+    bola_cols = [c for c in row.index if 'bola' in c.lower() or 'num' in c.lower() or 'dez' in c.lower()]
+    if not bola_cols:
+        # tenta primeiros numéricos
+        bola_cols = [c for c in row.index if isinstance(row[c], (int, float))]
+    # Garante tamanho
+    bola_cols = bola_cols[:numbers_per_game]
+    vals = []
+    for c in bola_cols:
+        try:
+            vals.append(int(row[c]))
+        except Exception:
+            continue
+    return sorted(vals)[:numbers_per_game]
+
+
+def online_models(lottery: str, lookback_preds: int = 10) -> Dict[str, float]:
+    """Calcula pesos com base em acertos reais das últimas N predições salvas."""
+    predictor, config = _get_predictor_and_config(lottery)
+    df = pd.read_csv(config.data_path)
+    # Data por concurso
+    date_col = _get_date_column(df)
+    df['_data'] = df[date_col].apply(_parse_date_str)
+    df = df.sort_values(by=['_data']).reset_index(drop=True)
+
+    # Carregar predições salvas
+    pred_dir = config.predictions_path
+    if not os.path.isdir(pred_dir):
+        return {}
+    files = [f for f in os.listdir(pred_dir) if f.startswith('prediction_') and f.endswith('.json')]
+    if not files:
+        return {}
+    # Ordenar por timestamp no nome ou no conteúdo
+    def _parse_ts_from_name(name: str) -> pd.Timestamp:
+        # formato: prediction_YYYY-MM-DD_HH-MM-SS.json
+        try:
+            base = name[len('prediction_'):-len('.json')]
+            return pd.to_datetime(base, format='%Y-%m-%d_%H-%M-%S')
+        except Exception:
+            return pd.NaT
+
+    files = sorted(files, key=_parse_ts_from_name)
+    files = files[-lookback_preds:]
+
+    # Mapear cada predição ao próximo concurso por data >= timestamp
+    scores_sum: Dict[str, float] = {}
+    scores_cnt: Dict[str, int] = {}
+
+    for fname in files:
+        try:
+            fpath = os.path.join(pred_dir, fname)
+            with open(fpath, 'r', encoding='utf-8') as f:
+                payload = json.load(f)
+            ts = payload.get('timestamp')
+            lotname = payload.get('lottery', '').lower()
+            if lotname and lotname != lottery.lower():
+                continue
+            ts_pd = pd.to_datetime(ts) if ts else _parse_ts_from_name(fname)
+            if pd.isna(ts_pd):
+                continue
+            # Próximo sorteio com data >= ts_pd.date()
+            mask = df['_data'] >= ts_pd.normalize()
+            next_rows = df[mask]
+            if next_rows.empty:
+                continue
+            row = next_rows.iloc[0]
+            actual = _extract_actual_numbers(row, lottery, config.numbers_per_game)
+            # Avaliar cada modelo salvo
+            for m in payload.get('models', []):
+                mname = m.get('modelo')
+                pred = m.get('jogo', [])
+                hit = _score_prediction(pred, actual, lottery, config.numbers_per_game)
+                scores_sum[mname] = scores_sum.get(mname, 0.0) + float(hit)
+                scores_cnt[mname] = scores_cnt.get(mname, 0) + 1
+        except Exception:
+            continue
+
+    if not scores_cnt:
+        return {}
+
+    raw = {m: (scores_sum.get(m, 0.0) / max(1, scores_cnt.get(m, 0))) for m in scores_cnt.keys()}
+    epsilon = 1e-3
+    total = sum(raw.values()) + epsilon * len(raw)
+    norm = {m: (raw[m] + epsilon) / total for m in raw}
+    return norm
+
+
+def hybrid_weights(lottery: str, alpha: float = 0.6, lookback_history: int = 20, lookback_preds: int = 10) -> Dict[str, float]:
+    online = online_models(lottery, lookback_preds=lookback_preds)
+    back = backtest_models(lottery, lookback=lookback_history)
+    # União de chaves
+    keys = set(back.keys()) | set(online.keys())
+    if not keys:
+        return back  # fallback
+    comb = {}
+    for k in keys:
+        b = back.get(k, 0.0)
+        o = online.get(k, 0.0)
+        val = alpha * o + (1 - alpha) * b
+        comb[k] = val
+    # Normalizar
+    s = sum(comb.values()) or 1.0
+    comb = {k: v / s for k, v in comb.items()}
+    return comb
+
+
+def save_weights(lottery: str, weights: Dict[str, float], meta: Dict[str, Any] = None):
     predictor, config = _get_predictor_and_config(lottery)
     # models dir ao lado de scripts
     base_dir = os.path.abspath(os.path.join(os.path.dirname(sys.modules[predictor.__module__].__file__), '..'))
@@ -140,14 +276,25 @@ def save_weights(lottery: str, weights: Dict[str, float]):
         'lookback': None,
         'weights': weights,
     }
+    if meta:
+        payload.update(meta)
     with open(path, 'w', encoding='utf-8') as f:
         json.dump(payload, f, ensure_ascii=False, indent=2)
     return path
 
 
-def calibrate_and_save(lottery: str, lookback: int = 20) -> str:
-    weights = backtest_models(lottery, lookback=lookback)
-    path = save_weights(lottery, weights)
+def calibrate_and_save(lottery: str, mode: str = 'hybrid', lookback_history: int = 20, lookback_preds: int = 10, alpha: float = 0.6) -> str:
+    mode = mode.lower()
+    if mode == 'backtest':
+        weights = backtest_models(lottery, lookback=lookback_history)
+        meta = {'mode': 'backtest', 'lookback_history': lookback_history}
+    elif mode == 'online':
+        weights = online_models(lottery, lookback_preds=lookback_preds)
+        meta = {'mode': 'online', 'lookback_preds': lookback_preds}
+    else:
+        weights = hybrid_weights(lottery, alpha=alpha, lookback_history=lookback_history, lookback_preds=lookback_preds)
+        meta = {'mode': 'hybrid', 'alpha': alpha, 'lookback_history': lookback_history, 'lookback_preds': lookback_preds}
+    path = save_weights(lottery, weights, meta=meta)
     return path
 
 
@@ -155,12 +302,15 @@ if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser(description='Auto-calibrador de pesos por modelo')
     parser.add_argument('--game', '-g', choices=['all', 'megasena', 'quina', 'milionaria', 'supersete', 'lotofacil'], required=True)
-    parser.add_argument('--lookback', '-l', type=int, default=20)
+    parser.add_argument('--mode', '-m', choices=['backtest', 'online', 'hybrid'], default='hybrid')
+    parser.add_argument('--lookback-history', type=int, default=20)
+    parser.add_argument('--lookback-preds', type=int, default=10)
+    parser.add_argument('--alpha', type=float, default=0.6, help='Peso do componente online no modo híbrido')
     args = parser.parse_args()
 
     targets = ['megasena', 'quina', 'milionaria', 'supersete', 'lotofacil'] if args.game == 'all' else [args.game]
 
     for lot in targets:
-        print(f"\n🔧 Calibrando pesos: {lot} (lookback={args.lookback})")
-        path = calibrate_and_save(lot, lookback=args.lookback)
+        print(f"\n🔧 Calibrando pesos: {lot} (mode={args.mode})")
+        path = calibrate_and_save(lot, mode=args.mode, lookback_history=args.lookback_history, lookback_preds=args.lookback_preds, alpha=args.alpha)
         print(f"✅ Pesos atualizados em: {path}")

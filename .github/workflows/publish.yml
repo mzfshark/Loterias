@@ -27,6 +27,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Debounce de publicação (aguardar 10 minutos)
+        run: |
+          echo "Aguardando 10 minutos para consolidar saídas das pipelines..."
+          sleep 600
+
       - name: Checkout repositório
         uses: actions/checkout@v4
 
