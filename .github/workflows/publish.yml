@@ -2,9 +2,24 @@ name: Loterias HTML Publisher
 
 on:
   workflow_run:
-    workflows: ["SuperSete Auto Predict", "Lotofacil Auto Predict"]
+    workflows: [
+      "Lotofacil Auto Predict",
+      "SuperSete Auto Predict",
+      "MegaSena Auto Predict",
+      "Quina Auto Predict",
+      "+Milionaria Auto Predict"
+    ]
     types:
       - completed
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   format-and-publish:
@@ -12,21 +27,33 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Debounce de publicação (aguardar 10 minutos)
+        run: |
+          echo "Aguardando 10 minutos para consolidar saídas das pipelines..."
+          sleep 600
+
       - name: Checkout repositório
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Configurar Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
       - name: Instalar dependências
         run: |
-          pip install markdown2 jinja2 pathlib pandas plotly
+          pip install jinja2 pandas numpy scipy scikit-learn
 
-      - name: Gerar HTML formatado a partir de Markdown
+      - name: Gerar HTML unificado
         run: |
           python scripts/generate_html.py
+
+      - name: Calibrar pesos automaticamente (opcional)
+        continue-on-error: true
+        run: |
+          echo "Iniciando calibração de pesos (lookback=20)..."
+          python Oraculo/core/auto_calibrator.py --game all --lookback 20 || true
+          echo "Calibração concluída (se aplicável)."
 
       - name: Commit e push do HTML
         shell: bash
@@ -34,7 +61,7 @@ jobs:
           git config user.name "mzfshark"
           git config user.email "mzfshark@gmail.com"
           git pull
-          git add index.html
+          git add index.html styles.css Oraculo/**/models/weights.auto.json
           if ! git diff --cached --quiet; then
             git commit -m "Atualiza apresentação HTML das loterias"
             git push

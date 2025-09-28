@@ -8,6 +8,13 @@ on:
     - cron: '0 12 * * *' # Executa diariamente às 9h BRT (12h UTC)
   workflow_dispatch:
 
+permissions:
+  contents: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   predict-and-publish:
     runs-on: ubuntu-latest
@@ -23,15 +30,15 @@ jobs:
 
       - name: Instalar dependências
         run: |
-          pip install pandas numpy seaborn matplotlib tabulate plotly markdown2 jinja2 scipy
+          pip install pandas numpy seaborn matplotlib tabulate plotly markdown2 jinja2 scipy requests beautifulsoup4 lxml
+
+      - name: Sincronizar resultados oficiais (API -> CSV)
+        run: |
+          python scripts/fetch_results.py --game lotofacil --mode api || true
 
       - name: Executar pipeline completa
         run: |
           python Oraculo/Lotofacil/scripts/predict.py
-
-      - name: Gerar HTML unificado
-        run: |
-          python scripts/generate_html.py
 
       - name: Executar benchmark
         run: |
@@ -45,17 +52,18 @@ jobs:
           git add .
           if ! git diff --cached --quiet; then
             git commit -m "Atualiza previsões e relatório da Lotofácil"
-            git push
+            for i in 1 2 3; do
+              if git push; then
+                break
+              else
+                echo "Push falhou (tentativa $i). Rebaseando e tentando novamente...";
+                git pull --rebase || true
+                sleep 2
+              fi
+            done
           else
             echo "Nenhuma mudança para comitar."
           fi
         env:
           GH_PAT: ${{ secrets.GH_PAT }}
 
-      - name: Publicar via GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GH_PAT }}
-          publish_dir: ./
-          publish_branch: gh-pages
-          enable_jekyll: true

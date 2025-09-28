@@ -1,0 +1,82 @@
+name: Quina Auto Predict
+
+on:
+  push:
+    paths:
+      - 'Oraculo/Quina/data/Quina.csv'
+  schedule:
+    - cron: '0 12 * * *' # Executa diariamente às 9h BRT (12h UTC)
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  predict-and-publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repositório
+        uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Instalar dependências
+        run: |
+          pip install pandas numpy seaborn matplotlib tabulate plotly markdown2 jinja2 scipy scikit-learn requests beautifulsoup4 lxml
+      - name: Sincronizar resultados oficiais (API -> CSV)
+        run: |
+          python scripts/fetch_results.py --game quina --mode api || true
+
+
+      - name: Executar pipeline completa
+        run: |
+          if [ -f Oraculo/Quina/scripts/predict.py ]; then
+            python Oraculo/Quina/scripts/predict.py
+          else
+            echo "Arquivo predict.py não encontrado em Oraculo/Quina/scripts. Pulando predição."
+          fi
+
+      - name: Gerar HTML unificado
+        run: |
+          echo "HTML unificado será gerado pelo workflow Publisher."
+
+      - name: Executar benchmark (opcional)
+        run: |
+          if [ -f Oraculo/Quina/scripts/benchmark.py ]; then
+            python Oraculo/Quina/scripts/benchmark.py
+          else
+            echo "Benchmark não encontrado, pulando."
+          fi
+
+      - name: Commit e push dos resultados
+        run: |
+          git config user.name "mzfshark"
+          git config user.email "mzfshark@gmail.com"
+          git pull
+          git add .
+          if ! git diff --cached --quiet; then
+            git commit -m "Atualiza previsões e relatório da Quina"
+            for i in 1 2 3; do
+              if git push; then
+                break
+              else
+                echo "Push falhou (tentativa $i). Rebaseando e tentando novamente...";
+                git pull --rebase || true
+                sleep 2
+              fi
+            done
+          else
+            echo "Nenhuma mudança para comitar."
+          fi
+        env:
+          GH_PAT: ${{ secrets.GH_PAT }}
+
+      # Publicação centralizada no workflow Publisher

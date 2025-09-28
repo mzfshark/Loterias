@@ -7,40 +7,63 @@ on:
   schedule:
     - cron: '0 12 * * *' # Executa diariamente às 9h BRT (12h UTC)
   workflow_dispatch:
-  
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   predict-and-publish:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repositório
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Configurar Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
       - name: Instalar dependências
         run: |
-          pip install pandas numpy plotly matplotlib
-
-      - name: Rodar predição
+          pip install pandas numpy seaborn matplotlib tabulate plotly markdown2 jinja2 scipy scikit-learn requests beautifulsoup4 lxml
+      - name: Sincronizar resultados oficiais (API -> CSV)
         run: |
-          python Oraculo/SuperSete/scripts/predict.py
+          python scripts/fetch_results.py --game supersete --mode api || true
 
-      - name: Executar benchmark
+
+      - name: Executar pipeline completa
         run: |
-          python Oraculo/Lotofacil/scripts/benchmark.py
+          if [ -f Oraculo/SuperSete/scripts/predict.py ]; then
+            python Oraculo/SuperSete/scripts/predict.py
+          else
+            echo "Arquivo predict.py não encontrado em Oraculo/SuperSete/scripts. Pulando predição."
+          fi
 
-      - name: Commit e push do relatório
+      - name: Gerar HTML unificado
+        run: |
+          echo "HTML unificado será gerado pelo workflow Publisher."
+
+      - name: Executar benchmark (opcional)
+        run: |
+          if [ -f Oraculo/SuperSete/scripts/benchmark.py ]; then
+            python Oraculo/SuperSete/scripts/benchmark.py
+          else
+            echo "Benchmark não encontrado, pulando."
+          fi
+
+      - name: Commit e push dos resultados
         run: |
           git config user.name "mzfshark"
-          git config user.email "mzfsharks@gmail.com"
+          git config user.email "mzfshark@gmail.com"
           git pull
           git add .
           if ! git diff --cached --quiet; then
-            git commit -m "Atualiza relatório Markdown do Super Sete"
+            git commit -m "Atualiza previsões e relatório do Super Sete"
             git push
           else
             echo "Nenhuma mudança para comitar."
@@ -48,11 +71,4 @@ jobs:
         env:
           GH_PAT: ${{ secrets.GH_PAT }}
 
-
-      - name: Publicar via GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GH_PAT }}
-          publish_dir: ./SuperSete/docs
-          publish_branch: gh-pages
-          enable_jekyll: true
+      # Publicação centralizada no workflow Publisher

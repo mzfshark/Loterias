@@ -1,0 +1,4 @@
+lottery,timestamp,model,prediction,confidence
+Quina,2025-09-28_18-29-32,beam_search,"[2, 4, 5, 10, 11]",0.7
+Quina,2025-09-28_18-29-32,markov,"[2, 4, 6, 10, 16]",0.6
+Quina,2025-09-28_18-29-32,mutation,"[23, 37, 48, 57, 72]",0.6

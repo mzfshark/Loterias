@@ -1,0 +1,112 @@
+/*
+  styles.css — Tema minimalista, responsivo e mobile-first
+  Paleta: fundo #0b0f14, superfícies #121826/#0f1720, acentos #2FD39A, texto #e8eef5
+*/
+
+:root {
+  --bg: #0b0f14;
+  --surface: #121826;
+  --surface-2: #0f1720;
+  --text: #e8eef5;
+  --muted: #9aa6b2;
+  --accent: #2FD39A;
+  --border: #1f2937;
+  --shadow: 0 10px 30px rgba(0,0,0,.25);
+  --radius: 14px;
+  --radius-sm: 10px;
+}
+
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+
+body {
+  margin: 0;
+  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+  color: var(--text);
+  background: radial-gradient(1200px 1200px at 10% -10%, rgba(47,211,154,.12), transparent 40%),
+              radial-gradient(1000px 800px at 100% 0%, rgba(47,211,154,.08), transparent 45%),
+              var(--bg);
+  line-height: 1.5;
+}
+
+.container {
+  width: min(1100px, 92%);
+  margin-inline: auto;
+}
+
+/* Header */
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  backdrop-filter: saturate(140%) blur(8px);
+  background: linear-gradient(to bottom, rgba(11,15,20,.9), rgba(11,15,20,.6));
+  border-bottom: 1px solid var(--border);
+}
+.site-header .container { padding: 18px 0; }
+.site-header h1 { margin: 0; font-size: 1.45rem; letter-spacing: .2px; }
+.subtitle { margin: 6px 0 0; color: var(--muted); font-size: .95rem; }
+.small { font-size: .875rem; }
+
+/* Tabs */
+.tabs { display: flex; gap: 10px; padding: 18px 0 4px; overflow-x: auto; }
+.tab-button {
+  appearance: none; border: 1px solid var(--border); background: var(--surface);
+  color: var(--text); padding: 10px 14px; border-radius: 999px; cursor: pointer;
+  transition: transform .08s ease, background .2s ease, color .2s ease;
+  white-space: nowrap; font-weight: 600; font-size: .95rem;
+}
+.tab-button:hover { transform: translateY(-1px); background: var(--surface-2); }
+.tab-button.active { background: var(--accent); color: #0a0e13; border-color: transparent; }
+
+/* Sections */
+main { padding: 20px 0 60px; }
+.tabcontent { display: none; }
+.tabcontent.active { display: block; animation: fadeIn .25s ease both; }
+
+.section-header { margin-bottom: 12px; }
+.section-header h2 { margin: 0; font-size: 1.25rem; letter-spacing: .2px; }
+
+/* Cards */
+.card {
+  background: linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,0) 60%), var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  box-shadow: var(--shadow);
+  margin: 14px 0 18px;
+}
+.card-title { margin: 0 0 12px; font-size: 1.05rem; }
+.actions { display: flex; gap: 12px; align-items: center; margin-top: 10px; flex-wrap: wrap; }
+
+/* Buttons & Links */
+.btn {
+  display: inline-flex; align-items: center; gap: 8px; text-decoration: none; font-weight: 700;
+  padding: 10px 14px; background: var(--accent); color: #07110d; border-radius: 10px;
+  border: 0; box-shadow: 0 6px 16px rgba(47,211,154,.25);
+}
+.btn:hover { filter: brightness(.98); transform: translateY(-1px); }
+
+/* Tables */
+.table-wrap { width: 100%; overflow: auto; border-radius: var(--radius-sm); border: 1px solid var(--border); }
+.table { width: 100%; border-collapse: collapse; background: var(--surface-2); }
+.table th, .table td { padding: 10px 12px; border-bottom: 1px solid var(--border); text-align: center; }
+.table th { position: sticky; top: 0; background: #0d141c; color: var(--text); font-weight: 700; }
+.table tr:hover td { background: rgba(255,255,255,.02); }
+
+/* Heatmap container */
+.heatmap-wrap { width: 100%; overflow: auto; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--surface-2); }
+
+/* Footer */
+.site-footer { border-top: 1px solid var(--border); padding: 18px 0; background: rgba(0,0,0,.25); }
+.muted { color: var(--muted); }
+
+/* Animations */
+@keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+/* Mobile tweaks */
+@media (max-width: 640px) {
+  .site-header h1 { font-size: 1.25rem; }
+  .card { padding: 14px; }
+  .table th, .table td { padding: 8px; }
+}
