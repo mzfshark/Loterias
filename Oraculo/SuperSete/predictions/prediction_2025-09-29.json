@@ -3,7 +3,7 @@
   "timestamp": "2025-09-29",
   "ensemble_prediction": [
     0,
-    2,
+    3,
     4,
     5,
     6,
@@ -24,32 +24,6 @@
         9
       ],
       "confidence": 0.1
-    },
-    {
-      "modelo": "neural_ensemble",
-      "jogo": [
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        7
-      ],
-      "confidence": 1.6666666666666665
-    },
-    {
-      "modelo": "monte_carlo",
-      "jogo": [
-        1,
-        2,
-        3,
-        4,
-        6,
-        7,
-        9
-      ],
-      "confidence": 0.7857142857142857
     },
     {
       "modelo": "time_series",
@@ -81,10 +55,10 @@
       "modelo": "markov",
       "jogo": [
         2,
+        3,
         4,
         5,
         6,
-        7,
         8,
         9
       ],
@@ -107,10 +81,10 @@
       "modelo": "mutation",
       "jogo": [
         0,
+        2,
         3,
         4,
         5,
-        7,
         8,
         9
       ],
