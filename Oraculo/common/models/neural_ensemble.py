@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from typing import List, Dict, Tuple
+from typing import List, Dict
 from collections import Counter
 import warnings
 warnings.filterwarnings('ignore')
@@ -10,7 +10,7 @@ try:
     from sklearn.neural_network import MLPClassifier
     from sklearn.preprocessing import StandardScaler
     from sklearn.model_selection import cross_val_score
-    from sklearn.metrics import accuracy_score
+    from sklearn.metrics import accuracy_score  # kept for possible future metrics use
     SKLEARN_AVAILABLE = True
 except ImportError:
     SKLEARN_AVAILABLE = False
@@ -60,12 +60,12 @@ class NeuralEnsembleLotofacil:
         
         for i in range(lookback, len(historical_data)):
             game_features = []
-            
+
             # Current game for target (we'll predict each number separately)
-            current_game = historical_data[i]
-            
+            _ = historical_data[i]
+
             # Look at previous games
-            prev_games = historical_data[i-lookback:i]
+            prev_games = historical_data[i - lookback:i]
             
             # Feature 1: Frequency of each number in last N games
             all_prev_numbers = [num for game in prev_games for num in game]
@@ -304,8 +304,8 @@ class NeuralEnsembleLotofacil:
         
         return probabilities
     
-    def generate_prediction(self, historical_data: List[List[int]], 
-                          train_split: float = 0.8, lookback: int = 10) -> Dict:
+    def generate_prediction(self, historical_data: List[List[int]],
+                            train_split: float = 0.8, lookback: int = 10) -> Dict:
         """
         Generate prediction using the neural ensemble.
         
@@ -320,29 +320,29 @@ class NeuralEnsembleLotofacil:
         # Split data for training and recent analysis
         split_idx = int(len(historical_data) * train_split)
         train_data = historical_data[:split_idx]
-        recent_data = historical_data[split_idx:]
-        
+        # recent_data is intentionally not used here by design
+
         # Train models if we have enough data
         if len(train_data) > lookback * 2:
             self.train(train_data, lookback)
-        
+
         # Generate predictions
         probabilities = self.predict_probabilities(historical_data, lookback)
-        
+
         # Select top 15 numbers
         sorted_probs = sorted(probabilities.items(), key=lambda x: x[1], reverse=True)
         prediction = [num for num, _ in sorted_probs[:15]]
-        
+
         # Calculate confidence score
         top_15_probs = [prob for _, prob in sorted_probs[:15]]
         confidence = np.mean(top_15_probs) / np.mean([prob for _, prob in sorted_probs])
-        
+
         return {
             'prediction': sorted(prediction),
             'probabilities': probabilities,
             'confidence': confidence,
             'model_scores': self.model_scores if self.is_trained else [],
-            'top_numbers_with_probs': sorted_probs[:15]
+            'top_numbers_with_probs': sorted_probs[:15],
         }
 
     # ---- Stub mínimo para compatibilidade com o ModelAdapter ----
@@ -353,6 +353,10 @@ class NeuralEnsembleLotofacil:
         """
         result = self.generate_prediction(historical_data, lookback=lookback)
         return result['prediction'], float(result.get('confidence', 0.6))
+
+
+# Backwards-compatible canonical alias expected by ModelAdapter
+NeuralEnsemblePredictor = NeuralEnsembleLotofacil
 
 
 def carregar_dados(path='Oraculo/Lotofacil/data/Lotofacil.csv') -> List[List[int]]:

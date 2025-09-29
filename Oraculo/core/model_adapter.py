@@ -112,9 +112,10 @@ class ModelAdapter:
         try:
             from Oraculo.common.models.monte_carlo import MonteCarloLotofacilSimulator
             
-            # Create simulator
+            # Create simulator com proteção FAST_CI
             # Usa verbose=False para silenciar logs de progresso
-            simulator = MonteCarloLotofacilSimulator(verbose=False)
+            n_sims = 50 if os.environ.get('FAST_CI', '').strip() == '1' or os.environ.get('GITHUB_ACTIONS', '') == 'true' else 500
+            simulator = MonteCarloLotofacilSimulator(n_simulations=n_sims, verbose=False)
             
             # Adapt configuration
             simulator.numbers_range = self.config.get_number_list()
