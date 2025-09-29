@@ -109,7 +109,73 @@ def gerar_tabela_previsoes(prediction_dir: Path) -> str:
 
   # Limita visualização para mobile se muito grande
   preview_rows = 100 if len(df_csv) > 100 else len(df_csv)
-  tabela_html = df_csv.head(preview_rows).to_html(index=False, classes="table")
+
+  # Normaliza colunas comuns
+  def _normalize_prediction(val):
+    try:
+      if isinstance(val, str):
+        # remove colchetes e vírgulas, mantém apenas números e espaços
+        s = val.replace('[', '').replace(']', '').replace(',', ' ')
+        s = ' '.join(s.split())
+        return s
+      if isinstance(val, (list, tuple)):
+        return ' '.join(str(int(x)) for x in val)
+      return str(val)
+    except Exception:
+      return str(val)
+
+  bola_cols = [c for c in df_csv.columns if c.lower().startswith('bola')]
+  modelo_col = 'modelo' if 'modelo' in df_csv.columns else ('model' if 'model' in df_csv.columns else None)
+  jogo_col = None
+  if 'jogo' in df_csv.columns:
+    jogo_col = 'jogo'
+  elif 'prediction' in df_csv.columns:
+    jogo_col = 'prediction'
+
+  conf_col = 'confidence' if 'confidence' in df_csv.columns else None
+  time_col = 'timestamp' if 'timestamp' in df_csv.columns else ('data' if 'data' in df_csv.columns else None)
+
+  # Organização especial: Lotofácil (colunas Bola1..BolaN) em uma única coluna 'jogo'
+  if bola_cols:
+    cols_ordenadas = sorted(bola_cols, key=lambda x: int(''.join(filter(str.isdigit, x)) or 0))
+    def _jogo_str(row):
+      vals = []
+      for c in cols_ordenadas:
+        try:
+          v = row.get(c)
+          if pd.isna(v):
+            continue
+          vals.append(str(int(v)))
+        except Exception:
+          continue
+      return ' '.join(vals)
+    view = pd.DataFrame()
+    if modelo_col:
+      view['modelo'] = df_csv[modelo_col]
+    else:
+      view['modelo'] = 'desconhecido'
+    view['jogo'] = df_csv.apply(_jogo_str, axis=1)
+    if conf_col:
+      view['confiança'] = df_csv[conf_col]
+    if time_col:
+      view['gerado_em'] = df_csv[time_col]
+    tabela_html = view.head(preview_rows).to_html(index=False, classes="table")
+  else:
+    # Padrão para todos os demais jogos: modelo, jogo, confiança, timestamp (quando existirem)
+    view = pd.DataFrame()
+    if modelo_col:
+      view['modelo'] = df_csv[modelo_col]
+    if jogo_col:
+      view['jogo'] = df_csv[jogo_col].apply(_normalize_prediction)
+    if conf_col:
+      view['confiança'] = df_csv[conf_col]
+    if time_col:
+      view['gerado_em'] = df_csv[time_col]
+    # Se por algum motivo não identificamos colunas, caímos na tabela original
+    if view.empty:
+      tabela_html = df_csv.head(preview_rows).to_html(index=False, classes="table")
+    else:
+      tabela_html = view.head(preview_rows).to_html(index=False, classes="table")
   link = f"<a class='btn' href='{csv_path.as_posix()}' download>📥 Baixar CSV</a>"
   count_info = f"<span class='muted'>Exibindo {preview_rows} de {len(df_csv)} linhas</span>" if len(df_csv) > preview_rows else ""
   return f"<div class='card'><h3 class='card-title'>Previsões Recentes</h3><div class='table-wrap'>{tabela_html}</div><div class='actions'>{link}{count_info}</div></div>"
@@ -126,17 +192,12 @@ def gerar_conteudo_jogo(slug: str, cfg: dict) -> str:
   titulo = cfg.get('title', slug.title())
   cabecalho = (
     f"<header class='section-header'>"
-    f"<img src='{logo_path}' alt='{titulo} logo' width='150' height='auto' />"
+    f"<img src='{logo_path}' alt='{titulo} logo' width='125' height='auto' />"
     f"</header>"
   )
   html.append(cabecalho)
 
   prediction_dir = cfg["predictions"]
-  arquivos = sorted(prediction_dir.glob("*.csv"), reverse=True)
-  if not arquivos:
-    html.append("<p class='muted'>Sem dados disponíveis.</p>")
-    html.append("</section>")
-    return "".join(html)
 
   # Heatmap / frequência
   html.append("<div class='card'><h3 class='card-title'>📊 Frequência Histórica</h3>")
@@ -172,6 +233,9 @@ def gerar_conteudo_jogo(slug: str, cfg: dict) -> str:
       if links:
         html.append("<div class='actions'>" + " ".join(links) + "</div>")
       html.append("</div>")
+    else:
+      # Indica ausência de artefatos de benchmark para dar visibilidade
+      html.append("<div class='card'><h3 class='card-title'>📈 Backtest / Acertos Reais</h3><p class='muted'>Nenhum artefato de benchmark encontrado.</p></div>")
   except Exception:
     pass
 
@@ -180,8 +244,10 @@ def gerar_conteudo_jogo(slug: str, cfg: dict) -> str:
     mais_recente_misto = _arquivo_recente(prediction_dir)
     if mais_recente_misto is not None:
       df_resumo = _df_de_arquivo(mais_recente_misto)
-      if not df_resumo.empty and 'modelo' in df_resumo.columns:
-        modelo_counts = df_resumo['modelo'].value_counts().to_frame().reset_index()
+      if not df_resumo.empty:
+        col_modelo = 'modelo' if 'modelo' in df_resumo.columns else ('model' if 'model' in df_resumo.columns else None)
+        if col_modelo:
+          modelo_counts = df_resumo[col_modelo].value_counts().to_frame().reset_index()
         modelo_counts.columns = ['Modelo', 'Total']
         resumo_html = modelo_counts.to_html(index=False, classes="table")
         html.append(f"<div class='card'><h3 class='card-title'>Resumo de Estratégias</h3><div class='table-wrap'>{resumo_html}</div></div>")

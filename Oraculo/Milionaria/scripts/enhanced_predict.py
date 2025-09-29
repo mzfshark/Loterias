@@ -43,6 +43,15 @@ class EnhancedMilionariaPredictor(BaseLotteryPredictor):
             'mutation': {'weight': 0.04, 'enabled': True},
         }
         self._merge_auto_weights()
+        # Reaplica FAST_CI/GitHub Actions guard, já que redefinimos self.models
+        try:
+            if os.environ.get('FAST_CI', '').strip() == '1' or os.environ.get('GITHUB_ACTIONS', '') == 'true':
+                for heavy in ('monte_carlo', 'neural_ensemble'):
+                    if heavy in self.models:
+                        self.models[heavy]['enabled'] = False
+                print("⚡ Modo FAST_CI ativo (+Milionária): modelos pesados desativados (monte_carlo, neural_ensemble).")
+        except Exception:
+            pass
 
     def _merge_auto_weights(self):
         import json, os
