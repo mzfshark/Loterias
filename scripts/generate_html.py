@@ -109,7 +109,29 @@ def gerar_tabela_previsoes(prediction_dir: Path) -> str:
 
   # Limita visualização para mobile se muito grande
   preview_rows = 100 if len(df_csv) > 100 else len(df_csv)
-  tabela_html = df_csv.head(preview_rows).to_html(index=False, classes="table")
+
+  # Organização especial: Lotofácil (colunas Bola1..BolaN) em uma única coluna 'Jogo'
+  bola_cols = [c for c in df_csv.columns if c.lower().startswith('bola')]
+  if bola_cols:
+    cols_ordenadas = sorted(bola_cols, key=lambda x: int(''.join(filter(str.isdigit, x)) or 0))
+    def _jogo_str(row):
+      vals = []
+      for c in cols_ordenadas:
+        try:
+          v = row.get(c)
+          if pd.isna(v):
+            continue
+          vals.append(str(int(v)))
+        except Exception:
+          continue
+      return ' '.join(vals)
+    view = pd.DataFrame({
+      'modelo': df_csv['modelo'] if 'modelo' in df_csv.columns else 'desconhecido',
+      'jogo': df_csv.apply(_jogo_str, axis=1)
+    })
+    tabela_html = view.head(preview_rows).to_html(index=False, classes="table")
+  else:
+    tabela_html = df_csv.head(preview_rows).to_html(index=False, classes="table")
   link = f"<a class='btn' href='{csv_path.as_posix()}' download>📥 Baixar CSV</a>"
   count_info = f"<span class='muted'>Exibindo {preview_rows} de {len(df_csv)} linhas</span>" if len(df_csv) > preview_rows else ""
   return f"<div class='card'><h3 class='card-title'>Previsões Recentes</h3><div class='table-wrap'>{tabela_html}</div><div class='actions'>{link}{count_info}</div></div>"
@@ -132,11 +154,6 @@ def gerar_conteudo_jogo(slug: str, cfg: dict) -> str:
   html.append(cabecalho)
 
   prediction_dir = cfg["predictions"]
-  arquivos = sorted(prediction_dir.glob("*.csv"), reverse=True)
-  if not arquivos:
-    html.append("<p class='muted'>Sem dados disponíveis.</p>")
-    html.append("</section>")
-    return "".join(html)
 
   # Heatmap / frequência
   html.append("<div class='card'><h3 class='card-title'>📊 Frequência Histórica</h3>")
@@ -172,6 +189,9 @@ def gerar_conteudo_jogo(slug: str, cfg: dict) -> str:
       if links:
         html.append("<div class='actions'>" + " ".join(links) + "</div>")
       html.append("</div>")
+    else:
+      # Indica ausência de artefatos de benchmark para dar visibilidade
+      html.append("<div class='card'><h3 class='card-title'>📈 Backtest / Acertos Reais</h3><p class='muted'>Nenhum artefato de benchmark encontrado.</p></div>")
   except Exception:
     pass
 
