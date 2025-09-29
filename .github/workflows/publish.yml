@@ -11,6 +11,7 @@ on:
     ]
     types:
       - completed
+  workflow_dispatch:
 
 permissions:
   contents: write
