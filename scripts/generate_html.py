@@ -181,8 +181,16 @@ def gerar_tabela_previsoes(prediction_dir: Path) -> str:
   return f"<div class='card'><h3 class='card-title'>Previsões Recentes</h3><div class='table-wrap'>{tabela_html}</div><div class='actions'>{link}{count_info}</div></div>"
 
 def carregar_heatmap(path: Path) -> str:
-  if path.exists():
-    return path.read_text(encoding="utf-8")
+  # Resolve caminhos relativos ao diretório raiz do projeto
+  current_dir = Path.cwd()
+  if current_dir.name == 'scripts':
+    project_root = current_dir.parent
+  else:
+    project_root = current_dir
+  
+  full_path = project_root / path
+  if full_path.exists():
+    return full_path.read_text(encoding="utf-8")
   return "<p class='muted'>Heatmap não disponível.</p>"
 
 def gerar_conteudo_jogo(slug: str, cfg: dict) -> str:
