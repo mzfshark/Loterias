@@ -1,4 +1,4 @@
-name: SuperSete Auto Predict
+name: SuperSete
 
 on:
   push:
@@ -50,7 +50,10 @@ jobs:
 
       - name: Executar benchmark
         run: |
-          python Oraculo/SuperSete/scripts/benchmark.py
+          set -euo pipefail
+          echo "Iniciando benchmark SuperSete..."
+          python -u Oraculo/SuperSete/scripts/benchmark.py || { echo "Benchmark falhou"; exit 1; }
+          echo "Benchmark SuperSete concluído."
 
       - name: Commit e push dos resultados
         run: |
@@ -59,8 +62,16 @@ jobs:
           git pull
           git add .
           if ! git diff --cached --quiet; then
-            git commit -m "Atualiza previsões e relatório do Super Sete"
-            git push
+            git commit -m "Atualiza previsões e relatório da SuperSete"
+            for i in 1 2 3; do
+              if git push; then
+                break
+              else
+                echo "Push falhou (tentativa $i). Rebaseando e tentando novamente...";
+                git pull --rebase || true
+                sleep 2
+              fi
+            done
           else
             echo "Nenhuma mudança para comitar."
           fi

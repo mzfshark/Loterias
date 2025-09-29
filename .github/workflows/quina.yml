@@ -1,4 +1,4 @@
-name: Quina Auto Predict
+name: Quina
 
 on:
   push:

@@ -1,4 +1,4 @@
-name: Lotofacil Auto Predict
+name: Lotofacil
 
 on:
   push:
@@ -42,7 +42,10 @@ jobs:
 
       - name: Executar benchmark
         run: |
-          python Oraculo/Lotofacil/scripts/benchmark.py
+          set -euo pipefail
+          echo "Iniciando benchmark Lotofácil..."
+          python -u Oraculo/Lotofacil/scripts/benchmark.py || { echo "Benchmark falhou"; exit 1; }
+          echo "Benchmark Lotofácil concluído."
 
       - name: Commit e push dos resultados
         run: |

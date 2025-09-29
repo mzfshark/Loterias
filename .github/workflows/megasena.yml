@@ -1,4 +1,4 @@
-name: MegaSena Auto Predict
+name: MegaSena
 
 on:
   push:
