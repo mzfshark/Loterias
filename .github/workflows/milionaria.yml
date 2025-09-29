@@ -18,6 +18,7 @@ concurrency:
 jobs:
   predict-and-publish:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
 
     steps:
       - name: Checkout repositório
@@ -36,21 +37,27 @@ jobs:
           python scripts/fetch_results.py --game milionaria --mode api || true
 
 
-      - name: Executar pipeline completa
+      - name: Executar pipeline completa (FAST_CI)
+        env:
+          FAST_CI: "1"
         run: |
-          if [ -f Oraculo/Milionaria/scripts/predict.py ]; then
-            python Oraculo/Milionaria/scripts/predict.py
-          else
-            echo "Arquivo predict.py não encontrado em Oraculo/Milionaria/scripts. Pulando predição."
-          fi
+          set -euo pipefail
+          echo "Iniciando predição +Milionária..."
+          python -u Oraculo/Milionaria/scripts/predict.py || { echo "Predição falhou"; exit 1; }
+          echo "+Milionária concluída."
 
       - name: Gerar HTML unificado
         run: |
           echo "HTML unificado será gerado pelo workflow Publisher."
 
-      - name: Executar benchmark
+      - name: Executar benchmark (FAST_CI)
+        env:
+          FAST_CI: "1"
         run: |
-          python Oraculo/Milionaria/scripts/benchmark.py
+          set -euo pipefail
+          echo "Iniciando benchmark +Milionária..."
+          python -u Oraculo/Milionaria/scripts/benchmark.py || { echo "Benchmark falhou"; exit 1; }
+          echo "Benchmark +Milionária concluído."
 
       - name: Commit e push dos resultados
         run: |

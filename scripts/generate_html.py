@@ -126,8 +126,7 @@ def gerar_conteudo_jogo(slug: str, cfg: dict) -> str:
   titulo = cfg.get('title', slug.title())
   cabecalho = (
     f"<header class='section-header'>"
-    f"<img src='{logo_path}' alt='{titulo} logo' width='125' height='auto' />"
-    f"<h2>{titulo}</h2>"
+    f"<img src='{logo_path}' alt='{titulo} logo' width='150' height='auto' />"
     f"</header>"
   )
   html.append(cabecalho)

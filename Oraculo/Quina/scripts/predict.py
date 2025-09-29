@@ -106,7 +106,10 @@ def main() -> int:
         if not results:
             print("⚠️ Nenhum resultado foi gerado.")
             return 2
-        gerar_heatmap_quina()
+        if os.environ.get("FAST_CI", "") != "1":
+            gerar_heatmap_quina()
+        else:
+            print("⏩ FAST_CI=1: pulando geração de heatmap da Quina.")
         print("\n✅ Pipeline Quina finalizada com sucesso.")
         return 0
     except KeyboardInterrupt:

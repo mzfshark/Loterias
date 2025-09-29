@@ -108,8 +108,11 @@ def main() -> int:
         if not results:
             print("⚠️ Nenhum resultado foi gerado.")
             return 2
-        # Gera heatmap após previsões
-        gerar_heatmap_megasena()
+        # Gera heatmap após previsões (exceto em FAST_CI)
+        if os.environ.get("FAST_CI", "") != "1":
+            gerar_heatmap_megasena()
+        else:
+            print("⏩ FAST_CI=1: pulando geração de heatmap Mega-Sena.")
         print("\n✅ Pipeline Mega-Sena finalizada com sucesso.")
         return 0
     except KeyboardInterrupt:
