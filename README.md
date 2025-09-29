@@ -1,14 +1,6 @@
 # **CryptoDraw: Revolutionizing Lottery with Blockchain Technology** 
 
-[![SuperSete Auto Predict](https://github.com/mzfshark/Loterias/actions/workflows/supersete.yml/badge.svg?branch=main)](https://github.com/mzfshark/Loterias/actions/workflows/supersete.yml)
-
-[![Quina Auto Predict](https://github.com/mzfshark/Loterias/actions/workflows/quina.yml/badge.svg?branch=main)](https://github.com/mzfshark/Loterias/actions/workflows/quina.yml)
-
-[![Lotofacil Auto Predict](https://github.com/mzfshark/Loterias/actions/workflows/lotofacil.yml/badge.svg?branch=main)](https://github.com/mzfshark/Loterias/actions/workflows/lotofacil.yml)
-
-[![MegaSena Auto Predict](https://github.com/mzfshark/Loterias/actions/workflows/megasena.yml/badge.svg?branch=main)](https://github.com/mzfshark/Loterias/actions/workflows/megasena.yml)
-
-[![+Milionaria Auto Predict](https://github.com/mzfshark/Loterias/actions/workflows/milionaria.yml/badge.svg?branch=main)](https://github.com/mzfshark/Loterias/actions/workflows/milionaria.yml)
+[![SuperSete Auto Predict](https://github.com/mzfshark/Loterias/actions/workflows/supersete.yml/badge.svg?branch=main)](https://github.com/mzfshark/Loterias/actions/workflows/supersete.yml) | [![Quina Auto Predict](https://github.com/mzfshark/Loterias/actions/workflows/quina.yml/badge.svg?branch=main)](https://github.com/mzfshark/Loterias/actions/workflows/quina.yml) | [![Lotofacil Auto Predict](https://github.com/mzfshark/Loterias/actions/workflows/lotofacil.yml/badge.svg?branch=main)](https://github.com/mzfshark/Loterias/actions/workflows/lotofacil.yml) | [![MegaSena Auto Predict](https://github.com/mzfshark/Loterias/actions/workflows/megasena.yml/badge.svg?branch=main)](https://github.com/mzfshark/Loterias/actions/workflows/megasena.yml) | [![+Milionaria Auto Predict](https://github.com/mzfshark/Loterias/actions/workflows/milionaria.yml/badge.svg?branch=main)](https://github.com/mzfshark/Loterias/actions/workflows/milionaria.yml)
 
 [![Loterias HTML Publisher](https://github.com/mzfshark/Loterias/actions/workflows/publish.yml/badge.svg)](https://github.com/mzfshark/Loterias/actions/workflows/publish.yml)
 
