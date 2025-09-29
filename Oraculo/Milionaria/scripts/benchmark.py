@@ -17,6 +17,32 @@ CHART_IMG = "../docs/charts/benchmark_summary.png"
 N_VALID = 300
 TEST_MODE = True  # Permite qualquer predição ser comparada com qualquer concurso
 
+# Verificação de caminhos
+def verificar_paths():
+    """Verifica se os caminhos essenciais existem."""
+    print(f"📁 Diretório atual: {os.getcwd()}")
+    print(f"📄 Procurando dataset: {DATASET_PATH}")
+    
+    if not os.path.exists(DATASET_PATH):
+        # Tentar caminhos alternativos
+        alt_paths = [
+            "../data/Milionaria.csv",
+            "data/Milionaria.csv", 
+            "Oraculo/Milionaria/data/Milionaria.csv",
+            "../Milionaria/data/Milionaria.csv"
+        ]
+        
+        for alt_path in alt_paths:
+            if os.path.exists(alt_path):
+                print(f"✅ Dataset encontrado: {alt_path}")
+                return alt_path
+        
+        print(f"❌ Dataset não encontrado em nenhum caminho testado!")
+        return None
+    else:
+        print(f"✅ Dataset encontrado: {DATASET_PATH}")
+        return DATASET_PATH
+
 
 def parse_date_multi(s: str):
     """Tenta converter datas em múltiplos formatos comuns."""
@@ -32,7 +58,13 @@ def parse_date_multi(s: str):
 
 
 def load_dataset():
-    df = pd.read_csv(DATASET_PATH)
+    dataset_path = verificar_paths()
+    if not dataset_path:
+        raise FileNotFoundError("Dataset não encontrado!")
+    
+    print(f"📊 Carregando dados de {dataset_path}...")
+    df = pd.read_csv(dataset_path)
+    print(f"📊 Carregadas {len(df)} linhas do dataset")
     df = df.sort_values(by="Concurso")
     return df.tail(N_VALID)
 
