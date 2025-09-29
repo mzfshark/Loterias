@@ -233,7 +233,7 @@ class BaseLotteryPredictor(ABC):
     def save_predictions(self, results: Dict[str, Any], timestamp: str = None) -> Tuple[str, str]:
         """Save predictions to JSON and CSV files."""
         if timestamp is None:
-            timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+            timestamp = datetime.now().strftime("%Y-%m-%d")
         
         # Ensure predictions directory exists
         predictions_dir = Path(self.config.predictions_path)
