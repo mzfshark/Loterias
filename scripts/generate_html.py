@@ -266,9 +266,10 @@ def gerar_conteudo_jogo(slug: str, cfg: dict) -> str:
     base = project_root / cfg["predictions"].parents[0]  # Oraculo/Jogo
     summary_md = base / "docs" / "benchmark_summary.md"
     result_csv = base / "validation" / "benchmark_results.csv"
-    chart_img = base / "docs" / "charts" / "benchmark_summary.png"
+    chart_html = base / "docs" / "benchmark.html"
+    chart_png = base / "docs" / "charts" / "benchmark_summary.png"
     
-    if summary_md.exists() or result_csv.exists() or chart_img.exists():
+    if summary_md.exists() or result_csv.exists() or chart_html.exists() or chart_png.exists():
       html.append("<div class='card'><h3 class='card-title'>📈 Backtest / Acertos Reais</h3>")
       links = []
       if result_csv.exists():
@@ -279,10 +280,17 @@ def gerar_conteudo_jogo(slug: str, cfg: dict) -> str:
         # Render simples do markdown como preformatado para evitar dependências
         md_text = summary_md.read_text(encoding='utf-8')
         html.append(f"<details open><summary>Sumário</summary><pre class='md'>{md_text}</pre></details>")
-      if chart_img.exists():
-        # Usar caminho relativo da imagem para o HTML
-        rel_img = chart_img.relative_to(project_root)
-        html.append(f"<div class='img-wrap'><img src='{rel_img.as_posix()}' alt='Resumo de acertos' /></div>")
+      
+      # Preferir HTML interativo, fallback para PNG estática
+      if chart_html.exists():
+        # Carregar e incluir o HTML do benchmark interativo
+        benchmark_content = chart_html.read_text(encoding='utf-8')
+        html.append(f"<div class='benchmark-wrap'>{benchmark_content}</div>")
+      elif chart_png.exists():
+        # Fallback para imagem PNG estática
+        rel_png = chart_png.relative_to(project_root)
+        html.append(f"<div class='benchmark-wrap'><img src='{rel_png.as_posix()}' alt='Benchmark Chart' class='benchmark-img'></div>")
+      
       if links:
         html.append("<div class='actions'>" + " ".join(links) + "</div>")
       html.append("</div>")

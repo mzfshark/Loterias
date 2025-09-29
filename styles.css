@@ -136,10 +136,47 @@ main { padding: 20px 0 60px; }
   color: var(--muted);
 }
 
+/* Benchmark Interactive Styles */
+.benchmark-wrap {
+  margin: 15px 0;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+}
+
+.benchmark-wrap .js-plotly-plot {
+  background: transparent !important;
+}
+
+.benchmark-wrap .plotly .modebar {
+  background: var(--surface) !important;
+  border: 1px solid var(--border) !important;
+}
+
+.benchmark-wrap .plotly .modebar-btn {
+  color: var(--text) !important;
+}
+
+.benchmark-wrap .plotly .modebar-btn:hover {
+  background: var(--accent) !important;
+  color: var(--bg) !important;
+}
+
+.benchmark-img {
+  width: 100%;
+  max-width: 800px;
+  height: auto;
+  border-radius: 4px;
+  display: block;
+  margin: 0 auto;
+}
+
 /* Mobile tweaks */
 @media (max-width: 640px) {
   .site-header h1 { font-size: 1.25rem; }
   .card { padding: 14px; }
   .table th, .table td { padding: 8px; }
   .ensemble-result .prediction { font-size: 1.5rem; letter-spacing: 2px; }
+  .benchmark-wrap { margin: 10px 0; }
 }
