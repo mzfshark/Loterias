@@ -48,13 +48,9 @@ jobs:
         run: |
           echo "HTML unificado será gerado pelo workflow Publisher."
 
-      - name: Executar benchmark (opcional)
+      - name: Executar benchmark
         run: |
-          if [ -f Oraculo/SuperSete/scripts/benchmark.py ]; then
-            python Oraculo/SuperSete/scripts/benchmark.py
-          else
-            echo "Benchmark não encontrado, pulando."
-          fi
+          python Oraculo/SuperSete/scripts/benchmark.py
 
       - name: Commit e push dos resultados
         run: |
