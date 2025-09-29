@@ -3,11 +3,11 @@
   "timestamp": "2025-09-29",
   "ensemble_prediction": [
     1,
+    4,
     5,
+    6,
     10,
-    34,
-    38,
-    53
+    38
   ],
   "ensemble_confidence": 0.7411826175241055,
   "models": [
@@ -39,11 +39,11 @@
       "modelo": "beam_search",
       "jogo": [
         1,
+        2,
+        4,
         5,
         6,
-        10,
-        11,
-        12
+        9
       ],
       "confidence": 0.7
     },
@@ -51,11 +51,11 @@
       "modelo": "markov",
       "jogo": [
         1,
-        3,
-        5,
-        7,
-        10,
-        11
+        6,
+        9,
+        16,
+        17,
+        18
       ],
       "confidence": 0.6
     },
@@ -74,12 +74,12 @@
     {
       "modelo": "mutation",
       "jogo": [
-        5,
-        7,
-        9,
         10,
-        19,
-        53
+        15,
+        27,
+        30,
+        46,
+        49
       ],
       "confidence": 0.6
     }
