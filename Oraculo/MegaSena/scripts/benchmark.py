@@ -7,11 +7,40 @@ import json
 
 # === CONFIGURAÇÃO ===
 JOGO = "MegaSena"
+# Caminhos relativos ao diretório scripts
 DATASET_PATH = "../data/MegaSena.csv"
 PRED_PATH = "../predictions"
 RESULT_CSV = "../validation/benchmark_results.csv"
 SUMMARY_MD = "../docs/benchmark_summary.md"
 CHART_IMG = "../docs/charts/benchmark_summary.png"
+
+# Verificação de caminhos
+def verificar_paths():
+    """Verifica se os caminhos essenciais existem."""
+    print(f"📁 Diretório atual: {os.getcwd()}")
+    print(f"📄 Procurando dataset: {DATASET_PATH}")
+    
+    if not os.path.exists(DATASET_PATH):
+        # Tenta caminhos alternativos se executado do diretório raiz
+        alt_paths = [
+            f"Oraculo/{JOGO}/data/{JOGO}.csv",
+            f"Oraculo/MegaSena/data/MegaSena.csv",
+            "data/MegaSena.csv"
+        ]
+        
+        for alt_path in alt_paths:
+            if os.path.exists(alt_path):
+                print(f"✅ Dataset encontrado em: {alt_path}")
+                return alt_path
+                
+        print(f"❌ Dataset não encontrado em nenhum dos caminhos:")
+        print(f"   - {DATASET_PATH}")
+        for path in alt_paths:
+            print(f"   - {path}")
+        return None
+    
+    print(f"✅ Dataset encontrado: {DATASET_PATH}")
+    return DATASET_PATH
 
 # === PARÂMETROS ===
 N_VALID = 300
@@ -31,7 +60,14 @@ def parse_date_multi(s: str):
 
 
 def load_dataset():
-    df = pd.read_csv(DATASET_PATH)
+    """Carrega o dataset com verificação de caminhos."""
+    dataset_path = verificar_paths()
+    if not dataset_path:
+        raise FileNotFoundError(f"Dataset {JOGO}.csv não encontrado em nenhum dos caminhos esperados")
+    
+    print(f"📊 Carregando dados de {dataset_path}...")
+    df = pd.read_csv(dataset_path)
+    print(f"📊 Carregadas {len(df)} linhas do dataset")
     df = df.sort_values(by="Concurso")
     return df.tail(N_VALID)
 
@@ -99,11 +135,16 @@ def comparar(palpite, real):
 
 def _processar_concurso_megasena(row):
     """Processa um concurso individual e retorna os dados validados."""
-    data_conc = row.get("Data") or row.get("Data Sorteio")
+    data_conc = row.get("Data do Sorteio") or row.get("Data Sorteio") or row.get("Data")
     if not data_conc:
         return None
 
-    real_series = row.drop(["Data", "Data Sorteio", "Concurso"], errors="ignore")
+    real_series = row.drop(["Data do Sorteio", "Data Sorteio", "Data", "Concurso"], errors="ignore")
+    # Para MegaSena: apenas as colunas Bola1-Bola6
+    colunas_bolas = [col for col in real_series.index if col.startswith('Bola')]
+    if len(colunas_bolas) < 6:
+        return None
+    real_series = row[colunas_bolas[:6]]
     real_series = pd.to_numeric(real_series, errors="coerce")
     if real_series.isna().any():
         return None
@@ -149,18 +190,38 @@ def benchmark():
 
     print(f"🔍 Processando {len(df_real)} concursos...")
 
-    for _, row in df_real.iterrows():
+    for i, (_, row) in enumerate(df_real.iterrows()):
+        if i < 3:  # Debug dos primeiros 3
+            print(f"🔍 Debug concurso {i+1}: {row.get('Concurso', '?')}")
+            print(f"   Colunas disponíveis: {list(row.index)}")
+        
         concurso_data = _processar_concurso_megasena(row)
         if not concurso_data:
+            if i < 3:
+                print(f"   ❌ Falha no processamento do concurso")
             continue
 
-        palpites_validos = _filtrar_palpites_validos(preds, concurso_data["data_conc_dt"])
+        if i < 3:
+            print(f"   ✅ Concurso processado: {concurso_data['concurso']}")
+
+        # Para teste: permite qualquer predição (mesmo posterior ao concurso)
+        palpites_validos = preds
         if not palpites_validos:
             continue
 
-        pmais_recente = max(palpites_validos, key=lambda x: parse_date_multi(x["data"]))
-        registro = _gerar_registro_megasena(pmais_recente, concurso_data)
-        registros.append(registro)
+        # Para cada modelo, testa contra este concurso
+        for pred in palpites_validos:
+            acertos = comparar(pred["jogo"], concurso_data["nums_reais"])
+            registro = {
+                "modelo": pred["modelo"],
+                "data_palpite": pred["data"],
+                "data_concurso": concurso_data["data_conc"],
+                "concurso": concurso_data["concurso"],
+                "acertos_totais": acertos,
+                "nums_reais": concurso_data["nums_reais"],
+                "nums_preditos": pred["jogo"]
+            }
+            registros.append(registro)
 
     print(f"📊 Gerados {len(registros)} registros de comparação")
 

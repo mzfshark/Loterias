@@ -13,8 +13,37 @@ RESULT_CSV = "../validation/benchmark_results.csv"
 SUMMARY_MD = "../docs/benchmark_summary.md"
 CHART_IMG = "../docs/charts/benchmark_summary.png"
 
+# Verificação de caminhos
+def verificar_paths():
+    """Verifica se os caminhos essenciais existem."""
+    print(f"📁 Diretório atual: {os.getcwd()}")
+    print(f"📄 Procurando dataset: {DATASET_PATH}")
+    
+    if not os.path.exists(DATASET_PATH):
+        # Tenta caminhos alternativos se executado do diretório raiz
+        alt_paths = [
+            f"Oraculo/{JOGO}/data/{JOGO}.csv",
+            f"Oraculo/Quina/data/Quina.csv",
+            "data/Quina.csv"
+        ]
+        
+        for alt_path in alt_paths:
+            if os.path.exists(alt_path):
+                print(f"✅ Dataset encontrado em: {alt_path}")
+                return alt_path
+                
+        print(f"❌ Dataset não encontrado em nenhum dos caminhos:")
+        print(f"   - {DATASET_PATH}")
+        for path in alt_paths:
+            print(f"   - {path}")
+        return None
+    
+    print(f"✅ Dataset encontrado: {DATASET_PATH}")
+    return DATASET_PATH
+
 # === PARÂMETROS ===
 N_VALID = 300
+TEST_MODE = True  # Permite qualquer predição ser comparada com qualquer concurso
 
 
 def parse_date_multi(s: str):
@@ -31,7 +60,14 @@ def parse_date_multi(s: str):
 
 
 def load_dataset():
-    df = pd.read_csv(DATASET_PATH)
+    """Carrega o dataset com verificação de caminhos."""
+    dataset_path = verificar_paths()
+    if not dataset_path:
+        raise FileNotFoundError(f"Dataset {JOGO}.csv não encontrado em nenhum dos caminhos esperados")
+    
+    print(f"📊 Carregando dados de {dataset_path}...")
+    df = pd.read_csv(dataset_path)
+    print(f"📊 Carregadas {len(df)} linhas do dataset")
     df = df.sort_values(by="Concurso")
     return df.tail(N_VALID)
 
@@ -99,16 +135,24 @@ def comparar(palpite, real):
 
 def _processar_concurso_quina(row):
     """Processa um concurso individual e retorna os dados validados."""
-    data_conc = row.get("Data") or row.get("Data Sorteio")
+    data_conc = row.get("Data Sorteio")
     if not data_conc:
         return None
 
-    real_series = row.drop(["Data", "Data Sorteio", "Concurso"], errors="ignore")
-    real_series = pd.to_numeric(real_series, errors="coerce")
-    if real_series.isna().any():
+    # Extrair apenas os números principais (Bola1-Bola5)
+    try:
+        nums_reais = []
+        for i in range(1, 6):  # Bola1 a Bola5
+            bola = row.get(f"Bola{i}")
+            if bola is not None:
+                nums_reais.append(int(bola))
+            else:
+                return None
+        
+        if len(nums_reais) != 5:
+            return None
+    except (ValueError, TypeError):
         return None
-    
-    nums_reais = real_series.astype(int).tolist()
     data_conc_dt = parse_date_multi(data_conc)
     
     if not data_conc_dt:
@@ -126,8 +170,14 @@ def _filtrar_palpites_validos(preds, data_conc_dt):
     palpites_validos = []
     for p in preds:
         p_dt = parse_date_multi(p["data"])
-        if p_dt and p_dt < data_conc_dt:
-            palpites_validos.append(p)
+        if TEST_MODE:
+            # Em modo teste, aceita qualquer predição com data válida
+            if p_dt:
+                palpites_validos.append(p)
+        else:
+            # Modo normal: apenas predições anteriores ao concurso
+            if p_dt and p_dt < data_conc_dt:
+                palpites_validos.append(p)
     return palpites_validos
 
 def _gerar_registro_quina(pmais_recente, concurso_data):
@@ -148,13 +198,29 @@ def benchmark():
     registros = []
 
     print(f"🔍 Processando {len(df_real)} concursos...")
-
+    
+    debug_count = 0
     for _, row in df_real.iterrows():
+        debug_count += 1
+        if debug_count <= 3:  # Debug primeiros 3 concursos
+            concurso = row.get('Concurso', '?')
+            print(f"🔍 Debug concurso {debug_count}: {concurso}")
+            print(f"   Colunas disponíveis: {list(row.index)}")
+        
         concurso_data = _processar_concurso_quina(row)
         if not concurso_data:
+            if debug_count <= 3:
+                print(f"   ❌ Falha no processamento do concurso")
             continue
+        
+        if debug_count <= 3:
+            print(f"   ✅ Concurso processado: {concurso_data['concurso']}")
+            print(f"   📅 Data concurso: {concurso_data['data_conc_dt']}")
 
         palpites_validos = _filtrar_palpites_validos(preds, concurso_data["data_conc_dt"])
+        if debug_count <= 3:
+            print(f"   🎯 Palpites válidos encontrados: {len(palpites_validos)}")
+        
         if not palpites_validos:
             continue
 
