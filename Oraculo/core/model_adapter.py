@@ -37,7 +37,7 @@ class ModelAdapter:
         """Adapt Bayesian model for current lottery configuration."""
         try:
             # Import shared Bayesian predictor (backed by Lotofacil implementation)
-            from Oraculo.common.models.bayesian import BayesianPredictor as BayesianLotofacilPredictor
+            from Oraculo.common.models.bayesian import BayesianLotofacilPredictor
             
             # Create predictor with standard parameters
             predictor = BayesianLotofacilPredictor()
@@ -73,7 +73,7 @@ class ModelAdapter:
     def adapt_neural_ensemble_model(self, data: List[List[int]]) -> Optional[Dict[str, Any]]:
         """Adapt Neural Ensemble model for current lottery configuration."""
         try:
-            from Oraculo.common.models.neural_ensemble import NeuralEnsemblePredictor as NeuralEnsembleLotofacil
+            from Oraculo.common.models.neural_ensemble import NeuralEnsembleLotofacil
             
             # Create predictor
             predictor = NeuralEnsembleLotofacil()
@@ -110,7 +110,7 @@ class ModelAdapter:
     def adapt_monte_carlo_model(self, data: List[List[int]]) -> Optional[Dict[str, Any]]:
         """Adapt Monte Carlo model for current lottery configuration."""
         try:
-            from Oraculo.common.models.monte_carlo import MonteCarloSimulator as MonteCarloLotofacilSimulator
+            from Oraculo.common.models.monte_carlo import MonteCarloLotofacilSimulator
             
             # Create simulator
             # Usa verbose=False para silenciar logs de progresso
@@ -140,7 +140,7 @@ class ModelAdapter:
     def adapt_time_series_model(self, data: List[List[int]]) -> Optional[Dict[str, Any]]:
         """Adapt Time Series model for current lottery configuration."""
         try:
-            from Oraculo.common.models.time_series import TimeSeriesPredictor as TimeSeriesLotofacilPredictor
+            from Oraculo.common.models.time_series import TimeSeriesLotofacilPredictor
             
             # Create predictor
             predictor = TimeSeriesLotofacilPredictor()
@@ -168,7 +168,7 @@ class ModelAdapter:
     def adapt_markov_model(self, data: List[List[int]]) -> Optional[Dict[str, Any]]:
         """Adapt Markov model for current lottery configuration."""
         try:
-            from Oraculo.Lotofacil.models import markov
+            from Oraculo.common.models import markov
             
             # Use the existing gerar_palpite function with adapted data
             prediction = markov.gerar_palpite(data)
@@ -202,7 +202,7 @@ class ModelAdapter:
     def adapt_poisson_model(self, data: List[List[int]]) -> Optional[Dict[str, Any]]:
         """Adapt Poisson model for current lottery configuration."""
         try:
-            from Oraculo.Lotofacil.models.poisson import gerar_combinacao_poisson
+            from Oraculo.common.models.poisson import gerar_combinacao_poisson
             
             # Convert data to DataFrame format
             df = pd.DataFrame(data)
@@ -240,7 +240,7 @@ class ModelAdapter:
     def adapt_mutation_model(self, data: List[List[int]]) -> Optional[Dict[str, Any]]:
         """Adapt Genetic Algorithm (Mutation) model for current lottery configuration."""
         try:
-            from Oraculo.Lotofacil.models import mutation
+            from Oraculo.common.models import mutation
             
             # Create adapted mutation functions
             def adapted_gerar_mutacoes(jogos_hist, num_mutantes=5, taxa_mutacao=0.3):
@@ -300,7 +300,7 @@ class ModelAdapter:
     def adapt_beam_search_model(self, data: List[List[int]]) -> Optional[Dict[str, Any]]:
         """Adapt Beam Search model for current lottery configuration."""
         try:
-            from Oraculo.Lotofacil.models.beam_search import beam_search
+            from Oraculo.common.models.beam_search import beam_search
             
             # Generate prediction using beam search
             results = beam_search(data, beam_width=50, top_candidates=1)
