@@ -10,6 +10,7 @@ Author: Enhanced AI System
 
 import sys
 import os
+import signal
 import pandas as pd
 import numpy as np
 from typing import Dict, List, Any, Optional
@@ -105,24 +106,285 @@ class EnhancedSuperSetePredictor(BaseLotteryPredictor):
     
     def _run_model(self, model_name: str, data: List[List[int]]) -> Optional[Dict[str, Any]]:
         """Run a specific adapted model for SuperSete."""
-        if model_name == 'bayesian':
-            return self.adapter.adapt_bayesian_model(data)
-        elif model_name == 'neural_ensemble':
-            return self.adapter.adapt_neural_ensemble_model(data)
-        elif model_name == 'monte_carlo':
-            return self.adapter.adapt_monte_carlo_model(data)
-        elif model_name == 'time_series':
-            return self.adapter.adapt_time_series_model(data)
-        elif model_name == 'markov':
-            return self.adapter.adapt_markov_model(data)
-        elif model_name == 'poisson':
-            return self.adapter.adapt_poisson_model(data)
-        elif model_name == 'mutation':
-            return self.adapter.adapt_mutation_model(data)
-        elif model_name == 'beam_search':
-            return self.adapter.adapt_beam_search_model(data)
-        else:
+        try:
+            # Timeout para evitar travamentos (apenas Unix/Linux)
+            timeout_set = False
+            try:
+                def timeout_handler(signum, frame):
+                    raise TimeoutError(f"Timeout no modelo {model_name}")
+                
+                # Define timeout de 30 segundos (apenas em sistemas Unix)
+                if hasattr(signal, 'SIGALRM'):
+                    signal.signal(signal.SIGALRM, timeout_handler)
+                    signal.alarm(30)
+                    timeout_set = True
+            except (AttributeError, OSError):
+                # Windows ou sistema que não suporta alarm
+                pass
+            
+            result = None
+            
+            if model_name == 'bayesian':
+                result = self._simple_bayesian_model(data)
+            elif model_name == 'neural_ensemble':
+                result = self._simple_neural_model(data)
+            elif model_name == 'monte_carlo':
+                result = self._simple_monte_carlo_model(data)
+            elif model_name == 'time_series':
+                result = self._simple_time_series_model(data)
+            elif model_name == 'markov':
+                result = self._simple_markov_model(data)
+            elif model_name == 'poisson':
+                result = self._simple_poisson_model(data)
+            elif model_name == 'mutation':
+                result = self._simple_mutation_model(data)
+            elif model_name == 'beam_search':
+                result = self._simple_beam_search_model(data)
+            
+            # Cancela o timeout se foi definido
+            if timeout_set:
+                signal.alarm(0)
+            return result
+            
+        except (TimeoutError, Exception) as e:
+            if timeout_set:
+                signal.alarm(0)  # Cancela timeout
+            print(f"⚠️ Modelo {model_name} falhou: {e}")
             return None
+    
+    def _simple_bayesian_model(self, data: List[List[int]]) -> Dict[str, Any]:
+        """Modelo Bayesiano simplificado para SuperSete."""
+        if not data:
+            return self._generate_random_prediction('bayesian')
+        
+        # Calcula frequência por coluna
+        column_freqs = [np.zeros(10) for _ in range(7)]
+        for game in data[-100:]:  # Últimos 100 jogos
+            for col, digit in enumerate(game[:7]):
+                if 0 <= digit <= 9:
+                    column_freqs[col][digit] += 1
+        
+        # Gera predição baseada em frequências
+        prediction = []
+        for col_freq in column_freqs:
+            # Adiciona prior Bayesiano
+            col_freq += 0.1
+            probabilities = col_freq / col_freq.sum()
+            digit = np.random.choice(10, p=probabilities)
+            prediction.append(int(digit))
+        
+        return {
+            'prediction': prediction,
+            'confidence': 0.7,
+            'method': 'bayesian_frequency'
+        }
+    
+    def _simple_neural_model(self, data: List[List[int]]) -> Dict[str, Any]:
+        """Modelo Neural simplificado."""
+        if len(data) < 10:
+            return self._generate_random_prediction('neural')
+        
+        # Padrão de tendência por coluna
+        prediction = []
+        for col in range(7):
+            recent_values = [game[col] for game in data[-20:] if col < len(game)]
+            if recent_values:
+                # Média ponderada dos valores recentes
+                weights = np.exp(np.linspace(-1, 0, len(recent_values)))
+                avg = np.average(recent_values, weights=weights)
+                prediction.append(int(np.round(avg)) % 10)
+            else:
+                prediction.append(np.random.randint(0, 10))
+        
+        return {
+            'prediction': prediction,
+            'confidence': 0.6,
+            'method': 'neural_trend'
+        }
+    
+    def _simple_monte_carlo_model(self, data: List[List[int]]) -> Dict[str, Any]:
+        """Modelo Monte Carlo simplificado."""
+        if not data:
+            return self._generate_random_prediction('monte_carlo')
+        
+        # Simula múltiplas predições baseadas em distribuições históricas
+        predictions = []
+        for _ in range(100):  # 100 simulações
+            pred = []
+            for col in range(7):
+                col_values = [game[col] for game in data[-50:] if col < len(game)]
+                if col_values:
+                    pred.append(int(np.random.choice(col_values)))
+                else:
+                    pred.append(np.random.randint(0, 10))
+            predictions.append(pred)
+        
+        # Moda de cada coluna
+        final_pred = []
+        for col in range(7):
+            col_values = [pred[col] for pred in predictions]
+            from collections import Counter
+            most_common = Counter(col_values).most_common(1)
+            final_pred.append(int(most_common[0][0]) if most_common else np.random.randint(0, 10))
+        
+        return {
+            'prediction': final_pred,
+            'confidence': 0.65,
+            'method': 'monte_carlo_mode'
+        }
+    
+    def _simple_time_series_model(self, data: List[List[int]]) -> Dict[str, Any]:
+        """Modelo de série temporal simplificado."""
+        if len(data) < 5:
+            return self._generate_random_prediction('time_series')
+        
+        prediction = []
+        for col in range(7):
+            col_series = [game[col] for game in data[-30:] if col < len(game)]
+            if len(col_series) >= 3:
+                # Tendência linear simples
+                x = np.arange(len(col_series))
+                y = np.array(col_series)
+                trend = np.polyfit(x, y, 1)[0]  # Coeficiente linear
+                next_val = col_series[-1] + trend
+                prediction.append(int(np.clip(next_val, 0, 9)))
+            else:
+                prediction.append(np.random.randint(0, 10))
+        
+        return {
+            'prediction': prediction,
+            'confidence': 0.55,
+            'method': 'linear_trend'
+        }
+    
+    def _simple_markov_model(self, data: List[List[int]]) -> Dict[str, Any]:
+        """Modelo de Markov simplificado."""
+        if len(data) < 3:
+            return self._generate_random_prediction('markov')
+        
+        prediction = []
+        for col in range(7):
+            col_values = [game[col] for game in data[-20:] if col < len(game)]
+            if len(col_values) >= 2:
+                # Transições de estado
+                transitions = {}
+                for i in range(len(col_values) - 1):
+                    current = col_values[i]
+                    next_val = col_values[i + 1]
+                    if current not in transitions:
+                        transitions[current] = []
+                    transitions[current].append(next_val)
+                
+                # Predição baseada no último valor
+                last_val = col_values[-1]
+                if last_val in transitions and transitions[last_val]:
+                    next_digit = np.random.choice(transitions[last_val])
+                else:
+                    next_digit = np.random.randint(0, 10)
+                prediction.append(int(next_digit))
+            else:
+                prediction.append(np.random.randint(0, 10))
+        
+        return {
+            'prediction': prediction,
+            'confidence': 0.6,
+            'method': 'markov_chain'
+        }
+    
+    def _simple_poisson_model(self, data: List[List[int]]) -> Dict[str, Any]:
+        """Modelo de Poisson simplificado."""
+        if not data:
+            return self._generate_random_prediction('poisson')
+        
+        prediction = []
+        for col in range(7):
+            col_values = [game[col] for game in data[-50:] if col < len(game)]
+            if col_values:
+                # Lambda como média da coluna
+                lambda_val = np.mean(col_values)
+                # Gera valor de Poisson e limita a 0-9
+                poisson_val = np.random.poisson(lambda_val)
+                prediction.append(int(poisson_val % 10))
+            else:
+                prediction.append(np.random.randint(0, 10))
+        
+        return {
+            'prediction': prediction,
+            'confidence': 0.5,
+            'method': 'poisson_distribution'
+        }
+    
+    def _simple_mutation_model(self, data: List[List[int]]) -> Dict[str, Any]:
+        """Modelo de mutação simplificado."""
+        if not data:
+            return self._generate_random_prediction('mutation')
+        
+        # Pega um jogo recente como base
+        base_game = data[-1][:7]
+        prediction = []
+        
+        for digit in base_game:
+            # Aplica mutação com probabilidade
+            if np.random.random() < 0.3:  # 30% chance de mutação
+                # Mutação: +/- 1, 2 ou 3
+                mutation = np.random.choice([-3, -2, -1, 1, 2, 3])
+                new_digit = (digit + mutation) % 10
+                prediction.append(int(new_digit))
+            else:
+                prediction.append(int(digit))
+        
+        # Garante 7 dígitos
+        while len(prediction) < 7:
+            prediction.append(np.random.randint(0, 10))
+        
+        return {
+            'prediction': prediction[:7],
+            'confidence': 0.55,
+            'method': 'genetic_mutation'
+        }
+    
+    def _simple_beam_search_model(self, data: List[List[int]]) -> Dict[str, Any]:
+        """Modelo de Beam Search simplificado."""
+        if not data:
+            return self._generate_random_prediction('beam_search')
+        
+        # Beam search com 3 candidatos por coluna
+        beam_size = 3
+        candidates = []
+        
+        for col in range(7):
+            col_values = [game[col] for game in data[-20:] if col < len(game)]
+            if col_values:
+                # Top 3 valores mais frequentes
+                from collections import Counter
+                counter = Counter(col_values)
+                top_candidates = [val for val, _ in counter.most_common(beam_size)]
+                # Preenche com valores aleatórios se necessário
+                while len(top_candidates) < beam_size:
+                    rand_val = np.random.randint(0, 10)
+                    if rand_val not in top_candidates:
+                        top_candidates.append(rand_val)
+                candidates.append(top_candidates)
+            else:
+                candidates.append([np.random.randint(0, 10) for _ in range(beam_size)])
+        
+        # Seleciona um candidato por coluna
+        prediction = [int(np.random.choice(col_candidates)) for col_candidates in candidates]
+        
+        return {
+            'prediction': prediction,
+            'confidence': 0.6,
+            'method': 'beam_search_frequency'
+        }
+    
+    def _generate_random_prediction(self, method: str) -> Dict[str, Any]:
+        """Gera predição aleatória como fallback."""
+        prediction = [np.random.randint(0, 10) for _ in range(7)]
+        return {
+            'prediction': prediction,
+            'confidence': 0.3,
+            'method': f'{method}_random'
+        }
     
     def combine_predictions(self, model_results: Dict[str, Any]) -> Dict[str, Any]:
         """Override to handle SuperSete's column-based format."""
