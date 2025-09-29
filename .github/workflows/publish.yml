@@ -24,9 +24,14 @@ concurrency:
 
 jobs:
   format-and-publish:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
-
+    timeout-minutes: 2
+    
+    env:
+      FAST_CI: '1'
+      PYTHONUNBUFFERED: '1'
+      
     steps:
       - name: Debounce de publicação (aguardar 1 minuto)
         run: |
@@ -34,51 +39,109 @@ jobs:
           sleep 60
 
       - name: Checkout repositório
-        uses: actions/checkout@v4
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
 
       - name: Configurar Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@39cd14951b08e74b54015e9e001cdefcf80e669f # v5.1.1
         with:
           python-version: '3.11'
+          cache: 'pip'
 
       - name: Instalar dependências
         run: |
-          pip install jinja2 pandas numpy scipy scikit-learn
+          echo "📦 Instalando dependências Python..."
+          pip install --upgrade pip
+          pip install jinja2 pandas numpy scipy scikit-learn plotly
+          echo "✅ Dependências instaladas com sucesso!"
+
+      - name: Verificar estrutura de arquivos
+        run: |
+          echo "📁 Verificando estrutura do projeto..."
+          ls -la
+          echo "📊 Verificando dados das loterias..."
+          find Oraculo -name "*.csv" -exec wc -l {} + 2>/dev/null || echo "Arquivos CSV não encontrados"
+          echo "🎯 Verificando predições mais recentes..."
+          find Oraculo -name "prediction_*.json" | head -5 || echo "Predições não encontradas"
 
       - name: Gerar HTML unificado
         run: |
+          echo "🌐 Gerando dashboard HTML..."
           python scripts/generate_html.py
+          echo "✅ HTML gerado com sucesso!"
 
       - name: Calibrar pesos automaticamente (opcional)
         continue-on-error: true
         run: |
-          echo "Iniciando calibração de pesos (lookback-history=20)..."
-          python Oraculo/core/auto_calibrator.py --game all --lookback-history 20 || true
-          echo "Calibração concluída (se aplicável)."
+          echo "⚖️ Iniciando calibração automática de pesos..."
+          if [ -f "Oraculo/core/auto_calibrator.py" ]; then
+            python Oraculo/core/auto_calibrator.py --game all --lookback-history 20 --mode backtest || echo "⚠️ Calibração falhou, continuando..."
+            echo "✅ Calibração concluída."
+          else
+            echo "ℹ️ Auto-calibrador não encontrado, pulando calibração."
+          fi
+
+      - name: Validar arquivos gerados
+        run: |
+          echo "🔍 Validando arquivos gerados..."
+          if [ -f "index.html" ]; then
+            echo "✅ index.html encontrado ($(wc -c < index.html) bytes)"
+          else
+            echo "❌ index.html não foi gerado!"
+            exit 1
+          fi
+          if [ -f "styles.css" ]; then
+            echo "✅ styles.css encontrado ($(wc -c < styles.css) bytes)"
+          else
+            echo "⚠️ styles.css não encontrado"
+          fi
 
       - name: Commit e push do HTML
         shell: bash
         run: |
+          echo "📝 Configurando Git..."
           git config user.name "mzfshark"
           git config user.email "mzfshark@gmail.com"
-          git pull
+          
+          echo "🔄 Sincronizando com repositório remoto..."
+          git pull --rebase || git pull
+          
+          echo "📁 Adicionando arquivos..."
           # Adiciona HTML/CSS sempre
           git add index.html styles.css
-          # Adiciona pesos auto-calibrados caso existam (evita erro quando não existem)
+          
+          # Adiciona pesos auto-calibrados caso existam
           if compgen -G "Oraculo/*/models/weights.auto.json" > /dev/null; then
+            echo "⚖️ Adicionando pesos auto-calibrados..."
             git add Oraculo/*/models/weights.auto.json
           fi
+          
+          # Adiciona README.md se foi modificado
+          git add README.md 2>/dev/null || true
+          
+          echo "🔍 Verificando alterações..."
           if ! git diff --cached --quiet; then
-            git commit -m "Atualiza apresentação HTML das loterias"
+            TIMESTAMP=$(date '+%Y-%m-%d %H:%M UTC')
+            git commit -m "🎯 Atualiza dashboard das loterias - $TIMESTAMP
+
+            - 📊 Dashboard HTML atualizado
+            - 🎮 Predições mais recentes incluídas
+            - 📈 Gráficos interativos atualizados
+            - ⚙️ Gerado automaticamente via GitHub Actions"
+            echo "📤 Fazendo push das alterações..."
             git push
+            echo "✅ Alterações commitadas e enviadas!"
           else
-            echo "Nenhuma alteração detectada. Nada para comitar."
+            echo "ℹ️ Nenhuma alteração detectada. Nada para comitar."
           fi
 
       - name: Publicar via GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
+        uses: peaceiris/actions-gh-pages@4f9cc6602d3f66b9c108549d475ec49e8ef4d45e # v4.0.0
         with:
           github_token: ${{ secrets.GH_PAT }}
           publish_dir: ./
           publish_branch: gh-pages
           enable_jekyll: false
+          force_orphan: true
+          user_name: 'mzfshark'
+          user_email: 'mzfshark@gmail.com'
+          commit_message: '🚀 Deploy dashboard loterias - ${{ github.sha }}'
