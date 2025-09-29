@@ -27,10 +27,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Debounce de publicação (aguardar 5 minutos)
+      - name: Debounce de publicação (aguardar 1 minuto)
         run: |
-          echo "Aguardando 5 minutos para consolidar saídas das pipelines..."
-          sleep 300
+          echo "Aguardando 1 minuto para consolidar saídas das pipelines..."
+          sleep 60
 
       - name: Checkout repositório
         uses: actions/checkout@v4
@@ -61,7 +61,12 @@ jobs:
           git config user.name "mzfshark"
           git config user.email "mzfshark@gmail.com"
           git pull
-          git add index.html styles.css Oraculo/**/models/weights.auto.json
+          # Adiciona HTML/CSS sempre
+          git add index.html styles.css
+          # Adiciona pesos auto-calibrados caso existam (evita erro quando não existem)
+          if compgen -G "Oraculo/*/models/weights.auto.json" > /dev/null; then
+            git add Oraculo/*/models/weights.auto.json
+          fi
           if ! git diff --cached --quiet; then
             git commit -m "Atualiza apresentação HTML das loterias"
             git push
