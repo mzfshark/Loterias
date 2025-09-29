@@ -75,72 +75,72 @@
     "modelo": "palpite_rodada",
     "jogo": [
       1,
-      5,
-      6,
-      0,
-      6,
-      6,
-      5
-    ]
-  },
-  {
-    "modelo": "evolutivo",
-    "jogo": [
-      7,
-      9,
-      4,
-      6,
-      9,
-      9,
-      5
-    ]
-  },
-  {
-    "modelo": "evolutivo",
-    "jogo": [
-      4,
-      3,
-      8,
-      7,
-      6,
-      6,
-      9
-    ]
-  },
-  {
-    "modelo": "evolutivo",
-    "jogo": [
-      2,
-      2,
-      8,
-      7,
-      6,
-      4,
-      0
-    ]
-  },
-  {
-    "modelo": "evolutivo",
-    "jogo": [
-      7,
-      6,
-      0,
-      0,
-      6,
-      6,
-      6
-    ]
-  },
-  {
-    "modelo": "evolutivo",
-    "jogo": [
       1,
+      0,
+      7,
       3,
+      7,
+      3
+    ]
+  },
+  {
+    "modelo": "evolutivo",
+    "jogo": [
+      9,
+      1,
+      8,
+      7,
+      1,
+      9,
+      2
+    ]
+  },
+  {
+    "modelo": "evolutivo",
+    "jogo": [
+      0,
+      0,
+      2,
+      8,
+      7,
+      9,
+      3
+    ]
+  },
+  {
+    "modelo": "evolutivo",
+    "jogo": [
+      3,
+      1,
+      0,
+      7,
+      1,
+      5,
+      5
+    ]
+  },
+  {
+    "modelo": "evolutivo",
+    "jogo": [
+      7,
+      3,
+      0,
+      7,
       6,
+      7,
+      2
+    ]
+  },
+  {
+    "modelo": "evolutivo",
+    "jogo": [
+      8,
+      8,
+      0,
+      7,
       3,
       7,
-      7,
-      4
+      6
     ]
   }
 ]
