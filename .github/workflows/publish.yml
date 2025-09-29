@@ -1,4 +1,4 @@
-name: Loterias HTML Publisher
+name: HTML Publisher
 
 on:
   workflow_run:
