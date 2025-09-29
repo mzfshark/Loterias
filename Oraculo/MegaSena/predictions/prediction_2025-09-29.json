@@ -2,11 +2,11 @@
   "lottery": "MegaSena",
   "timestamp": "2025-09-29",
   "ensemble_prediction": [
+    1,
+    2,
     4,
     5,
-    6,
     10,
-    37,
     38
   ],
   "ensemble_confidence": 0.7411826175241055,
@@ -38,24 +38,24 @@
     {
       "modelo": "beam_search",
       "jogo": [
+        1,
         2,
-        3,
         4,
         5,
-        8,
-        9
+        6,
+        10
       ],
       "confidence": 0.7
     },
     {
       "modelo": "markov",
       "jogo": [
-        6,
-        17,
-        18,
-        20,
-        21,
-        22
+        2,
+        5,
+        8,
+        10,
+        12,
+        13
       ],
       "confidence": 0.6
     },
@@ -74,12 +74,12 @@
     {
       "modelo": "mutation",
       "jogo": [
-        5,
+        4,
+        15,
+        22,
         23,
-        26,
-        28,
-        44,
-        59
+        54,
+        55
       ],
       "confidence": 0.6
     }
