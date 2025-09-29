@@ -3,8 +3,8 @@
   "timestamp": "2025-09-29",
   "ensemble_prediction": [
     4,
-    5,
     26,
+    31,
     49,
     52
   ],
@@ -39,18 +39,18 @@
         5,
         6,
         7,
-        8
+        9
       ],
       "confidence": 0.7
     },
     {
       "modelo": "markov",
       "jogo": [
+        1,
         2,
-        5,
-        8,
+        3,
         9,
-        11
+        10
       ],
       "confidence": 0.6
     },
@@ -68,11 +68,11 @@
     {
       "modelo": "mutation",
       "jogo": [
-        42,
-        51,
-        52,
-        57,
-        61
+        10,
+        45,
+        72,
+        76,
+        80
       ],
       "confidence": 0.6
     }
