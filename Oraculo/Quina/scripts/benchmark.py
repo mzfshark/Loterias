@@ -284,26 +284,158 @@ def _gerar_relatorio_markdown_quina(resumo, faixas_acertos):
     
     return melhor_modelo
 
-def _gerar_grafico_quina(resumo):
-    """Gera o gráfico de benchmark."""
-    charts_dir = os.path.dirname(CHART_IMG)
+def _gerar_grafico_interativo_quina(resumo, df):
+    """Gera gráfico interativo de benchmark com múltiplas visualizações."""
+    charts_dir = os.path.dirname(CHART_HTML)
     os.makedirs(charts_dir, exist_ok=True)
 
-    plt.figure(figsize=(12,8))
-    plt.bar(resumo["modelo"], resumo["media_acertos"], yerr=resumo["desvio_padrao"], 
-             capsize=5, color='red', alpha=0.7)
-    plt.title("📊 Benchmark - Média de Acertos por Modelo (Quina)", fontsize=14, pad=20)
-    plt.ylabel("Média de Acertos")
-    plt.xlabel("Modelo")
-    plt.xticks(rotation=45)
-    plt.grid(axis='y', alpha=0.3)
+    # Cor oficial da Quina
+    QUINA_COLOR = "#42338b"
     
-    for i, v in enumerate(resumo["media_acertos"]):
-        plt.text(i, v + 0.05, f'{v:.2f}', ha='center', va='bottom')
+    # Criar paleta de cores baseada na cor principal
+    cores = [QUINA_COLOR, "#372978", "#2c1f65", "#211552", "#160b3f"]
+
+    # Criar subplots 2x2
+    fig = make_subplots(
+        rows=2, cols=2,
+        subplot_titles=("📊 Média de Acertos por Modelo", "📦 Distribuição de Acertos", 
+                       "📈 Acertos por Concurso (Temporal)", "🥧 Faixas de Premiação"),
+        specs=[[{"secondary_y": False}, {"secondary_y": False}],
+               [{"secondary_y": False}, {"type": "domain"}]],
+        vertical_spacing=0.15,
+        horizontal_spacing=0.1
+    )
+
+    # 1. Gráfico de Barras - Média de Acertos
+    fig.add_trace(
+        go.Bar(
+            x=resumo["modelo"],
+            y=resumo["media_acertos"],
+            error_y=dict(type='data', array=resumo["desvio_padrao"]),
+            name="Média de Acertos",
+            marker_color=QUINA_COLOR,
+            text=[f'{v:.2f}' for v in resumo["media_acertos"]],
+            textposition='outside',
+            visible=True
+        ),
+        row=1, col=1
+    )
+
+    # 2. Box Plot - Distribuição
+    for i, modelo in enumerate(resumo["modelo"]):
+        dados_modelo = df[df["modelo"] == modelo]["acertos_totais"]
+        fig.add_trace(
+            go.Box(
+                y=dados_modelo,
+                name=modelo,
+                marker_color=cores[i % len(cores)],
+                visible=True
+            ),
+            row=1, col=2
+        )
+
+    # 3. Scatter Plot Temporal
+    for i, modelo in enumerate(resumo["modelo"]):
+        dados_modelo = df[df["modelo"] == modelo]
+        fig.add_trace(
+            go.Scatter(
+                x=list(range(len(dados_modelo))),
+                y=dados_modelo["acertos_totais"],
+                mode='markers+lines',
+                name=f"{modelo} - Temporal",
+                marker_color=cores[i % len(cores)],
+                visible=True
+            ),
+            row=2, col=1
+        )
+
+    # 4. Pie Chart - Faixas de Premiação (Duque, Terno, Quadra, Quina)
+    faixas_labels = []
+    faixas_values = []
     
-    plt.tight_layout()
-    plt.savefig(CHART_IMG, dpi=300, bbox_inches='tight')
-    plt.close()
+    for modelo in resumo["modelo"]:
+        dados_modelo = df[df["modelo"] == modelo]["acertos_totais"]
+        duque = sum(dados_modelo == 2)
+        terno = sum(dados_modelo == 3)
+        quadra = sum(dados_modelo == 4)
+        quina = sum(dados_modelo == 5)
+        
+        if duque > 0:
+            faixas_labels.append(f"{modelo} - Duque")
+            faixas_values.append(duque)
+        if terno > 0:
+            faixas_labels.append(f"{modelo} - Terno")
+            faixas_values.append(terno)
+        if quadra > 0:
+            faixas_labels.append(f"{modelo} - Quadra")
+            faixas_values.append(quadra)
+        if quina > 0:
+            faixas_labels.append(f"{modelo} - Quina")
+            faixas_values.append(quina)
+    
+    if faixas_values:  # Só adiciona se houver dados
+        fig.add_trace(
+            go.Pie(
+                labels=faixas_labels,
+                values=faixas_values,
+                name="Faixas de Premiação",
+                marker_colors=cores * (len(faixas_labels) // len(cores) + 1),
+                visible=True
+            ),
+            row=2, col=2
+        )
+
+    # Configurar layout
+    fig.update_layout(
+        title={
+            'text': "🎯 Quina - Análise Interativa de Performance dos Modelos",
+            'x': 0.5,
+            'xanchor': 'center',
+            'font': {'size': 16, 'color': QUINA_COLOR}
+        },
+        showlegend=True,
+        height=800,
+        font=dict(size=10),
+        # Botões para alternar tipos de gráfico
+        updatemenus=[
+            dict(
+                type="buttons",
+                direction="left",
+                buttons=list([
+                    dict(label="📊 Visão Completa", method="update",
+                         args=[{"visible": [True] * len(fig.data)}]),
+                    dict(label="📊 Apenas Barras", method="update",
+                         args=[{"visible": [True if i < 1 else False for i in range(len(fig.data))]}]),
+                    dict(label="📦 Apenas Distribuição", method="update",
+                         args=[{"visible": [True if 1 <= i < 1 + len(resumo) else False for i in range(len(fig.data))]}]),
+                    dict(label="📈 Apenas Temporal", method="update",
+                         args=[{"visible": [True if 1 + len(resumo) <= i < 1 + 2*len(resumo) else False for i in range(len(fig.data))]}]),
+                    dict(label="🥧 Faixas de Premiação", method="update",
+                         args=[{"visible": [True if i >= len(fig.data)-1 else False for i in range(len(fig.data))]}])
+                ]),
+                pad={"r": 10, "t": 10},
+                showactive=True,
+                x=0.01,
+                xanchor="left",
+                y=1.05,
+                yanchor="top"
+            ),
+        ]
+    )
+
+    # Configurar eixos dos subplots
+    fig.update_xaxes(title_text="Modelos", row=1, col=1)
+    fig.update_yaxes(title_text="Média de Acertos", row=1, col=1)
+    
+    fig.update_xaxes(title_text="Modelos", row=1, col=2)
+    fig.update_yaxes(title_text="Acertos", row=1, col=2)
+    
+    fig.update_xaxes(title_text="Concursos", row=2, col=1)
+    fig.update_yaxes(title_text="Acertos", row=2, col=1)
+
+    # Salvar gráfico
+    fig.write_html(CHART_HTML, include_plotlyjs='cdn')
+    print(f"📈 Gráfico interativo Quina salvo em: {CHART_HTML}")
 
 def gerar_summary(df):
     """Gera o relatório de benchmark com estatísticas e gráficos."""
@@ -318,9 +450,9 @@ def gerar_summary(df):
     
     faixas_acertos = _calcular_faixas_acertos_quina(df)
     melhor_modelo = _gerar_relatorio_markdown_quina(resumo, faixas_acertos)
-    _gerar_grafico_quina(resumo)
+    _gerar_grafico_interativo_quina(resumo, df)
     
-    print(f"📈 Gráfico salvo em: {CHART_IMG}")
+    print(f"📈 Gráfico interativo salvo em: {CHART_HTML}")
     print(f"📝 Relatório salvo em: {SUMMARY_MD}")
     print(f"\n🏆 RESUMO DO BENCHMARK:")
     print(f"Melhor modelo: {melhor_modelo['modelo']} ({melhor_modelo['media_acertos']:.2f} acertos em média)")
