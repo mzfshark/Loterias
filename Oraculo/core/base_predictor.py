@@ -15,6 +15,7 @@ import numpy as np
 import json
 from datetime import datetime
 from pathlib import Path
+import os
 
 
 class LotteryConfig:
@@ -117,6 +118,16 @@ class BaseLotteryPredictor(ABC):
             }
         self.results = {}
         self.ensemble_confidence = 0.0
+
+        # Modo rápido para CI: desabilita modelos mais pesados por padrão
+        try:
+            if os.environ.get('FAST_CI', '').strip() == '1' or os.environ.get('GITHUB_ACTIONS', '') == 'true':
+                for heavy in ('monte_carlo', 'neural_ensemble'):
+                    if heavy in self.models:
+                        self.models[heavy]['enabled'] = False
+                print("⚡ Modo FAST_CI ativo: modelos pesados desativados (monte_carlo, neural_ensemble).")
+        except Exception:
+            pass
         
     def load_data(self) -> List[List[int]]:
         """Load historical lottery data from CSV file."""

@@ -170,8 +170,11 @@ def main() -> int:
         if not results:
             print("⚠️ Nenhum resultado foi gerado.")
             return 2
-        gerar_heatmap_milionaria()
-        gerar_mini_heatmap_trevos()
+        if os.environ.get("FAST_CI", "") != "1":
+            gerar_heatmap_milionaria()
+            gerar_mini_heatmap_trevos()
+        else:
+            print("⏩ FAST_CI=1: pulando geração de heatmaps da +Milionária.")
         print("\n✅ Pipeline +Milionária finalizada com sucesso.")
         return 0
     except KeyboardInterrupt:
