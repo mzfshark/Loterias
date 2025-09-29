@@ -3,12 +3,12 @@
   "timestamp": "2025-09-29",
   "ensemble_prediction": [
     1,
-    2,
-    3,
-    5,
-    3,
-    7,
-    6
+    8,
+    0,
+    1,
+    8,
+    6,
+    4
   ],
   "ensemble_confidence": 0.7,
   "models": [
@@ -16,12 +16,12 @@
       "modelo": "bayesian",
       "jogo": [
         1,
-        2,
+        8,
+        0,
+        1,
+        8,
         3,
-        5,
-        3,
-        7,
-        6
+        7
       ],
       "confidence": 0.7
     },
@@ -41,13 +41,13 @@
     {
       "modelo": "beam_search",
       "jogo": [
-        3,
+        5,
+        7,
         9,
-        9,
-        2,
-        8,
         6,
-        5
+        5,
+        6,
+        4
       ],
       "confidence": 0.6
     },
@@ -55,11 +55,11 @@
       "modelo": "markov",
       "jogo": [
         8,
-        0,
-        7,
-        7,
+        6,
+        3,
+        9,
         4,
-        7,
+        6,
         4
       ],
       "confidence": 0.6
@@ -67,12 +67,12 @@
     {
       "modelo": "poisson",
       "jogo": [
-        7,
-        3,
-        3,
+        5,
         4,
-        7,
-        6,
+        5,
+        5,
+        3,
+        0,
         4
       ],
       "confidence": 0.5
@@ -80,13 +80,13 @@
     {
       "modelo": "mutation",
       "jogo": [
-        4,
+        2,
         9,
-        8,
-        1,
+        9,
+        9,
         7,
-        7,
-        8
+        4,
+        6
       ],
       "confidence": 0.55
     }
