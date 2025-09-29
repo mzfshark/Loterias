@@ -99,16 +99,22 @@ class BaseLotteryPredictor(ABC):
             config: Lottery configuration object
         """
         self.config = config
-        self.models = {
-            'bayesian': {'weight': 0.20, 'enabled': True},
-            'neural_ensemble': {'weight': 0.18, 'enabled': True},
-            'monte_carlo': {'weight': 0.15, 'enabled': True},
-            'time_series': {'weight': 0.15, 'enabled': True},
-            'beam_search': {'weight': 0.10, 'enabled': True},
-            'markov': {'weight': 0.08, 'enabled': True},
-            'poisson': {'weight': 0.07, 'enabled': True},
-            'mutation': {'weight': 0.07, 'enabled': True}
-        }
+        # Inicializa modelos com base em um registry por jogo (pesos/ativação)
+        try:
+            from .model_registry import get_models_for
+            self.models = get_models_for(self.config.name.lower())
+        except Exception:
+            # Fallback seguro
+            self.models = {
+                'bayesian': {'weight': 0.20, 'enabled': True},
+                'neural_ensemble': {'weight': 0.18, 'enabled': True},
+                'monte_carlo': {'weight': 0.15, 'enabled': True},
+                'time_series': {'weight': 0.15, 'enabled': True},
+                'beam_search': {'weight': 0.10, 'enabled': True},
+                'markov': {'weight': 0.08, 'enabled': True},
+                'poisson': {'weight': 0.07, 'enabled': True},
+                'mutation': {'weight': 0.07, 'enabled': True}
+            }
         self.results = {}
         self.ensemble_confidence = 0.0
         

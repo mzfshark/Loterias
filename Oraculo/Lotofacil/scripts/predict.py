@@ -33,7 +33,7 @@ def generate_heatmap(df):
         z=freq_matrix,
         x=["Coluna 1", "Coluna 2", "Coluna 3", "Coluna 4", "Coluna 5"],
         y=["Dezena 1", "Dezena 2", "Dezena 3", "Dezena 4", "Dezena 5"],
-        colorscale=[[0, '#f7f0f7'], [0.5, '#ff66f5'], [1, '#8200a8']],
+        colorscale=[[0, '#0ea5e9'], [0.5, '#22d3ee'], [1, '#2FD39A']],
         text=labels_matrix,
         texttemplate="%{text}",
         hoverinfo="text+z",
@@ -43,7 +43,11 @@ def generate_heatmap(df):
         title="Heatmap de Frequência das Dezenas (1 a 25)",
         xaxis_title="Colunas",
         yaxis_title="Dezenas",
-        height=500
+        height=500,
+        paper_bgcolor="#0b0f14",
+        plot_bgcolor="#0f1720",
+        font=dict(color="#e8eef5"),
+        margin=dict(l=40, r=20, t=60, b=40)
     )
     return pio.to_html(heatmap_fig, include_plotlyjs='cdn', full_html=False)
 
@@ -139,6 +143,7 @@ if __name__ == '__main__':
 
     # Heatmap
     heatmap_html = generate_heatmap(df)
-    Path(f"Oraculo/Lotofacil/docs/heatmap.html").write_text(heatmap_html, encoding="utf-8")
+    Path("Oraculo/Lotofacil/docs").mkdir(parents=True, exist_ok=True)
+    Path("Oraculo/Lotofacil/docs/heatmap.html").write_text(heatmap_html, encoding="utf-8")
 
     print("\n✅ Arquivos salvos com sucesso.")

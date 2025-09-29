@@ -19,9 +19,9 @@ class MonteCarloLotofacilSimulator:
         Args:
             n_simulations: Number of Monte Carlo simulations to run
         """
-    self.n_simulations = n_simulations
-    # Controla verbosidade de logs (progresso de simulação, etc.)
-    self.verbose = verbose
+        self.n_simulations = n_simulations
+        # Controla verbosidade de logs (progresso de simulação, etc.)
+        self.verbose = verbose
         self.numbers_range = list(range(1, 26))
         self.combination_size = 15
         self.historical_data = []

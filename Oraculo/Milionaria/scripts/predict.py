@@ -170,8 +170,8 @@ def main() -> int:
         if not results:
             print("⚠️ Nenhum resultado foi gerado.")
             return 2
-    gerar_heatmap_milionaria()
-    gerar_mini_heatmap_trevos()
+        gerar_heatmap_milionaria()
+        gerar_mini_heatmap_trevos()
         print("\n✅ Pipeline +Milionária finalizada com sucesso.")
         return 0
     except KeyboardInterrupt:

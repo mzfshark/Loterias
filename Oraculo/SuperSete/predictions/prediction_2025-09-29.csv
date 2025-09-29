@@ -5,9 +5,18 @@ col1,col2,col3,col4,col5,col6,col7,modelo
 1,5,1,4,2,3,1,bayesiano
 1,7,1,7,9,2,5,markov
 1,2,2,2,0,8,6,poisson
+<<<<<<< HEAD
+1,5,1,0,5,3,7,palpite_rodada
+4,4,4,4,2,1,5,evolutivo
+7,0,6,7,1,5,1,evolutivo
+7,5,8,9,5,0,4,evolutivo
+5,8,1,2,0,7,7,evolutivo
+4,5,4,6,8,4,4,evolutivo
+=======
 1,5,6,0,4,3,1,palpite_rodada
 6,2,3,8,8,6,1,evolutivo
 8,0,9,1,7,2,1,evolutivo
 8,4,4,0,8,3,7,evolutivo
 4,9,0,6,1,9,8,evolutivo
 4,8,6,7,4,9,5,evolutivo
+>>>>>>> 7a433231dc2a3390689c65ee82365cdeb7ccd4bb

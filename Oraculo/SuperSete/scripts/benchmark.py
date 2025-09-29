@@ -23,7 +23,7 @@ def parse_date_multi(s: str):
     """Tenta converter datas em múltiplos formatos comuns."""
     if s is None or (isinstance(s, float) and pd.isna(s)):
         return None
-    formats = ["%d/%m/%y", "%d/%m/%Y", "%Y-%m-%d"]
+    formats = ["%d/%m/%y", "%d/%m/%Y", "%Y-%m-%d", "%Y-%m-%d_%H-%M-%S"]
     for fmt in formats:
         try:
             return datetime.strptime(str(s).strip(), fmt)
@@ -58,7 +58,11 @@ def load_predictions():
                 if isinstance(entrada, dict) and "modelo" in entrada and "jogo" in entrada:
                     dados.append({"data": data, "modelo": entrada["modelo"], "jogo": entrada["jogo"]})
         elif isinstance(conteudo, dict):
-            if "modelo" in conteudo and "jogo" in conteudo:
+            if "models" in conteudo and isinstance(conteudo["models"], list):
+                for m in conteudo["models"]:
+                    if isinstance(m, dict) and "modelo" in m and "jogo" in m:
+                        dados.append({"data": data, "modelo": m["modelo"], "jogo": m["jogo"]})
+            elif "modelo" in conteudo and "jogo" in conteudo:
                 dados.append({"data": data, "modelo": conteudo["modelo"], "jogo": conteudo["jogo"]})
     return dados
 
@@ -122,6 +126,7 @@ def benchmark():
         return pd.DataFrame()
 
     df_benchmark = pd.DataFrame(registros)
+    os.makedirs(os.path.dirname(RESULT_CSV), exist_ok=True)
     df_benchmark.to_csv(RESULT_CSV, index=False)
     return df_benchmark
 

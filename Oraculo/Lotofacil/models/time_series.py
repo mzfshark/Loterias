@@ -359,6 +359,19 @@ class TimeSeriesLotofacilPredictor:
         
         return stationarity_results
 
+    # ---- Stub mínimo para compatibilidade com o ModelAdapter ----
+    def predict_next_game(self) -> Dict:
+        """
+        Gera uma predição única usando o ensemble interno e retorna
+        no formato esperado pelo adapter: {prediction, confidence, cycles_detected}.
+        """
+        resultado = self.generate_ensemble_prediction()
+        return {
+            'prediction': resultado.get('prediction', []),
+            'confidence': float(resultado.get('confidence', 0.6)),
+            'cycles_detected': resultado.get('cycles_detected', {})
+        }
+
 
 def carregar_dados(path='Oraculo/Lotofacil/data/Lotofacil.csv') -> List[List[int]]:
     """Load historical Lotofacil data."""

@@ -48,13 +48,9 @@ jobs:
         run: |
           echo "HTML unificado será gerado pelo workflow Publisher."
 
-      - name: Executar benchmark (opcional)
+      - name: Executar benchmark
         run: |
-          if [ -f Oraculo/Milionaria/scripts/benchmark.py ]; then
-            python Oraculo/Milionaria/scripts/benchmark.py
-          else
-            echo "Benchmark não encontrado, pulando."
-          fi
+          python Oraculo/Milionaria/scripts/benchmark.py
 
       - name: Commit e push dos resultados
         run: |

@@ -188,6 +188,17 @@ class BayesianLotofacilPredictor:
             'credible_intervals': credible_intervals,
             'model_evidence': self.calculate_model_evidence()
         }
+
+    # ---- Stubs mínimos para compatibilidade com o ModelAdapter ----
+    def predict_next_game(self, method: str = "map"):
+        """
+        Retorna uma predição única compatível com outros jogos via adapter.
+        method: 'map' (padrão) ou 'mcmc'.
+        """
+        if method == "mcmc":
+            return self.generate_prediction_mcmc()
+        # Padrão: MAP
+        return self.generate_prediction_map()
     
     def analyze_historical_patterns(self) -> Dict:
         """
