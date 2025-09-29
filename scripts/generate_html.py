@@ -91,8 +91,39 @@ def gerar_tabela_previsoes(prediction_dir: Path) -> str:
   if not mais_recente:
     return "<p class='muted'>Sem arquivos de previsão.</p>"
 
+  # Primeiro, tenta extrair a predição ensemble se for JSON
+  ensemble_html = ""
+  if mais_recente.suffix.lower() == ".json":
+    try:
+      with mais_recente.open("r", encoding="utf-8") as f:
+        data = json.load(f)
+      if isinstance(data, dict) and 'ensemble_prediction' in data:
+        ensemble_pred = data['ensemble_prediction']
+        ensemble_conf = data.get('ensemble_confidence', 0.0)
+        timestamp = data.get('timestamp', 'N/A')
+        
+        def _format_prediction(pred):
+          if isinstance(pred, list):
+            return ' '.join(str(x) for x in pred)
+          return str(pred)
+        
+        ensemble_html = f"""
+        <div class='card highlight'>
+          <h3 class='card-title'>🏆 Predição Final do Ensemble</h3>
+          <div class='ensemble-result'>
+            <div class='prediction'>{_format_prediction(ensemble_pred)}</div>
+            <div class='confidence'>Confiança: {ensemble_conf:.1%}</div>
+            <div class='timestamp'>Gerado em: {timestamp}</div>
+          </div>
+        </div>
+        """
+    except Exception:
+      pass
+
   df = _df_de_arquivo(mais_recente)
   if df.empty:
+    if ensemble_html:
+      return ensemble_html + "<p class='muted'>Não foi possível interpretar os modelos individuais.</p>"
     return "<p class='muted'>Não foi possível interpretar as previsões.</p>"
 
   # Garante CSV correspondente
@@ -178,7 +209,10 @@ def gerar_tabela_previsoes(prediction_dir: Path) -> str:
       tabela_html = view.head(preview_rows).to_html(index=False, classes="table")
   link = f"<a class='btn' href='{csv_path.as_posix()}' download>📥 Baixar CSV</a>"
   count_info = f"<span class='muted'>Exibindo {preview_rows} de {len(df_csv)} linhas</span>" if len(df_csv) > preview_rows else ""
-  return f"<div class='card'><h3 class='card-title'>Previsões Recentes</h3><div class='table-wrap'>{tabela_html}</div><div class='actions'>{link}{count_info}</div></div>"
+  models_table = f"<div class='card'><h3 class='card-title'>Modelos Individuais</h3><div class='table-wrap'>{tabela_html}</div><div class='actions'>{link}{count_info}</div></div>"
+  
+  # Retorna ensemble primeiro (se existe) + tabela de modelos
+  return ensemble_html + models_table if ensemble_html else models_table
 
 def carregar_heatmap(path: Path) -> str:
   # Resolve caminhos relativos ao diretório raiz do projeto

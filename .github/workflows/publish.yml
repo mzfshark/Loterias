@@ -52,8 +52,8 @@ jobs:
       - name: Calibrar pesos automaticamente (opcional)
         continue-on-error: true
         run: |
-          echo "Iniciando calibração de pesos (lookback=20)..."
-          python Oraculo/core/auto_calibrator.py --game all --lookback 20 || true
+          echo "Iniciando calibração de pesos (lookback-history=20)..."
+          python Oraculo/core/auto_calibrator.py --game all --lookback-history 20 || true
           echo "Calibração concluída (se aplicável)."
 
       - name: Commit e push do HTML

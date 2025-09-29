@@ -104,9 +104,42 @@ main { padding: 20px 0 60px; }
 /* Animations */
 @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
 
+/* Ensemble Prediction Styles */
+.card.highlight {
+  background: linear-gradient(135deg, rgba(47,211,154,.15), rgba(47,211,154,.05));
+  border: 1px solid rgba(47,211,154,.3);
+}
+
+.ensemble-result {
+  text-align: center;
+  padding: 20px 0;
+}
+
+.ensemble-result .prediction {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 3px;
+  margin-bottom: 10px;
+  font-family: 'Courier New', monospace;
+}
+
+.ensemble-result .confidence {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 5px;
+}
+
+.ensemble-result .timestamp {
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
 /* Mobile tweaks */
 @media (max-width: 640px) {
   .site-header h1 { font-size: 1.25rem; }
   .card { padding: 14px; }
   .table th, .table td { padding: 8px; }
+  .ensemble-result .prediction { font-size: 1.5rem; letter-spacing: 2px; }
 }
