@@ -1,9 +1,7 @@
 import pandas as pd
 import numpy as np
-from typing import List, Dict, Tuple, Optional
+from typing import List, Dict
 from collections import Counter, defaultdict
-import itertools
-from scipy import stats
 import random
 
 
@@ -75,7 +73,7 @@ class MonteCarloLotofacilSimulator:
             for num in self.positional_probs[pos]:
                 self.positional_probs[pos][num] /= total
         
-        # Calculate sum statistics
+    # Calculate sum statistics
         self.game_sums = [sum(game) for game in self.historical_data]
         self.sum_mean = np.mean(self.game_sums)
         self.sum_std = np.std(self.game_sums)
@@ -413,3 +411,7 @@ if __name__ == '__main__':
     print(f"\n🗳️ Top 20 números mais votados:")
     for i, (num, votes) in enumerate(resultado['voting_results'][:20]):
         print(f"{i+1:2d}. Número {num:2d}: {votes} votos")
+
+
+# Backwards-compatible canonical alias expected by ModelAdapter
+MonteCarloSimulator = MonteCarloLotofacilSimulator

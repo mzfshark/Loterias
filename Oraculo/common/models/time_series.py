@@ -371,6 +371,9 @@ class TimeSeriesLotofacilPredictor:
             'cycles_detected': resultado.get('cycles_detected', {})
         }
 
+# Backwards-compatible canonical alias expected by ModelAdapter
+TimeSeriesPredictor = TimeSeriesLotofacilPredictor
+
 
 def carregar_dados(path='Oraculo/Lotofacil/data/Lotofacil.csv') -> List[List[int]]:
     """Load historical Lotofacil data."""
