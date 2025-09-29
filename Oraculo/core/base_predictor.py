@@ -141,7 +141,7 @@ class BaseLotteryPredictor(ABC):
     @abstractmethod
     def _parse_data(self, df: pd.DataFrame) -> List[List[int]]:
         """Parse lottery data from DataFrame. Must be implemented by subclasses."""
-        pass
+        raise NotImplementedError()
     
     def _generate_synthetic_data(self, n_games: int = 100) -> List[List[int]]:
         """Generate synthetic data for testing when real data is not available."""
@@ -182,7 +182,7 @@ class BaseLotteryPredictor(ABC):
     @abstractmethod
     def _run_model(self, model_name: str, data: List[List[int]]) -> Optional[Dict[str, Any]]:
         """Run a specific model. Must be implemented by subclasses."""
-        pass
+        raise NotImplementedError()
     
     def combine_predictions(self, model_results: Dict[str, Any]) -> Dict[str, Any]:
         """Combine predictions from multiple models using weighted ensemble."""

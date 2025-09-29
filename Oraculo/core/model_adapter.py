@@ -168,7 +168,7 @@ class ModelAdapter:
     def adapt_markov_model(self, data: List[List[int]]) -> Optional[Dict[str, Any]]:
         """Adapt Markov model for current lottery configuration."""
         try:
-            from Oraculo.Lotofacil.models import markov
+            from Oraculo.common.models import markov
             
             # Use the existing gerar_palpite function with adapted data
             prediction = markov.gerar_palpite(data)
@@ -202,7 +202,7 @@ class ModelAdapter:
     def adapt_poisson_model(self, data: List[List[int]]) -> Optional[Dict[str, Any]]:
         """Adapt Poisson model for current lottery configuration."""
         try:
-            from Oraculo.Lotofacil.models.poisson import gerar_combinacao_poisson
+            from Oraculo.common.models.poisson import gerar_combinacao_poisson
             
             # Convert data to DataFrame format
             df = pd.DataFrame(data)
@@ -240,7 +240,7 @@ class ModelAdapter:
     def adapt_mutation_model(self, data: List[List[int]]) -> Optional[Dict[str, Any]]:
         """Adapt Genetic Algorithm (Mutation) model for current lottery configuration."""
         try:
-            from Oraculo.Lotofacil.models import mutation
+            from Oraculo.common.models import mutation
             
             # Create adapted mutation functions
             def adapted_gerar_mutacoes(jogos_hist, num_mutantes=5, taxa_mutacao=0.3):
@@ -300,7 +300,7 @@ class ModelAdapter:
     def adapt_beam_search_model(self, data: List[List[int]]) -> Optional[Dict[str, Any]]:
         """Adapt Beam Search model for current lottery configuration."""
         try:
-            from Oraculo.Lotofacil.models.beam_search import beam_search
+            from Oraculo.common.models.beam_search import beam_search
             
             # Generate prediction using beam search
             results = beam_search(data, beam_width=50, top_candidates=1)

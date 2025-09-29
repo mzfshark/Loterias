@@ -1,8 +1,7 @@
 import pandas as pd
 import numpy as np
-from typing import List, Dict, Tuple, Optional
-from collections import Counter, defaultdict
-from scipy import stats
+from typing import List, Dict, Optional
+from collections import Counter
 from scipy.fft import fft, fftfreq
 import warnings
 warnings.filterwarnings('ignore')
