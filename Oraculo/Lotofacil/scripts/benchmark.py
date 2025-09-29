@@ -15,6 +15,34 @@ RESULT_CSV = "../validation/benchmark_results.csv"
 SUMMARY_MD = "../docs/benchmark_summary.md"
 CHART_IMG = "../docs/charts/benchmark_summary.png"
 
+# Verificação de caminhos
+def verificar_paths():
+    """Verifica se os caminhos essenciais existem."""
+    print(f"📁 Diretório atual: {os.getcwd()}")
+    print(f"📄 Procurando dataset: {DATASET_PATH}")
+    
+    if not os.path.exists(DATASET_PATH):
+        # Tenta caminhos alternativos se executado do diretório raiz
+        alt_paths = [
+            f"Oraculo/{JOGO}/data/{JOGO}.csv",
+            f"Oraculo/Lotofacil/data/Lotofacil.csv",
+            "data/Lotofacil.csv"
+        ]
+        
+        for alt_path in alt_paths:
+            if os.path.exists(alt_path):
+                print(f"✅ Dataset encontrado em: {alt_path}")
+                return alt_path
+                
+        print(f"❌ Dataset não encontrado em nenhum dos caminhos:")
+        print(f"   - {DATASET_PATH}")
+        for path in alt_paths:
+            print(f"   - {path}")
+        return None
+    
+    print(f"✅ Dataset encontrado: {DATASET_PATH}")
+    return DATASET_PATH
+
 # === PARÂMETROS ===
 N_VALID = 300
 
@@ -32,7 +60,15 @@ def parse_date_multi(s: str):
 
 # === FUNÇÕES ===
 def load_dataset():
-    df = pd.read_csv(DATASET_PATH)
+    """Carrega o dataset com verificação de caminhos."""
+    dataset_path = verificar_paths()
+    if not dataset_path:
+        raise FileNotFoundError(f"Dataset {JOGO}.csv não encontrado em nenhum dos caminhos esperados")
+    
+    print(f"📊 Carregando dados de {dataset_path}...")
+    df = pd.read_csv(dataset_path)
+    print(f"📊 Carregadas {len(df)} linhas do dataset")
+    print(f"🔍 Colunas disponíveis: {list(df.columns)}")
     df = df.sort_values(by="Concurso")
     return df.tail(N_VALID)
 
