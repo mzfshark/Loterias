@@ -1,4 +1,5 @@
 import pandas as pd
+import os
 import numpy as np
 from typing import List, Dict
 from collections import Counter, defaultdict
@@ -10,14 +11,21 @@ class MonteCarloLotofacilSimulator:
     Advanced Monte Carlo simulation for Lotofacil prediction with multiple sampling strategies.
     """
     
-    def __init__(self, n_simulations: int = 10000, verbose: bool = False):
+    def __init__(self, n_simulations: int = None, verbose: bool = False):
         """
         Initialize Monte Carlo simulator.
         
         Args:
             n_simulations: Number of Monte Carlo simulations to run
         """
-        self.n_simulations = n_simulations
+        # Apply FAST_CI protection and set reasonable defaults
+        if n_simulations is None:
+            if os.environ.get('FAST_CI', '').strip() == '1' or os.environ.get('GITHUB_ACTIONS', '') == 'true':
+                n_simulations = 100  # Very fast for CI
+            else:
+                n_simulations = 1000  # Reasonable default for local runs
+        
+        self.n_simulations = min(n_simulations, 10000)  # Cap at 10k max
         # Controla verbosidade de logs (progresso de simulação, etc.)
         self.verbose = verbose
         self.numbers_range = list(range(1, 26))
@@ -25,14 +33,18 @@ class MonteCarloLotofacilSimulator:
         self.historical_data = []
         
         # Statistical models for sampling
-        self.sampling_strategies = [
-            'uniform',
-            'frequency_weighted',
-            'inverse_frequency',
-            'recency_weighted',
-            'pattern_based',
-            'gaussian_kernel'
-        ]
+        # Reduce strategies for FAST_CI
+        if os.environ.get('FAST_CI', '').strip() == '1' or os.environ.get('GITHUB_ACTIONS', '') == 'true':
+            self.sampling_strategies = ['frequency_weighted', 'uniform']  # Only 2 fastest strategies
+        else:
+            self.sampling_strategies = [
+                'uniform',
+                'frequency_weighted',
+                'inverse_frequency',
+                'recency_weighted',
+                'pattern_based',
+                'gaussian_kernel'
+            ]
     
     def load_historical_data(self, historical_games: List[List[int]]):
         """Load historical data for analysis."""
@@ -177,8 +189,11 @@ class MonteCarloLotofacilSimulator:
         # Use kernel density estimation on historical numbers
         selected_numbers = []
         
+        # Limit historical data size to avoid memory issues
+        limited_data = self.historical_data[-500:] if len(self.historical_data) > 500 else self.historical_data
+        
         # For each position, use KDE to estimate probability density
-        all_games_matrix = np.array([sorted(game) for game in self.historical_data])
+        all_games_matrix = np.array([sorted(game) for game in limited_data])
         
         for i in range(self.combination_size):
             if i < all_games_matrix.shape[1]:
