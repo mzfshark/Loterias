@@ -215,21 +215,32 @@ def gerar_conteudo_jogo(slug: str, cfg: dict) -> str:
 
   # Backtest / Acertos reais (se existir)
   try:
-    base = Path(cfg["predictions"]).parents[0]  # Oraculo/Jogo
-    summary_md = base / "validation" / "benchmark_summary.md"
+    # Resolve caminhos relativos ao diretório raiz do projeto
+    current_dir = Path.cwd()
+    if current_dir.name == 'scripts':
+      project_root = current_dir.parent  # Estamos em /scripts, volta para raiz
+    else:
+      project_root = current_dir  # Já estamos na raiz
+    base = project_root / cfg["predictions"].parents[0]  # Oraculo/Jogo
+    summary_md = base / "docs" / "benchmark_summary.md"
     result_csv = base / "validation" / "benchmark_results.csv"
     chart_img = base / "docs" / "charts" / "benchmark_summary.png"
+    
     if summary_md.exists() or result_csv.exists() or chart_img.exists():
       html.append("<div class='card'><h3 class='card-title'>📈 Backtest / Acertos Reais</h3>")
       links = []
       if result_csv.exists():
-        links.append(f"<a class='btn' href='{result_csv.as_posix()}' download>📥 Baixar resultados (CSV)</a>")
+        # Usar caminho relativo do CSV para o HTML
+        rel_csv = result_csv.relative_to(project_root)
+        links.append(f"<a class='btn' href='{rel_csv.as_posix()}' download>📥 Baixar resultados (CSV)</a>")
       if summary_md.exists():
         # Render simples do markdown como preformatado para evitar dependências
         md_text = summary_md.read_text(encoding='utf-8')
         html.append(f"<details open><summary>Sumário</summary><pre class='md'>{md_text}</pre></details>")
       if chart_img.exists():
-        html.append(f"<div class='img-wrap'><img src='{chart_img.as_posix()}' alt='Resumo de acertos' /></div>")
+        # Usar caminho relativo da imagem para o HTML
+        rel_img = chart_img.relative_to(project_root)
+        html.append(f"<div class='img-wrap'><img src='{rel_img.as_posix()}' alt='Resumo de acertos' /></div>")
       if links:
         html.append("<div class='actions'>" + " ".join(links) + "</div>")
       html.append("</div>")
@@ -237,6 +248,7 @@ def gerar_conteudo_jogo(slug: str, cfg: dict) -> str:
       # Indica ausência de artefatos de benchmark para dar visibilidade
       html.append("<div class='card'><h3 class='card-title'>📈 Backtest / Acertos Reais</h3><p class='muted'>Nenhum artefato de benchmark encontrado.</p></div>")
   except Exception:
+    # Em caso de erro, não mostra a seção
     pass
 
   # Resumo de estratégias (se coluna existir)
@@ -323,5 +335,13 @@ html_output = html_template.render(
   jogos=jogos,
   atualizado_em=datetime.now().strftime('%d/%m/%Y %H:%M')
 )
-Path("index.html").write_text(html_output, encoding="utf-8")
+
+# Salvar no diretório raiz do projeto
+current_dir = Path.cwd()
+if current_dir.name == 'scripts':
+  output_path = current_dir.parent / "index.html"  # Volta para raiz
+else:
+  output_path = current_dir / "index.html"  # Já está na raiz
+
+output_path.write_text(html_output, encoding="utf-8")
 print("index.html gerado com sucesso.")
