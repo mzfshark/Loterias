@@ -20,3 +20,6 @@ wheels/
 .installed.cfg
 *.egg
 MANIFEST
+
+#Ignore vscode AI rules
+.github\instructions\codacy.instructions.md
