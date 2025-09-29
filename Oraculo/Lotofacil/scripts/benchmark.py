@@ -1,10 +1,13 @@
-# benchmark.py (exemplo aplicável tanto a SuperSete quanto Lotofacil, com ajustes mínimos por jogo)
+# benchmark.py - Benchmark interativo para Lotofácil com gráficos Plotly
 
 import pandas as pd
 import os
 import glob
 from datetime import datetime
-import matplotlib.pyplot as plt
+import plotly.graph_objects as go
+import plotly.express as px
+from plotly.subplots import make_subplots
+import plotly.offline as pyo
 import json
 
 # === CONFIGURAÇÃO ===
@@ -13,7 +16,7 @@ DATASET_PATH = "../data/Lotofacil.csv"
 PRED_PATH = "../predictions"
 RESULT_CSV = "../validation/benchmark_results.csv"
 SUMMARY_MD = "../docs/benchmark_summary.md"
-CHART_IMG = "../docs/charts/benchmark_summary.png"
+CHART_HTML = "../docs/charts/benchmark_interactive.html"
 
 # Verificação de caminhos
 def verificar_paths():
