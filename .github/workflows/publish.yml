@@ -69,7 +69,7 @@ jobs:
         run: |
           echo "📦 Instalando dependências Python..."
           pip install --upgrade pip
-          pip install jinja2 pandas numpy scipy scikit-learn plotly
+          pip install -r requirements.txt
           echo "✅ Dependências instaladas com sucesso!"
 
       - name: Verificar estrutura de arquivos
