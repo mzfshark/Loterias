@@ -2,16 +2,42 @@
   "lottery": "SuperSete",
   "timestamp": "2025-09-30",
   "ensemble_prediction": [
-    5,
     4,
-    9,
-    3,
-    9,
+    6,
     7,
-    5
+    1,
+    4,
+    1,
+    4
   ],
   "ensemble_confidence": 0.7,
   "models": [
+    {
+      "modelo": "bayesian",
+      "jogo": [
+        4,
+        0,
+        7,
+        1,
+        4,
+        1,
+        5
+      ],
+      "confidence": 0.7
+    },
+    {
+      "modelo": "beam_search",
+      "jogo": [
+        5,
+        7,
+        9,
+        2,
+        8,
+        7,
+        9
+      ],
+      "confidence": 0.6
+    },
     {
       "modelo": "time_series",
       "jogo": [
@@ -26,17 +52,30 @@
       "confidence": 0.55
     },
     {
-      "modelo": "bayesian",
+      "modelo": "markov",
       "jogo": [
-        5,
+        1,
+        6,
+        2,
+        7,
         4,
         7,
-        3,
-        9,
-        7,
-        5
+        4
       ],
-      "confidence": 0.7
+      "confidence": 0.6
+    },
+    {
+      "modelo": "monte_carlo",
+      "jogo": [
+        0,
+        0,
+        2,
+        6,
+        6,
+        4,
+        4
+      ],
+      "confidence": 0.65
     },
     {
       "modelo": "neural_ensemble",
@@ -52,69 +91,30 @@
       "confidence": 0.6
     },
     {
-      "modelo": "markov",
-      "jogo": [
-        9,
-        6,
-        2,
-        7,
-        4,
-        7,
-        4
-      ],
-      "confidence": 0.6
-    },
-    {
-      "modelo": "mutation",
-      "jogo": [
-        4,
-        9,
-        9,
-        8,
-        4,
-        7,
-        9
-      ],
-      "confidence": 0.55
-    },
-    {
-      "modelo": "beam_search",
-      "jogo": [
-        7,
-        9,
-        9,
-        1,
-        5,
-        4,
-        9
-      ],
-      "confidence": 0.6
-    },
-    {
       "modelo": "poisson",
       "jogo": [
-        5,
-        5,
+        9,
         6,
-        4,
-        2,
-        3,
-        8
+        7,
+        1,
+        0,
+        5,
+        4
       ],
       "confidence": 0.5
     },
     {
-      "modelo": "monte_carlo",
+      "modelo": "mutation",
       "jogo": [
+        5,
+        9,
+        2,
         8,
-        0,
-        9,
-        6,
-        6,
-        9,
-        4
+        7,
+        7,
+        5
       ],
-      "confidence": 0.65
+      "confidence": 0.55
     }
   ]
 }
