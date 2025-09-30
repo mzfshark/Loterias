@@ -18,6 +18,10 @@ concurrency:
 jobs:
   predict-and-publish:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      FAST_CI: '1'
+      PYTHONUNBUFFERED: '1'
 
     steps:
       - name: Checkout repositório
