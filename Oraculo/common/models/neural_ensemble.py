@@ -1,9 +1,14 @@
 import pandas as pd
 import numpy as np
-from typing import List, Dict
+from typing import List, Dict, Tuple
 from collections import Counter
 import warnings
+import time
+import logging
 warnings.filterwarnings('ignore')
+
+# Configuração de logging
+logger = logging.getLogger(__name__)
 
 try:
     from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
@@ -20,7 +25,7 @@ except ImportError:
 class NeuralEnsembleLotofacil:
     """
     Advanced neural network ensemble for Lotofacil prediction using multiple ML models.
-    Combines Random Forest, Gradient Boosting, and Multi-Layer Perceptron.
+    Combines Random Forest, Gradient Boosting, and Multi-Layer Perceptron with parallel training.
     """
     
     def __init__(self, ensemble_size: int = 3):
@@ -35,15 +40,32 @@ class NeuralEnsembleLotofacil:
         self.scalers = []
         self.feature_names = []
         self.is_trained = False
+        self.parallel_engine = None
+        
+        # Configuração otimizada para paralelização
+        import os
+        fast_ci = os.environ.get('FAST_CI', '').strip() == '1'
         
         if SKLEARN_AVAILABLE:
-            # Initialize different types of models for diversity
-            self.models = [
-                RandomForestClassifier(n_estimators=100, random_state=42),
-                GradientBoostingClassifier(n_estimators=100, random_state=42),
-                MLPClassifier(hidden_layer_sizes=(128, 64, 32), max_iter=1000, random_state=42)
-            ]
+            # Modelos otimizados para treinamento paralelo
+            if fast_ci:
+                # Configuração reduzida para CI/CD
+                self.models = [
+                    RandomForestClassifier(n_estimators=20, max_depth=10, random_state=42, n_jobs=1),
+                    GradientBoostingClassifier(n_estimators=20, max_depth=6, random_state=42),
+                    MLPClassifier(hidden_layer_sizes=(32, 16), max_iter=200, random_state=42)
+                ]
+            else:
+                # Configuração completa para produção
+                self.models = [
+                    RandomForestClassifier(n_estimators=100, max_depth=15, random_state=42, n_jobs=1),
+                    GradientBoostingClassifier(n_estimators=100, max_depth=8, random_state=42),
+                    MLPClassifier(hidden_layer_sizes=(128, 64, 32), max_iter=1000, random_state=42)
+                ]
+            
             self.scalers = [StandardScaler() for _ in range(len(self.models))]
+            logger.info(f"🧠 Neural Ensemble inicializado com {len(self.models)} modelos "
+                       f"({'modo rápido' if fast_ci else 'modo completo'})")
     
     def extract_features(self, historical_data: List[List[int]], lookback: int = 10) -> np.ndarray:
         """
@@ -149,23 +171,23 @@ class NeuralEnsembleLotofacil:
     
     def train(self, historical_data: List[List[int]], lookback: int = 10):
         """
-        Train the ensemble models.
+        Train the ensemble models with optional parallelization.
         
         Args:
             historical_data: List of historical games
             lookback: Number of previous games to use for features
         """
         if not SKLEARN_AVAILABLE:
-            print("Warning: Cannot train neural ensemble without scikit-learn")
+            logger.warning("Cannot train neural ensemble without scikit-learn")
             return
         
-        print(f"🧠 Treinando ensemble neural com {len(historical_data)} jogos...")
+        logger.info(f"🧠 Treinando ensemble neural com {len(historical_data)} jogos...")
         
         # Extract features and targets
         X = self.extract_features(historical_data, lookback)
         y_list = self.prepare_targets(historical_data, lookback)
         
-        print(f"📊 Features extraídas: {X.shape}")
+        logger.info(f"📊 Features extraídas: {X.shape}")
         
         # Store feature information
         self.feature_names = [f"freq_{i}" for i in range(1, 26)] + \
@@ -175,26 +197,147 @@ class NeuralEnsembleLotofacil:
                            [f"dist_{i}_{j}" for i in range(3) for j in ["low", "mid", "high"]] + \
                            [f"parity_{i}_{j}" for i in range(3) for j in ["even", "odd"]]
         
-        # Train models for predicting overall number probabilities
-        # We'll aggregate the individual number predictions
-        y_aggregated = np.mean([y for y in y_list], axis=0)  # Average across all numbers
+        # Preparar dados para treinamento
+        y_aggregated = np.mean([y for y in y_list], axis=0)
         
-        model_scores = []
+        # Verificar se paralelização está disponível
+        try:
+            from ...core.parallel_engine import get_parallel_engine
+            self.parallel_engine = get_parallel_engine(use_processes=True)
+            use_parallel = True
+            logger.info("🚀 Treinamento paralelo habilitado")
+        except ImportError:
+            use_parallel = False
+            logger.info("🔄 Treinamento sequencial (parallel_engine não disponível)")
+        
+        if use_parallel and len(self.models) > 1:
+            return self._train_parallel(X, y_aggregated)
+        else:
+            return self._train_sequential(X, y_aggregated)
+    
+    def _train_parallel(self, X: np.ndarray, y_aggregated: np.ndarray) -> Dict[str, float]:
+        """Treina modelos em paralelo"""
+        logger.info("🚀 Iniciando treinamento paralelo dos modelos...")
+        
+        # Prepara jobs de treinamento
+        training_jobs = []
         for i, (model, scaler) in enumerate(zip(self.models, self.scalers)):
-            print(f"🔧 Treinando modelo {i+1}/{len(self.models)}: {type(model).__name__}")
+            job = {
+                'name': f'{type(model).__name__}',
+                'train_func': self._train_single_model,
+                'data': (X, y_aggregated),
+                'params': {
+                    'model': model,
+                    'scaler': scaler,
+                    'model_index': i
+                }
+            }
+            training_jobs.append(job)
+        
+        # Callback para progresso
+        def progress_callback(model_name: str, result: Any, completed: int, total: int):
+            if result and len(result) == 2:
+                _, score = result
+                logger.info(f"✅ {model_name}: CV Score {score:.4f} ({completed}/{total})")
+        
+        # Executa treinamento paralelo
+        start_time = time.time()
+        results = self.parallel_engine.parallel_train(
+            training_jobs=training_jobs,
+            progress_callback=progress_callback
+        )
+        
+        # Processa resultados
+        scores = {}
+        valid_models = []
+        valid_scalers = []
+        
+        for i, (job, result) in enumerate(zip(training_jobs, results)):
+            if result is not None and len(result) == 2:
+                trained_model, score = result
+                valid_models.append(trained_model)
+                valid_scalers.append(self.scalers[i])
+                scores[job['name']] = score
+            else:
+                logger.error(f"❌ {job['name']}: falha no treinamento")
+        
+        # Atualizar modelos com versões treinadas
+        self.models = valid_models
+        self.scalers = valid_scalers
+        
+        elapsed = time.time() - start_time
+        logger.info(f"🎯 Treinamento paralelo concluído em {elapsed:.2f}s")
+        logger.info(f"📊 Modelos treinados: {len(self.models)}")
+        
+        self.is_trained = len(self.models) > 0
+        return scores
+    
+    def _train_sequential(self, X: np.ndarray, y_aggregated: np.ndarray) -> Dict[str, float]:
+        """Treinamento sequencial (fallback)"""
+        logger.info("🔄 Treinamento sequencial dos modelos...")
+        
+        # Convert to binary classification problem using median split
+        median_val = np.median(y_aggregated)
+        y_binary = (y_aggregated > median_val).astype(int)
+        
+        # Check if we have both classes
+        if len(np.unique(y_binary)) < 2:
+            # Create more balanced binary target using quantiles
+            q75 = np.percentile(y_aggregated, 75)
+            y_binary = (y_aggregated > q75).astype(int)
+        
+        model_scores = {}
+        for i, (model, scaler) in enumerate(zip(self.models, self.scalers)):
+            logger.info(f"🔧 Treinando modelo {i+1}/{len(self.models)}: {type(model).__name__}")
             
-            # Scale features
-            X_scaled = scaler.fit_transform(X)
+            try:
+                trained_model, score = self._train_single_model(
+                    (X, y_aggregated), 
+                    model=model, 
+                    scaler=scaler, 
+                    model_index=i
+                )
+                model_scores[type(model).__name__] = score
+                logger.info(f"✅ {type(model).__name__}: CV Score {score:.4f}")
+            except Exception as e:
+                logger.error(f"❌ {type(model).__name__}: erro no treinamento - {e}")
+        
+        self.is_trained = len(model_scores) > 0
+        return model_scores
+    
+    @staticmethod
+    def _train_single_model(data: Tuple[np.ndarray, np.ndarray], 
+                           model, scaler, model_index: int) -> Tuple[object, float]:
+        """Treina um único modelo (thread-safe)"""
+        X, y_aggregated = data
+        
+        # Scale features
+        X_scaled = scaler.fit_transform(X)
+        
+        # Convert to binary classification problem using median split
+        median_val = np.median(y_aggregated)
+        y_binary = (y_aggregated > median_val).astype(int)
+        
+        # Check if we have both classes
+        if len(np.unique(y_binary)) < 2:
+            q75 = np.percentile(y_aggregated, 75)
+            y_binary = (y_aggregated > q75).astype(int)
+        
+        # Cross-validation para avaliar modelo
+        try:
+            scores = cross_val_score(model, X_scaled, y_binary, cv=3, scoring='accuracy')
+            avg_score = scores.mean()
             
-            # Convert to binary classification problem using median split
-            median_val = np.median(y_aggregated)
-            y_binary = (y_aggregated > median_val).astype(int)
+            # Treinamento final
+            model.fit(X_scaled, y_binary)
             
-            # Check if we have both classes
-            if len(np.unique(y_binary)) < 2:
-                # Create more balanced binary target using quantiles
-                q75 = np.percentile(y_aggregated, 75)
-                y_binary = (y_aggregated > q75).astype(int)
+            return model, avg_score
+            
+        except Exception as e:
+            logger.error(f"Erro no treinamento do modelo {type(model).__name__}: {e}")
+            # Treinamento simples sem CV em caso de erro
+            model.fit(X_scaled, y_binary)
+            return model, 0.5  # Score neutro
                 
                 # If still only one class, use different approach
                 if len(np.unique(y_binary)) < 2:

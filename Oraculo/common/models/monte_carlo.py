@@ -1,9 +1,14 @@
 import pandas as pd
 import os
 import numpy as np
-from typing import List, Dict
+from typing import List, Dict, Tuple
 from collections import Counter, defaultdict
 import random
+import time
+import logging
+
+# Configuração de logging
+logger = logging.getLogger(__name__)
 
 
 class MonteCarloLotofacilSimulator:
@@ -32,6 +37,7 @@ class MonteCarloLotofacilSimulator:
         self.numbers_range = list(range(1, 26))
         self.combination_size = 15
         self.historical_data = []
+        self.parallel_engine = None
         
         # Statistical models for sampling
         # Reduce strategies for FAST_CI
@@ -287,25 +293,103 @@ class MonteCarloLotofacilSimulator:
     
     def run_ensemble_simulation(self) -> Dict:
         """
-        Run ensemble of different Monte Carlo strategies.
+        Run ensemble of different Monte Carlo strategies with parallel execution.
         
         Returns:
             Dictionary containing ensemble results
         """
-        if self.verbose:
-            print("🎯 Executando ensemble de simulações Monte Carlo...")
+        logger.info("🎯 Executando ensemble de simulações Monte Carlo...")
+        
+        # Verificar se paralelização está disponível
+        try:
+            from ...core.parallel_engine import get_parallel_engine
+            self.parallel_engine = get_parallel_engine(use_processes=True)
+            use_parallel = len(self.sampling_strategies) > 1
+            logger.info(f"🚀 Paralelização {'habilitada' if use_parallel else 'desabilitada'}")
+        except ImportError:
+            use_parallel = False
+            logger.info("🔄 Execução sequencial (parallel_engine não disponível)")
+        
+        if use_parallel:
+            return self._run_ensemble_parallel()
+        else:
+            return self._run_ensemble_sequential()
+    
+    def _run_ensemble_parallel(self) -> Dict:
+        """Executa estratégias Monte Carlo em paralelo"""
+        logger.info("🚀 Executando estratégias Monte Carlo em paralelo...")
+        
+        # Prepara jobs para cada estratégia
+        strategy_jobs = []
+        for strategy in self.sampling_strategies:
+            job = {
+                'name': f'Strategy_{strategy}',
+                'train_func': self._run_strategy_worker,
+                'data': self.historical_data,
+                'params': {
+                    'strategy': strategy,
+                    'n_simulations': self.n_simulations // len(self.sampling_strategies)
+                }
+            }
+            strategy_jobs.append(job)
+        
+        # Callback para progresso
+        def progress_callback(strategy_name: str, result: Any, completed: int, total: int):
+            if result:
+                prediction = result.get('prediction', [])
+                logger.info(f"✅ {strategy_name}: {len(prediction)} números ({completed}/{total})")
+        
+        # Executa em paralelo
+        start_time = time.time()
+        results = self.parallel_engine.parallel_train(
+            training_jobs=strategy_jobs,
+            progress_callback=progress_callback
+        )
+        
+        # Processa resultados
+        strategy_results = {}
+        ensemble_predictions = []
+        
+        for job, result in zip(strategy_jobs, results):
+            if result is not None:
+                strategy_name = job['params']['strategy']
+                strategy_results[strategy_name] = result
+                ensemble_predictions.append(result['prediction'])
+        
+        elapsed = time.time() - start_time
+        logger.info(f"⚡ Estratégias paralelas concluídas em {elapsed:.2f}s")
+        
+        return self._combine_ensemble_results(strategy_results, ensemble_predictions)
+    
+    def _run_ensemble_sequential(self) -> Dict:
+        """Execução sequencial das estratégias (fallback)"""
+        logger.info("🔄 Executando estratégias Monte Carlo sequencialmente...")
         
         strategy_results = {}
         ensemble_predictions = []
         
         # Run each strategy
         for strategy in self.sampling_strategies:
-            if self.verbose:
-                print(f"\n📊 Estratégia: {strategy}")
+            logger.info(f"📊 Estratégia: {strategy}")
             result = self.run_monte_carlo_simulation(strategy)
             strategy_results[strategy] = result
             ensemble_predictions.append(result['prediction'])
         
+        return self._combine_ensemble_results(strategy_results, ensemble_predictions)
+    
+    @staticmethod
+    def _run_strategy_worker(historical_data: List[List[int]], 
+                           strategy: str, n_simulations: int) -> Dict:
+        """Worker para executar uma estratégia Monte Carlo"""
+        # Cria nova instância para evitar conflitos de estado
+        simulator = MonteCarloLotofacilSimulator(n_simulations=n_simulations, verbose=False)
+        simulator.set_historical_data(historical_data)
+        
+        return simulator.run_monte_carlo_simulation(strategy)
+    
+    def _combine_ensemble_results(self, strategy_results: Dict, 
+                                ensemble_predictions: List) -> Dict:
+        """Combina resultados das diferentes estratégias"""
         # Combine predictions using voting
         number_votes = Counter()
         for prediction in ensemble_predictions:

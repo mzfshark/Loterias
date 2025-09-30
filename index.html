@@ -14,7 +14,7 @@
   <header class="site-header">
     <div class="container">
       <h1>Relatórios Probabilísticos</h1>
-      <p class="subtitle">Análises e palpites gerados por modelos estatísticos e ML. <span class="muted">Atualizado em 30/09/2025 17:41</span></p>
+      <p class="subtitle">Análises e palpites gerados por modelos estatísticos e ML. <span class="muted">Atualizado em 30/09/2025 15:57</span></p>
     </div>
   </header>
 
@@ -38,8 +38,8 @@
         <div class='card highlight'>
           <h3 class='card-title'>🏆 Predição Final do Ensemble</h3>
           <div class='ensemble-result'>
-            <div class='prediction'>1 2 4 5 9 10 11 12 13 16 19 20 23 24 25</div>
-            <div class='confidence'>Confiança: 80.6%</div>
+            <div class='prediction'>1 4 5 9 10 11 12 13 16 19 20 22 23 24 25</div>
+            <div class='confidence'>Confiança: 80.8%</div>
             <div class='timestamp'>Gerado em: 2025-09-30</div>
           </div>
         </div>
@@ -67,8 +67,8 @@
     </tr>
     <tr>
       <td>monte_carlo</td>
-      <td>1 2 5 6 7 9 11 13 16 18 19 20 22 23 24</td>
-      <td>0.711111</td>
+      <td>2 5 6 7 13 15 16 17 19 20 21 22 23 24 25</td>
+      <td>0.722222</td>
       <td>2025-09-30</td>
     </tr>
     <tr>
@@ -79,13 +79,13 @@
     </tr>
     <tr>
       <td>beam_search</td>
-      <td>1 2 4 10 11 12 13 14 17 18 20 22 23 24 25</td>
+      <td>2 7 9 10 11 12 13 14 17 19 20 21 22 24 25</td>
       <td>0.700000</td>
       <td>2025-09-30</td>
     </tr>
     <tr>
       <td>markov</td>
-      <td>2 7 9 10 11 12 13 15 16 18 19 20 21 24 25</td>
+      <td>1 2 3 5 6 7 8 9 15 19 21 22 23 24 25</td>
       <td>0.600000</td>
       <td>2025-09-30</td>
     </tr>
@@ -97,12 +97,28 @@
     </tr>
     <tr>
       <td>mutation</td>
-      <td>1 2 4 5 6 8 9 10 11 12 13 15 16 18 22</td>
+      <td>1 2 3 5 10 11 12 13 17 18 19 20 21 22 23</td>
       <td>0.600000</td>
       <td>2025-09-30</td>
     </tr>
   </tbody>
-</table></div><div class='actions'><a class='btn' href='Oraculo/Lotofacil/predictions/prediction_2025-09-30.csv' download>📥 Baixar CSV</a></div></div><div class='card'><h3 class='card-title'>📈 Backtest / Acertos Reais</h3><details open><summary>Sumário</summary><pre class='md'># 🎯 Benchmark Summary - Lotofácil
+</table></div><div class='actions'><a class='btn' href='Oraculo/Lotofacil/predictions/prediction_2025-09-30.csv' download>📥 Baixar CSV</a></div></div>
+      <div class='card benchmark-card' data-game='lotofacil'>
+        <div class='benchmark-header' style='border-left: 4px solid #c2318f'>
+          <h3 class='card-title'>
+            <span class='benchmark-icon' style='color: #c2318f'>📈</span>
+            Análise de Performance
+          </h3>
+          <p class='benchmark-subtitle'>Backtest em dados históricos reais</p>
+        </div>
+      
+        <div class='benchmark-summary'>
+          <details open>
+            <summary class='summary-header' style='color: #c2318f'>
+              📊 Resumo dos Resultados
+            </summary>
+            <div class='summary-content'>
+              <pre class='md-content'># 🎯 Benchmark Summary - Lotofácil
 
 **Período analisado:** Últimos 300 concursos
 **Modelos testados:** 8 modelos
@@ -136,7 +152,35 @@
 ## 🥇 Melhor Modelo: **beam_search**
 - Média de acertos: **9.12**
 - Desvio padrão: 1.27
-</pre></details><div class='benchmark-wrap'><img src='Oraculo/Lotofacil/docs/charts/benchmark_summary.png' alt='Benchmark Chart' class='benchmark-img'></div><div class='actions'><a class='btn' href='Oraculo/Lotofacil/validation/benchmark_results.csv' download>📥 Baixar resultados (CSV)</a></div></div></section>
+</pre>
+            </div>
+          </details>
+        </div>
+        
+        <div class='benchmark-chart-container' data-game='lotofacil'>
+          <div class='chart-header'>
+            <h4 style='color: #c2318f'>📊 Gráfico de Performance</h4>
+            <span class='chart-info'>Análise visual dos resultados</span>
+          </div>
+          <div class='benchmark-img-wrapper' style='border: 2px solid #c2318f20'>
+            <img src='Oraculo/Lotofacil/docs/charts/benchmark_summary.png' alt='Benchmark Chart' class='benchmark-img' loading='lazy'>
+          </div>
+        </div>
+        
+        <div class='benchmark-actions'>
+          <div class='actions-header'>
+            <span class='actions-title'>Dados Disponíveis</span>
+          </div>
+          <div class='actions-buttons'>
+            
+        <a class='btn btn-download' href='Oraculo/Lotofacil/validation/benchmark_results.csv' download 
+           style='background: linear-gradient(45deg, #c2318f, #d14ba3); color: white;'>
+          📥 Baixar Dados (CSV)
+        </a>
+        
+          </div>
+        </div>
+        </div></section>
 <section class='tabcontent' id='supersete'><header class='section-header'><img src='Oraculo/SuperSete/docs/supersete.png' alt='Super Sete logo' width='220' height='auto' /></header><div class='card'><h3 class='card-title'>📊 Frequência Histórica</h3><div class='heatmap-wrap'><div>                        <script type="text/javascript">window.PlotlyConfig = {MathJaxConfig: 'local'};</script>
         <script charset="utf-8" src="https://cdn.plot.ly/plotly-3.1.0.min.js" integrity="sha256-Ei4740bWZhaUTQuD6q9yQlgVCMPBz6CZWhevDYPv93A=" crossorigin="anonymous"></script>                <div id="d9ae7610-6021-4098-9694-18ea875c8f5d" class="plotly-graph-div" style="height:500px; width:100%;"></div>            <script type="text/javascript">                window.PLOTLYENV=window.PLOTLYENV || {};                                if (document.getElementById("d9ae7610-6021-4098-9694-18ea875c8f5d")) {                    Plotly.newPlot(                        "d9ae7610-6021-4098-9694-18ea875c8f5d",                        [{"colorscale":[[0,"#f7fbec"],[0.5,"#afd355"],[1,"#6b8c21"]],"hoverinfo":"x+y+z","x":{"dtype":"i1","bdata":"AAECAwQFBgcICQ=="},"y":["Coluna 1","Coluna 2","Coluna 3","Coluna 4","Coluna 5","Coluna 6","Coluna 7"],"z":{"dtype":"i1","bdata":"VktGUk1PSUhCSEVLS01FUk5QSklFUEtKTFhDTktGRE5KQURNWVI+WUsxRVNMVFBPUUxUR0NFUjtRVUpQR0tMUUdMS0tIUA==","shape":"7, 10"},"type":"heatmap"}],                        {"template":{"data":{"histogram2dcontour":[{"type":"histogram2dcontour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"choropleth":[{"type":"choropleth","colorbar":{"outlinewidth":0,"ticks":""}}],"histogram2d":[{"type":"histogram2d","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"heatmap":[{"type":"heatmap","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"contourcarpet":[{"type":"contourcarpet","colorbar":{"outlinewidth":0,"ticks":""}}],"contour":[{"type":"contour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"surface":[{"type":"surface","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"mesh3d":[{"type":"mesh3d","colorbar":{"outlinewidth":0,"ticks":""}}],"scatter":[{"fillpattern":{"fillmode":"overlay","size":10,"solidity":0.2},"type":"scatter"}],"parcoords":[{"type":"parcoords","line":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolargl":[{"type":"scatterpolargl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"bar":[{"error_x":{"color":"#2a3f5f"},"error_y":{"color":"#2a3f5f"},"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"bar"}],"scattergeo":[{"type":"scattergeo","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolar":[{"type":"scatterpolar","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"histogram":[{"marker":{"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"histogram"}],"scattergl":[{"type":"scattergl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatter3d":[{"type":"scatter3d","line":{"colorbar":{"outlinewidth":0,"ticks":""}},"marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermap":[{"type":"scattermap","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermapbox":[{"type":"scattermapbox","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterternary":[{"type":"scatterternary","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattercarpet":[{"type":"scattercarpet","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"carpet":[{"aaxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"baxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"type":"carpet"}],"table":[{"cells":{"fill":{"color":"#EBF0F8"},"line":{"color":"white"}},"header":{"fill":{"color":"#C8D4E3"},"line":{"color":"white"}},"type":"table"}],"barpolar":[{"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"barpolar"}],"pie":[{"automargin":true,"type":"pie"}]},"layout":{"autotypenumbers":"strict","colorway":["#636efa","#EF553B","#00cc96","#ab63fa","#FFA15A","#19d3f3","#FF6692","#B6E880","#FF97FF","#FECB52"],"font":{"color":"#2a3f5f"},"hovermode":"closest","hoverlabel":{"align":"left"},"paper_bgcolor":"white","plot_bgcolor":"#E5ECF6","polar":{"bgcolor":"#E5ECF6","angularaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"radialaxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"ternary":{"bgcolor":"#E5ECF6","aaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"baxis":{"gridcolor":"white","linecolor":"white","ticks":""},"caxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"coloraxis":{"colorbar":{"outlinewidth":0,"ticks":""}},"colorscale":{"sequential":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"sequentialminus":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"diverging":[[0,"#8e0152"],[0.1,"#c51b7d"],[0.2,"#de77ae"],[0.3,"#f1b6da"],[0.4,"#fde0ef"],[0.5,"#f7f7f7"],[0.6,"#e6f5d0"],[0.7,"#b8e186"],[0.8,"#7fbc41"],[0.9,"#4d9221"],[1,"#276419"]]},"xaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"yaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"scene":{"xaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"yaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"zaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2}},"shapedefaults":{"line":{"color":"#2a3f5f"}},"annotationdefaults":{"arrowcolor":"#2a3f5f","arrowhead":0,"arrowwidth":1},"geo":{"bgcolor":"white","landcolor":"#E5ECF6","subunitcolor":"white","showland":true,"showlakes":true,"lakecolor":"white"},"title":{"x":0.05},"mapbox":{"style":"light"}}},"font":{"color":"#e8eef5"},"margin":{"l":40,"r":20,"t":60,"b":40},"title":{"text":"Heatmap de Frequ\u00eancia por Coluna (0 a 9)"},"xaxis":{"title":{"text":"D\u00edgitos"}},"yaxis":{"title":{"text":"Colunas"}},"height":500,"paper_bgcolor":"#0b0f14","plot_bgcolor":"#0f1720"},                        {"responsive": true}                    )                };            </script>        </div></div></div>
         <div class='card highlight'>
@@ -206,7 +250,23 @@
       <td>2025-09-30</td>
     </tr>
   </tbody>
-</table></div><div class='actions'><a class='btn' href='Oraculo/SuperSete/predictions/prediction_2025-09-30.csv' download>📥 Baixar CSV</a></div></div><div class='card'><h3 class='card-title'>📈 Backtest / Acertos Reais</h3><details open><summary>Sumário</summary><pre class='md'># 🎯 Benchmark Summary - SuperSete
+</table></div><div class='actions'><a class='btn' href='Oraculo/SuperSete/predictions/prediction_2025-09-30.csv' download>📥 Baixar CSV</a></div></div>
+      <div class='card benchmark-card' data-game='supersete'>
+        <div class='benchmark-header' style='border-left: 4px solid #a8cf45'>
+          <h3 class='card-title'>
+            <span class='benchmark-icon' style='color: #a8cf45'>📈</span>
+            Análise de Performance
+          </h3>
+          <p class='benchmark-subtitle'>Backtest em dados históricos reais</p>
+        </div>
+      
+        <div class='benchmark-summary'>
+          <details open>
+            <summary class='summary-header' style='color: #a8cf45'>
+              📊 Resumo dos Resultados
+            </summary>
+            <div class='summary-content'>
+              <pre class='md-content'># 🎯 Benchmark Summary - SuperSete
 
 **Período analisado:** Últimos 300 concursos
 **Modelos testados:** 1 modelos
@@ -226,7 +286,35 @@
 ## 🥇 Melhor Modelo: **bayesian**
 - Média de acertos: **3.76**
 - Desvio padrão: 0.95
-</pre></details><div class='benchmark-wrap'><img src='Oraculo/SuperSete/docs/charts/benchmark_summary.png' alt='Benchmark Chart' class='benchmark-img'></div><div class='actions'><a class='btn' href='Oraculo/SuperSete/validation/benchmark_results.csv' download>📥 Baixar resultados (CSV)</a></div></div></section>
+</pre>
+            </div>
+          </details>
+        </div>
+        
+        <div class='benchmark-chart-container' data-game='supersete'>
+          <div class='chart-header'>
+            <h4 style='color: #a8cf45'>📊 Gráfico de Performance</h4>
+            <span class='chart-info'>Análise visual dos resultados</span>
+          </div>
+          <div class='benchmark-img-wrapper' style='border: 2px solid #a8cf4520'>
+            <img src='Oraculo/SuperSete/docs/charts/benchmark_summary.png' alt='Benchmark Chart' class='benchmark-img' loading='lazy'>
+          </div>
+        </div>
+        
+        <div class='benchmark-actions'>
+          <div class='actions-header'>
+            <span class='actions-title'>Dados Disponíveis</span>
+          </div>
+          <div class='actions-buttons'>
+            
+        <a class='btn btn-download' href='Oraculo/SuperSete/validation/benchmark_results.csv' download 
+           style='background: linear-gradient(45deg, #a8cf45, #b6d65c); color: white;'>
+          📥 Baixar Dados (CSV)
+        </a>
+        
+          </div>
+        </div>
+        </div></section>
 <section class='tabcontent' id='megasena'><header class='section-header'><img src='Oraculo/MegaSena/docs/megasena.png' alt='Mega-Sena logo' width='220' height='auto' /></header><div class='card'><h3 class='card-title'>📊 Frequência Histórica</h3><div class='heatmap-wrap'><html>
 <head><meta charset="utf-8" /></head>
 <body>
@@ -4170,7 +4258,23 @@ return Plotly;
       <td>2025-09-30</td>
     </tr>
   </tbody>
-</table></div><div class='actions'><a class='btn' href='Oraculo/MegaSena/predictions/prediction_2025-09-30.csv' download>📥 Baixar CSV</a></div></div><div class='card'><h3 class='card-title'>📈 Backtest / Acertos Reais</h3><details open><summary>Sumário</summary><pre class='md'># 🎯 Benchmark Summary - MegaSena
+</table></div><div class='actions'><a class='btn' href='Oraculo/MegaSena/predictions/prediction_2025-09-30.csv' download>📥 Baixar CSV</a></div></div>
+      <div class='card benchmark-card' data-game='megasena'>
+        <div class='benchmark-header' style='border-left: 4px solid #009e4c'>
+          <h3 class='card-title'>
+            <span class='benchmark-icon' style='color: #009e4c'>📈</span>
+            Análise de Performance
+          </h3>
+          <p class='benchmark-subtitle'>Backtest em dados históricos reais</p>
+        </div>
+      
+        <div class='benchmark-summary'>
+          <details open>
+            <summary class='summary-header' style='color: #009e4c'>
+              📊 Resumo dos Resultados
+            </summary>
+            <div class='summary-content'>
+              <pre class='md-content'># 🎯 Benchmark Summary - MegaSena
 
 **Período analisado:** Últimos 300 concursos
 **Modelos testados:** 7 modelos
@@ -4202,7 +4306,35 @@ return Plotly;
 ## 🥇 Melhor Modelo: **bayesian**
 - Média de acertos: **0.67**
 - Desvio padrão: 0.75
-</pre></details><div class='benchmark-wrap'><img src='Oraculo/MegaSena/docs/charts/benchmark_summary.png' alt='Benchmark Chart' class='benchmark-img'></div><div class='actions'><a class='btn' href='Oraculo/MegaSena/validation/benchmark_results.csv' download>📥 Baixar resultados (CSV)</a></div></div></section>
+</pre>
+            </div>
+          </details>
+        </div>
+        
+        <div class='benchmark-chart-container' data-game='megasena'>
+          <div class='chart-header'>
+            <h4 style='color: #009e4c'>📊 Gráfico de Performance</h4>
+            <span class='chart-info'>Análise visual dos resultados</span>
+          </div>
+          <div class='benchmark-img-wrapper' style='border: 2px solid #009e4c20'>
+            <img src='Oraculo/MegaSena/docs/charts/benchmark_summary.png' alt='Benchmark Chart' class='benchmark-img' loading='lazy'>
+          </div>
+        </div>
+        
+        <div class='benchmark-actions'>
+          <div class='actions-header'>
+            <span class='actions-title'>Dados Disponíveis</span>
+          </div>
+          <div class='actions-buttons'>
+            
+        <a class='btn btn-download' href='Oraculo/MegaSena/validation/benchmark_results.csv' download 
+           style='background: linear-gradient(45deg, #009e4c, #1fb160); color: white;'>
+          📥 Baixar Dados (CSV)
+        </a>
+        
+          </div>
+        </div>
+        </div></section>
 <section class='tabcontent' id='quina'><header class='section-header'><img src='Oraculo/Quina/docs/quina.png' alt='Quina logo' width='220' height='auto' /></header><div class='card'><h3 class='card-title'>📊 Frequência Histórica</h3><div class='heatmap-wrap'><html>
 <head><meta charset="utf-8" /></head>
 <body>
@@ -8146,7 +8278,23 @@ return Plotly;
       <td>2025-09-30</td>
     </tr>
   </tbody>
-</table></div><div class='actions'><a class='btn' href='Oraculo/Quina/predictions/prediction_2025-09-30.csv' download>📥 Baixar CSV</a></div></div><div class='card'><h3 class='card-title'>📈 Backtest / Acertos Reais</h3><details open><summary>Sumário</summary><pre class='md'># 🎯 Benchmark Summary - Quina
+</table></div><div class='actions'><a class='btn' href='Oraculo/Quina/predictions/prediction_2025-09-30.csv' download>📥 Baixar CSV</a></div></div>
+      <div class='card benchmark-card' data-game='quina'>
+        <div class='benchmark-header' style='border-left: 4px solid #42338b'>
+          <h3 class='card-title'>
+            <span class='benchmark-icon' style='color: #42338b'>📈</span>
+            Análise de Performance
+          </h3>
+          <p class='benchmark-subtitle'>Backtest em dados históricos reais</p>
+        </div>
+      
+        <div class='benchmark-summary'>
+          <details open>
+            <summary class='summary-header' style='color: #42338b'>
+              📊 Resumo dos Resultados
+            </summary>
+            <div class='summary-content'>
+              <pre class='md-content'># 🎯 Benchmark Summary - Quina
 
 **Período analisado:** Últimos 300 concursos
 **Modelos testados:** 1 modelos
@@ -8166,7 +8314,35 @@ return Plotly;
 ## 🥇 Melhor Modelo: **bayesian**
 - Média de acertos: **0.36**
 - Desvio padrão: 0.55
-</pre></details><div class='benchmark-wrap'><img src='Oraculo/Quina/docs/charts/benchmark_summary.png' alt='Benchmark Chart' class='benchmark-img'></div><div class='actions'><a class='btn' href='Oraculo/Quina/validation/benchmark_results.csv' download>📥 Baixar resultados (CSV)</a></div></div></section>
+</pre>
+            </div>
+          </details>
+        </div>
+        
+        <div class='benchmark-chart-container' data-game='quina'>
+          <div class='chart-header'>
+            <h4 style='color: #42338b'>📊 Gráfico de Performance</h4>
+            <span class='chart-info'>Análise visual dos resultados</span>
+          </div>
+          <div class='benchmark-img-wrapper' style='border: 2px solid #42338b20'>
+            <img src='Oraculo/Quina/docs/charts/benchmark_summary.png' alt='Benchmark Chart' class='benchmark-img' loading='lazy'>
+          </div>
+        </div>
+        
+        <div class='benchmark-actions'>
+          <div class='actions-header'>
+            <span class='actions-title'>Dados Disponíveis</span>
+          </div>
+          <div class='actions-buttons'>
+            
+        <a class='btn btn-download' href='Oraculo/Quina/validation/benchmark_results.csv' download 
+           style='background: linear-gradient(45deg, #42338b, #5a4ca0); color: white;'>
+          📥 Baixar Dados (CSV)
+        </a>
+        
+          </div>
+        </div>
+        </div></section>
 <section class='tabcontent' id='milionaria'><header class='section-header'><img src='Oraculo/Milionaria/docs/milionaria.webp' alt='+Milionária logo' width='220' height='auto' /></header><div class='card'><h3 class='card-title'>📊 Frequência Histórica</h3><div class='heatmap-wrap'><html>
 <head><meta charset="utf-8" /></head>
 <body>
@@ -15997,7 +16173,23 @@ return Plotly;
       <td>2025-09-30</td>
     </tr>
   </tbody>
-</table></div><div class='actions'><a class='btn' href='Oraculo/Milionaria/predictions/prediction_2025-09-30.csv' download>📥 Baixar CSV</a></div></div><div class='card'><h3 class='card-title'>📈 Backtest / Acertos Reais</h3><details open><summary>Sumário</summary><pre class='md'># 🎯 Benchmark Summary - +Milionária
+</table></div><div class='actions'><a class='btn' href='Oraculo/Milionaria/predictions/prediction_2025-09-30.csv' download>📥 Baixar CSV</a></div></div>
+      <div class='card benchmark-card' data-game='milionaria'>
+        <div class='benchmark-header' style='border-left: 4px solid #2e307a'>
+          <h3 class='card-title'>
+            <span class='benchmark-icon' style='color: #2e307a'>📈</span>
+            Análise de Performance
+          </h3>
+          <p class='benchmark-subtitle'>Backtest em dados históricos reais</p>
+        </div>
+      
+        <div class='benchmark-summary'>
+          <details open>
+            <summary class='summary-header' style='color: #2e307a'>
+              📊 Resumo dos Resultados
+            </summary>
+            <div class='summary-content'>
+              <pre class='md-content'># 🎯 Benchmark Summary - +Milionária
 
 **Período analisado:** Últimos 300 concursos
 **Modelos testados:** 1 modelos
@@ -16017,7 +16209,35 @@ return Plotly;
 ## 🥇 Melhor Modelo: **bayesian**
 - Média de acertos: **0.73**
 - Desvio padrão: 0.78
-</pre></details><div class='benchmark-wrap'><img src='Oraculo/Milionaria/docs/charts/benchmark_summary.png' alt='Benchmark Chart' class='benchmark-img'></div><div class='actions'><a class='btn' href='Oraculo/Milionaria/validation/benchmark_results.csv' download>📥 Baixar resultados (CSV)</a></div></div></section>
+</pre>
+            </div>
+          </details>
+        </div>
+        
+        <div class='benchmark-chart-container' data-game='milionaria'>
+          <div class='chart-header'>
+            <h4 style='color: #2e307a'>📊 Gráfico de Performance</h4>
+            <span class='chart-info'>Análise visual dos resultados</span>
+          </div>
+          <div class='benchmark-img-wrapper' style='border: 2px solid #2e307a20'>
+            <img src='Oraculo/Milionaria/docs/charts/benchmark_summary.png' alt='Benchmark Chart' class='benchmark-img' loading='lazy'>
+          </div>
+        </div>
+        
+        <div class='benchmark-actions'>
+          <div class='actions-header'>
+            <span class='actions-title'>Dados Disponíveis</span>
+          </div>
+          <div class='actions-buttons'>
+            
+        <a class='btn btn-download' href='Oraculo/Milionaria/validation/benchmark_results.csv' download 
+           style='background: linear-gradient(45deg, #2e307a, #454891); color: white;'>
+          📥 Baixar Dados (CSV)
+        </a>
+        
+          </div>
+        </div>
+        </div></section>
   </main>
 
   <footer class="site-footer">
@@ -16027,19 +16247,153 @@ return Plotly;
   </footer>
 
   <script>
+    // Cores específicas de cada jogo (cores oficiais)
+    const gameColors = {
+      'lotofacil': { primary: '#c2318f', secondary: '#d14ba3', accent: '#e073b7' },
+      'supersete': { primary: '#a8cf45', secondary: '#b6d65c', accent: '#c4dd73' },
+      'megasena': { primary: '#009e4c', secondary: '#1fb160', accent: '#4fc474' },
+      'quina': { primary: '#42338b', secondary: '#5a4ca0', accent: '#7265b4' },
+      'milionaria': { primary: '#2e307a', secondary: '#454891', accent: '#5c60a8' }
+    };
+
     function activateTab(targetId, btn){
       document.querySelectorAll('.tabcontent').forEach(el => el.classList.remove('active'));
       document.querySelectorAll('.tab-button').forEach(el => el.classList.remove('active'));
       const section = document.getElementById(targetId);
       if(section) section.classList.add('active');
       if(btn) btn.classList.add('active');
+      
+      // Aplicar cores nos gráficos Plotly quando a aba for ativada
+      setTimeout(() => applyGameColorsToCharts(targetId), 100);
     }
+
+    function applyGameColorsToCharts(gameId) {
+      const colors = gameColors[gameId];
+      if (!colors) return;
+
+      // Encontrar gráficos Plotly na aba ativa
+      const activeSection = document.getElementById(gameId);
+      if (!activeSection) return;
+
+      const plotlyDivs = activeSection.querySelectorAll('.plotly-graph-div');
+      plotlyDivs.forEach(div => {
+        if (window.Plotly && div.layout) {
+          try {
+            // Atualizar cores do layout
+            const update = {
+              'paper_bgcolor': 'rgba(0,0,0,0)',
+              'plot_bgcolor': 'rgba(0,0,0,0)',
+              'font.color': '#e8eef5',
+              'xaxis.gridcolor': colors.primary + '20',
+              'yaxis.gridcolor': colors.primary + '20',
+              'xaxis.zerolinecolor': colors.primary + '40',
+              'yaxis.zerolinecolor': colors.primary + '40'
+            };
+
+            // Atualizar cores das séries de dados
+            const dataUpdate = div.data?.map(trace => ({
+              ...trace,
+              marker: {
+                ...trace.marker,
+                color: trace.marker?.color || colors.primary,
+                line: {
+                  ...trace.marker?.line,
+                  color: colors.secondary
+                }
+              },
+              line: {
+                ...trace.line,
+                color: colors.primary
+              }
+            }));
+
+            if (dataUpdate) {
+              window.Plotly.restyle(div, dataUpdate);
+            }
+            window.Plotly.relayout(div, update);
+          } catch (e) {
+            console.log('Could not update chart colors:', e);
+          }
+        }
+      });
+    }
+
+    // Função para redimensionar gráficos quando necessário
+    function resizePlotlyCharts() {
+      const plotlyDivs = document.querySelectorAll('.plotly-graph-div');
+      plotlyDivs.forEach(div => {
+        if (window.Plotly && div.layout) {
+          try {
+            window.Plotly.Plots.resize(div);
+          } catch (e) {
+            console.log('Could not resize chart:', e);
+          }
+        }
+      });
+    }
+
+    // Configuração responsiva para gráficos Plotly
+    function configurePlotlyResponsive() {
+      const plotlyDivs = document.querySelectorAll('.plotly-graph-div');
+      plotlyDivs.forEach(div => {
+        if (window.Plotly && div.layout) {
+          try {
+            const update = {
+              autosize: true,
+              responsive: true,
+              'xaxis.automargin': true,
+              'yaxis.automargin': true
+            };
+            window.Plotly.relayout(div, update);
+          } catch (e) {
+            console.log('Could not configure responsive chart:', e);
+          }
+        }
+      });
+    }
+
+    // Event listeners para responsividade
+    window.addEventListener('resize', () => {
+      clearTimeout(window.resizeTimeout);
+      window.resizeTimeout = setTimeout(() => {
+        resizePlotlyCharts();
+        configurePlotlyResponsive();
+      }, 250);
+    });
+
+    // Configurar responsividade inicial
+    document.addEventListener('DOMContentLoaded', () => {
+      setTimeout(() => {
+        configurePlotlyResponsive();
+      }, 500);
+    });
+    function resizeCharts() {
+      document.querySelectorAll('.plotly-graph-div').forEach(div => {
+        if (window.Plotly) {
+          window.Plotly.Plots.resize(div);
+        }
+      });
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
       const buttons = document.querySelectorAll('.tab-button');
       buttons.forEach(btn => {
         btn.addEventListener('click', () => activateTab(btn.dataset.target, btn));
       });
-      if(buttons.length){ activateTab(buttons[0].dataset.target, buttons[0]); }
+      if(buttons.length){ 
+        activateTab(buttons[0].dataset.target, buttons[0]);
+      }
+
+      // Redimensionar gráficos quando a janela for redimensionada
+      window.addEventListener('resize', resizeCharts);
+      
+      // Aplicar cores iniciais após carregar
+      setTimeout(() => {
+        const activeTab = document.querySelector('.tab-button.active');
+        if (activeTab) {
+          applyGameColorsToCharts(activeTab.dataset.target);
+        }
+      }, 500);
     });
   </script>
 </body>

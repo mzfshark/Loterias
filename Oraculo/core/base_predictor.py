@@ -16,6 +16,12 @@ import json
 from datetime import datetime
 from pathlib import Path
 import os
+import time
+import logging
+from .parallel_engine import get_parallel_engine, ParallelConfig
+
+# Configuração de logging
+logger = logging.getLogger(__name__)
 
 
 class LotteryConfig:
@@ -119,6 +125,10 @@ class BaseLotteryPredictor(ABC):
         self.results = {}
         self.ensemble_confidence = 0.0
 
+        # Configuração de paralelização
+        self.parallel_engine = get_parallel_engine()
+        self.use_parallel = ParallelConfig.is_parallel_enabled()
+        
         # Modo rápido para CI: desabilita modelos mais pesados por padrão
         try:
             fast_ci = os.environ.get('FAST_CI', '').strip()
@@ -126,11 +136,16 @@ class BaseLotteryPredictor(ABC):
                 for heavy in ('monte_carlo', 'neural_ensemble'):
                     if heavy in self.models:
                         self.models[heavy]['enabled'] = False
-                print("⚡ Modo FAST_CI ativo: modelos pesados desativados (monte_carlo, neural_ensemble).")
+                logger.info("⚡ Modo FAST_CI ativo: modelos pesados desativados (monte_carlo, neural_ensemble).")
             else:
-                print(f"🔍 Modo completo: todos os modelos habilitados (FAST_CI={fast_ci})")
+                logger.info(f"🔍 Modo completo: todos os modelos habilitados (FAST_CI={fast_ci})")
         except Exception:
             pass
+            
+        if self.use_parallel:
+            logger.info(f"🚀 Paralelização habilitada: {self.parallel_engine.max_workers} workers")
+        else:
+            logger.info("🔧 Execução sequencial ativada")
         
     def load_data(self) -> List[List[int]]:
         """Load historical lottery data from CSV file."""
@@ -163,8 +178,58 @@ class BaseLotteryPredictor(ABC):
         return games
     
     def run_all_models(self, data: List[List[int]]) -> Dict[str, Any]:
-        """Run all enabled prediction models."""
-        print(f"🧠 Executando todos os modelos probabilísticos para {self.config.name}...")
+        """Run all enabled prediction models with optional parallelization."""
+        logger.info(f"🧠 Executando todos os modelos probabilísticos para {self.config.name}...")
+        
+        if not self.use_parallel:
+            return self._run_models_sequential(data)
+        
+        return self._run_models_parallel(data)
+    
+    def _run_models_parallel(self, data: List[List[int]]) -> Dict[str, Any]:
+        """Executa modelos em paralelo"""
+        logger.info("🚀 Executando modelos em paralelo...")
+        
+        # Prepara funções de predição para cada modelo habilitado
+        model_functions = {}
+        
+        for model_name, model_config in self.models.items():
+            if model_config['enabled']:
+                # Cria função wrapper para cada modelo
+                model_functions[model_name] = lambda model_data, name=model_name: self._run_model(name, model_data)
+        
+        if not model_functions:
+            logger.warning("⚠️ Nenhum modelo habilitado para execução")
+            return {}
+        
+        # Callback para progresso
+        def progress_callback(model_name: str, result: Any, completed: int, total: int):
+            if result:
+                prediction = result.get('prediction', [])
+                logger.info(f"   ✅ {model_name}: {prediction} ({completed}/{total})")
+            else:
+                logger.warning(f"   ⚠️ {model_name}: sem resultado ({completed}/{total})")
+        
+        # Executa em paralelo
+        start_time = time.time()
+        results = self.parallel_engine.parallel_predict(
+            models=model_functions,
+            data=data,
+            progress_callback=progress_callback
+        )
+        
+        # Filtra resultados válidos
+        valid_results = {k: v for k, v in results.items() if v is not None}
+        
+        elapsed = time.time() - start_time
+        logger.info(f"🎯 Modelos paralelos concluídos em {elapsed:.2f}s: "
+                   f"{len(valid_results)}/{len(model_functions)} sucessos")
+        
+        return valid_results
+    
+    def _run_models_sequential(self, data: List[List[int]]) -> Dict[str, Any]:
+        """Execução sequencial original (fallback)"""
+        logger.info("🔄 Executando modelos sequencialmente...")
         
         model_results = {}
         
@@ -175,9 +240,9 @@ class BaseLotteryPredictor(ABC):
                     result = self._run_model(model_name, data)
                     if result:
                         model_results[model_name] = result
-                        print(f"   ✅ {model_name}: {result.get('prediction', [])}")
+                        logger.info(f"   ✅ {model_name}: {result.get('prediction', [])}")
                 except Exception as e:
-                    print(f"   ❌ {model_name} erro: {e}")
+                    logger.error(f"   ❌ {model_name} erro: {e}")
                     self.models[model_name]['enabled'] = False
         
         return model_results

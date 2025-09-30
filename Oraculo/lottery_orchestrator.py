@@ -6,9 +6,9 @@ This script provides a unified interface to run predictions across all supported
 lottery games using the modular architecture.
 
 Usage:
-    python lottery_orchestrator.py --game megasena
-    python lottery_orchestrator.py --game all
-    python lottery_orchestrator.py --game lotofacil --models bayesian,monte_carlo
+    python3 lottery_orchestrator.py --game megasena
+    python3 lottery_orchestrator.py --game all
+    python3 lottery_orchestrator.py --game lotofacil --models bayesian,monte_carlo
 
 Author: Enhanced AI System
 """
