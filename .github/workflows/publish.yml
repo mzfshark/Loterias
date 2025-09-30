@@ -28,7 +28,7 @@ jobs:
     timeout-minutes: 2
     
     env:
-      FAST_CI: '1'
+      FAST_CI: '0'
       PYTHONUNBUFFERED: '1'
       
     steps:
