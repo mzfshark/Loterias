@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
-      FAST_CI: '0'
+      FAST_CI: '1'
       PYTHONUNBUFFERED: '0'
 
     steps:

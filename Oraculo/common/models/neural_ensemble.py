@@ -204,7 +204,8 @@ class NeuralEnsembleLotofacil:
         # Verificar se paralelização está disponível
         try:
             from ...core.parallel_engine import get_parallel_engine
-            self.parallel_engine = get_parallel_engine(use_processes=True)
+            # Usar configuração do ambiente (não forçar processos)
+            self.parallel_engine = get_parallel_engine()
             use_parallel = True
             logger.info("🚀 Treinamento paralelo habilitado")
         except ImportError:
