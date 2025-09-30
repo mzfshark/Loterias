@@ -87,16 +87,12 @@ jobs:
           python scripts/generate_html.py
           echo "✅ HTML gerado com sucesso!"
 
-      - name: Calibrar pesos automaticamente (opcional)
+      - name: ⚖️ Verificar/criar pesos dos modelos
         continue-on-error: true
         run: |
-          echo "⚖️ Iniciando calibração automática de pesos..."
-          if [ -f "Oraculo/core/auto_calibrator.py" ]; then
-            python Oraculo/core/auto_calibrator.py --game all --lookback-history 20 --mode backtest || echo "⚠️ Calibração falhou, continuando..."
-            echo "✅ Calibração concluída."
-          else
-            echo "ℹ️ Auto-calibrador não encontrado, pulando calibração."
-          fi
+          echo "⚖️ Verificando pesos dos modelos..."
+          python scripts/quick_calibrate.py
+          echo "✅ Pesos verificados/criados com sucesso!"
 
       - name: Validar arquivos gerados
         run: |
@@ -174,3 +170,19 @@ jobs:
           echo "✅ Files published to gh-pages branch"
           echo "🔄 Pages deployment will be triggered automatically"
           echo "📊 Dashboard will be available at: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}"
+
+      - name: 📊 Workflow Summary
+        run: |
+          echo "🎉 **HTML Publisher executado com sucesso!**" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ **Tarefas Concluídas:**" >> $GITHUB_STEP_SUMMARY
+          echo "- 🌐 Dashboard HTML gerado" >> $GITHUB_STEP_SUMMARY
+          echo "- ⚖️ Pesos dos modelos verificados" >> $GITHUB_STEP_SUMMARY
+          echo "- 📦 Arquivos publicados no gh-pages" >> $GITHUB_STEP_SUMMARY
+          echo "- 🚀 Deploy para GitHub Pages iniciado" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "🔗 **Próximos Passos:**" >> $GITHUB_STEP_SUMMARY
+          echo "1. Deploy Pages será executado automaticamente" >> $GITHUB_STEP_SUMMARY
+          echo "2. Dashboard estará disponível em ~2-3 minutos" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "📅 **Executado em:** $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
