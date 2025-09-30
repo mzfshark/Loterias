@@ -9,7 +9,7 @@
     23,
     44
   ],
-  "ensemble_confidence": 0.6864773864773865,
+  "ensemble_confidence": 0.6864773864773864,
   "models": [
     {
       "modelo": "bayesian",
@@ -24,26 +24,14 @@
       "confidence": 0.1
     },
     {
-      "modelo": "time_series",
-      "jogo": [
-        1,
-        3,
-        7,
-        15,
-        23,
-        44
-      ],
-      "confidence": 3.334584584584585
-    },
-    {
       "modelo": "beam_search",
       "jogo": [
         1,
-        3,
-        4,
         6,
         7,
-        8
+        8,
+        11,
+        13
       ],
       "confidence": 0.7
     },
@@ -74,14 +62,26 @@
     {
       "modelo": "mutation",
       "jogo": [
-        10,
-        15,
+        1,
+        25,
+        29,
         30,
-        38,
-        45,
-        47
+        42,
+        44
       ],
       "confidence": 0.6
+    },
+    {
+      "modelo": "time_series",
+      "jogo": [
+        1,
+        3,
+        7,
+        15,
+        23,
+        44
+      ],
+      "confidence": 3.334584584584585
     }
   ]
 }

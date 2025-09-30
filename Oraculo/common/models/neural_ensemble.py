@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from typing import List, Dict, Tuple
+from typing import List, Dict, Tuple, Any
 from collections import Counter
 import warnings
 import time
@@ -40,6 +40,7 @@ class NeuralEnsembleLotofacil:
         self.scalers = []
         self.feature_names = []
         self.is_trained = False
+        self.model_scores = []
         self.parallel_engine = None
         
         # Configuração otimizada para paralelização
@@ -318,10 +319,26 @@ class NeuralEnsembleLotofacil:
         median_val = np.median(y_aggregated)
         y_binary = (y_aggregated > median_val).astype(int)
         
-        # Check if we have both classes
-        if len(np.unique(y_binary)) < 2:
+        # Check if we have both classes - try different percentiles
+        unique_classes = len(np.unique(y_binary))
+        if unique_classes < 2:
+            # Try 75th percentile
             q75 = np.percentile(y_aggregated, 75)
             y_binary = (y_aggregated > q75).astype(int)
+            unique_classes = len(np.unique(y_binary))
+            
+        if unique_classes < 2:
+            # Try 60th percentile as last resort
+            q60 = np.percentile(y_aggregated, 60)
+            y_binary = (y_aggregated > q60).astype(int)
+            unique_classes = len(np.unique(y_binary))
+            
+        # If still only one class, create artificial balance
+        if unique_classes < 2:
+            # Force create two classes by making first half 0 and second half 1
+            split_point = len(y_binary) // 2
+            y_binary = np.zeros_like(y_binary)
+            y_binary[split_point:] = 1
         
         # Cross-validation para avaliar modelo
         try:
@@ -338,32 +355,6 @@ class NeuralEnsembleLotofacil:
             # Treinamento simples sem CV em caso de erro
             model.fit(X_scaled, y_binary)
             return model, 0.5  # Score neutro
-                
-                # If still only one class, use different approach
-                if len(np.unique(y_binary)) < 2:
-                    # Use top 40% vs bottom 60%
-                    threshold = np.percentile(y_aggregated, 60)
-                    y_binary = (y_aggregated > threshold).astype(int)
-            
-            # Final check - if still one class, skip this model
-            if len(np.unique(y_binary)) < 2:
-                print(f"  ⚠️ Dados insuficientes para treinamento - pulando modelo")
-                model_scores.append(0.5)
-                continue
-            
-            # Train model
-            model.fit(X_scaled, y_binary)
-            
-            # Evaluate with cross-validation
-            try:
-                scores = cross_val_score(model, X_scaled, y_binary, cv=min(5, len(X_scaled)//2), scoring='accuracy')
-                model_scores.append(np.mean(scores))
-                print(f"  ✅ Acurácia CV: {np.mean(scores):.4f} ± {np.std(scores):.4f}")
-            except Exception as e:
-                print(f"  ⚠️ Erro na validação cruzada: {str(e)}")
-                model_scores.append(0.5)
-        
-        self.is_trained = True
         self.model_scores = model_scores
         print(f"✅ Treinamento concluído. Melhor modelo: {np.argmax(model_scores) + 1}")
     

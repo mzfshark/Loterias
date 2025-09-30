@@ -113,16 +113,20 @@ class EnhancedSuperSetePredictor(BaseLotteryPredictor):
             # Timeout para evitar travamentos (apenas Unix/Linux)
             timeout_set = False
             try:
+                # Só usa signals se estivermos na thread principal
+                import threading
+                is_main_thread = threading.current_thread() is threading.main_thread()
+                
                 def timeout_handler(signum, frame):
                     raise TimeoutError(f"Timeout no modelo {model_name}")
                 
-                # Define timeout de 30 segundos (apenas em sistemas Unix)
-                if hasattr(signal, 'SIGALRM'):
+                # Define timeout de 30 segundos (apenas em sistemas Unix e thread principal)
+                if hasattr(signal, 'SIGALRM') and is_main_thread:
                     signal.signal(signal.SIGALRM, timeout_handler)
                     signal.alarm(30)
                     timeout_set = True
-            except (AttributeError, OSError):
-                # Windows ou sistema que não suporta alarm
+            except (AttributeError, OSError, RuntimeError):
+                # Windows, sistema que não suporta alarm, ou não é thread principal
                 pass
             
             result = None
@@ -144,14 +148,20 @@ class EnhancedSuperSetePredictor(BaseLotteryPredictor):
             elif model_name == 'beam_search':
                 result = self._simple_beam_search_model(data)
             
-            # Cancela o timeout se foi definido
-            if timeout_set:
-                signal.alarm(0)
+            # Cancela o timeout se foi definido e estamos na thread principal
+            if timeout_set and hasattr(signal, 'alarm'):
+                try:
+                    signal.alarm(0)
+                except RuntimeError:
+                    pass  # Ignora se não estivermos na thread principal
             return result
             
         except (TimeoutError, Exception) as e:
-            if timeout_set:
-                signal.alarm(0)  # Cancela timeout
+            if timeout_set and hasattr(signal, 'alarm'):
+                try:
+                    signal.alarm(0)  # Cancela timeout
+                except RuntimeError:
+                    pass  # Ignora se não estivermos na thread principal
             print(f"⚠️ Modelo {model_name} falhou: {e}")
             return None
     

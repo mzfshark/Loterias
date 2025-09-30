@@ -24,6 +24,18 @@ from .parallel_engine import get_parallel_engine, ParallelConfig
 logger = logging.getLogger(__name__)
 
 
+class ModelRunner:
+    """Wrapper serializável para execução de modelos em paralelo"""
+    
+    def __init__(self, predictor_instance, model_name: str):
+        self.predictor_instance = predictor_instance
+        self.model_name = model_name
+    
+    def __call__(self, data):
+        """Executa o modelo específico"""
+        return self.predictor_instance._run_model(self.model_name, data)
+
+
 class LotteryConfig:
     """Configuration class for different lottery types."""
     
@@ -195,8 +207,8 @@ class BaseLotteryPredictor(ABC):
         
         for model_name, model_config in self.models.items():
             if model_config['enabled']:
-                # Cria função wrapper para cada modelo
-                model_functions[model_name] = lambda model_data, name=model_name: self._run_model(name, model_data)
+                # Usa função estática que pode ser serializada
+                model_functions[model_name] = ModelRunner(self, model_name)
         
         if not model_functions:
             logger.warning("⚠️ Nenhum modelo habilitado para execução")

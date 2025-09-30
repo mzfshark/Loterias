@@ -1,0 +1,478 @@
+16:12:09 - core.env_config - INFO - 📋 Configurações carregadas de: /mnt/d/Rede/Github/mzfshark/Loterias/.env
+16:12:09 - Oraculo.core.env_config - INFO - 📋 Configurações carregadas de: /mnt/d/Rede/Github/mzfshark/Loterias/.env
+16:12:09 - Oraculo.core.parallel_engine - INFO - 🔧 FAST_CI ativo: limitando a 2 workers
+16:12:09 - Oraculo.core.parallel_engine - INFO - 🚀 ParallelEngine configurado: 2 workers, threads
+16:12:09 - Oraculo.core.base_predictor - INFO - ⚡ Modo FAST_CI ativo: modelos pesados desativados (monte_carlo, neural_ensemble).
+16:12:09 - Oraculo.core.base_predictor - INFO - 🚀 Paralelização habilitada: 2 workers
+16:12:09 - Oraculo.core.base_predictor - INFO - 🧠 Executando todos os modelos probabilísticos para Lotofacil...
+16:12:09 - Oraculo.core.base_predictor - INFO - 🚀 Executando modelos em paralelo...
+16:12:09 - Oraculo.core.parallel_engine - INFO - 🚀 Iniciando predições paralelas: 8 modelos, 2 workers
+16:12:10 - Oraculo.core.parallel_engine - INFO - ✅ bayesian: concluído (1/8) - 0.6s
+16:12:10 - Oraculo.core.base_predictor - INFO -    ✅ bayesian: [1, 2, 3, 4, 5, 9, 10, 11, 12, 13, 14, 20, 22, 24, 25] (1/8)
+16:12:10 - Oraculo.common.models.monte_carlo - INFO - 🎯 Executando ensemble de simulações Monte Carlo...
+16:12:10 - Oraculo.core.parallel_engine - INFO - 🔧 FAST_CI ativo: limitando a 2 workers
+16:12:10 - Oraculo.core.parallel_engine - INFO - 🚀 ParallelEngine configurado: 2 workers, processos
+16:12:10 - Oraculo.common.models.monte_carlo - INFO - 🚀 Paralelização habilitada
+16:12:10 - Oraculo.common.models.monte_carlo - INFO - 🚀 Executando estratégias Monte Carlo em paralelo...
+16:12:10 - Oraculo.core.parallel_engine - INFO - 🧠 Iniciando treinamentos paralelos: 2 jobs
+🚀 Executando predições para todas as loterias...
+
+🎯 Executando predições para LOTOFACIL...
+🚀 Iniciando análise completa para Lotofacil...
+📊 Dados carregados: 3499 jogos históricos
+16:12:10 - Oraculo.core.parallel_engine - INFO - 🔄 Treinamento Strategy_frequency_weighted: 0.03s
+16:12:10 - Oraculo.core.parallel_engine - INFO - ✅ Treinamento Strategy_frequency_weighted: concluído
+16:12:10 - Oraculo.common.models.monte_carlo - INFO - ✅ Strategy_frequency_weighted: 15 números (1/2)
+16:12:10 - Oraculo.core.parallel_engine - INFO - 🔄 Treinamento Strategy_uniform: 0.02s
+16:12:10 - Oraculo.core.parallel_engine - INFO - ✅ Treinamento Strategy_uniform: concluído
+16:12:10 - Oraculo.common.models.monte_carlo - INFO - ✅ Strategy_uniform: 15 números (2/2)
+16:12:10 - Oraculo.common.models.monte_carlo - INFO - ⚡ Estratégias paralelas concluídas em 0.16s
+16:12:10 - Oraculo.core.parallel_engine - INFO - ✅ monte_carlo: concluído (2/8) - 0.8s
+16:12:10 - Oraculo.core.base_predictor - INFO -    ✅ monte_carlo: [2, 3, 6, 7, 8, 9, 10, 13, 17, 18, 19, 20, 21, 23, 24] (2/8)
+16:12:10 - Oraculo.common.models.neural_ensemble - INFO - 🧠 Neural Ensemble inicializado com 3 modelos (modo rápido)
+16:12:10 - Oraculo.common.models.neural_ensemble - INFO - 🧠 Treinando ensemble neural com 2799 jogos...
+16:12:12 - Oraculo.common.models.neural_ensemble - INFO - 📊 Features extraídas: (2789, 71)
+16:12:12 - Oraculo.common.models.neural_ensemble - INFO - 🚀 Treinamento paralelo habilitado
+16:12:12 - Oraculo.common.models.neural_ensemble - INFO - 🚀 Iniciando treinamento paralelo dos modelos...
+16:12:12 - Oraculo.core.parallel_engine - INFO - 🧠 Iniciando treinamentos paralelos: 3 jobs
+16:12:12 - Oraculo.common.models.neural_ensemble - ERROR - Erro no treinamento do modelo GradientBoostingClassifier: 
+All the 3 fits failed.
+It is very likely that your model is misconfigured.
+You can try to debug the error by setting error_score='raise'.
+
+Below are more details about the failures:
+--------------------------------------------------------------------------------
+3 fits failed with the following error:
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.8/dist-packages/sklearn/model_selection/_validation.py", line 729, in _fit_and_score
+    estimator.fit(X_train, y_train, **fit_params)
+  File "/usr/local/lib/python3.8/dist-packages/sklearn/base.py", line 1152, in wrapper
+    return fit_method(estimator, *args, **kwargs)
+  File "/usr/local/lib/python3.8/dist-packages/sklearn/ensemble/_gb.py", line 427, in fit
+    y = self._validate_y(y, sample_weight)
+  File "/usr/local/lib/python3.8/dist-packages/sklearn/ensemble/_gb.py", line 1217, in _validate_y
+    raise ValueError(
+ValueError: y contains 1 class after sample_weight trimmed classes with zero weights, while a minimum of 2 classes are required.
+
+16:12:12 - Oraculo.core.parallel_engine - ERROR - 💥 Treinamento GradientBoostingClassifier: falha - y contains 1 class after sample_weight trimmed classes with zero weights, while a minimum of 2 classes are required.
+16:12:12 - Oraculo.core.parallel_engine - ERROR - ❌ Treinamento GradientBoostingClassifier: erro - y contains 1 class after sample_weight trimmed classes with zero weights, while a minimum of 2 classes are required.
+16:12:13 - Oraculo.core.parallel_engine - INFO - 🔄 Treinamento RandomForestClassifier: 0.25s
+16:12:13 - Oraculo.core.parallel_engine - INFO - ✅ Treinamento RandomForestClassifier: concluído
+16:12:13 - Oraculo.common.models.neural_ensemble - INFO - ✅ RandomForestClassifier: CV Score 1.0000 (2/3)
+16:12:13 - Oraculo.core.parallel_engine - INFO - ✅ time_series: concluído (3/8) - 3.4s
+16:12:13 - Oraculo.core.base_predictor - INFO -    ✅ time_series: [1, 4, 5, 9, 10, 11, 12, 13, 15, 16, 19, 20, 23, 24, 25] (3/8)
+16:12:13 - Oraculo.core.parallel_engine - INFO - ✅ beam_search: concluído (4/8) - 3.5s
+16:12:13 - Oraculo.core.base_predictor - INFO -    ✅ beam_search: [1, 3, 4, 10, 11, 13, 14, 15, 16, 18, 19, 20, 22, 24, 25] (4/8)
+16:12:13 - Oraculo.core.parallel_engine - INFO - ✅ markov: concluído (5/8) - 3.6s
+16:12:13 - Oraculo.core.base_predictor - INFO -    ✅ markov: [2, 4, 6, 7, 9, 12, 13, 15, 16, 17, 19, 20, 21, 24, 25] (5/8)
+16:12:13 - Oraculo.core.parallel_engine - INFO - ✅ poisson: concluído (6/8) - 3.7s
+16:12:13 - Oraculo.core.base_predictor - INFO -    ✅ poisson: [1, 2, 3, 4, 5, 9, 12, 13, 14, 15, 18, 19, 21, 22, 24] (6/8)
+16:12:13 - Oraculo.core.parallel_engine - INFO - ✅ mutation: concluído (7/8) - 3.7s
+16:12:13 - Oraculo.core.base_predictor - INFO -    ✅ mutation: [1, 2, 3, 4, 6, 7, 8, 11, 12, 13, 17, 19, 21, 22, 25] (7/8)
+16:12:17 - Oraculo.core.parallel_engine - INFO - 🔄 Treinamento MLPClassifier: 4.78s
+16:12:17 - Oraculo.core.parallel_engine - INFO - ✅ Treinamento MLPClassifier: concluído
+16:12:17 - Oraculo.common.models.neural_ensemble - INFO - ✅ MLPClassifier: CV Score 1.0000 (3/3)
+16:12:17 - Oraculo.common.models.neural_ensemble - ERROR - ❌ GradientBoostingClassifier: falha no treinamento
+16:12:17 - Oraculo.common.models.neural_ensemble - INFO - 🎯 Treinamento paralelo concluído em 4.88s
+16:12:17 - Oraculo.common.models.neural_ensemble - INFO - 📊 Modelos treinados: 2
+16:12:18 - Oraculo.core.parallel_engine - INFO - ✅ neural_ensemble: concluído (8/8) - 9.1s
+16:12:18 - Oraculo.core.base_predictor - WARNING -    ⚠️ neural_ensemble: sem resultado (8/8)
+16:12:18 - Oraculo.core.parallel_engine - INFO - 🎯 Predições paralelas concluídas em 9.11s (7/8 sucessos)
+16:12:18 - Oraculo.core.base_predictor - INFO - 🎯 Modelos paralelos concluídos em 9.12s: 7/8 sucessos
+16:12:19 - Oraculo.core.base_predictor - INFO - ⚡ Modo FAST_CI ativo: modelos pesados desativados (monte_carlo, neural_ensemble).
+16:12:19 - Oraculo.core.base_predictor - INFO - 🚀 Paralelização habilitada: 2 workers
+16:12:19 - Oraculo.core.base_predictor - INFO - 🧠 Executando todos os modelos probabilísticos para MegaSena...
+16:12:19 - Oraculo.core.base_predictor - INFO - 🚀 Executando modelos em paralelo...
+16:12:19 - Oraculo.core.parallel_engine - INFO - 🚀 Iniciando predições paralelas: 6 modelos, 2 workers
+16:12:19 - Oraculo.core.parallel_engine - INFO - ✅ bayesian: concluído (1/6) - 0.1s
+16:12:19 - Oraculo.core.base_predictor - INFO -    ✅ bayesian: [5, 10, 34, 37, 38, 53] (1/6)
+16:12:19 - Oraculo.core.parallel_engine - INFO - ✅ beam_search: concluído (2/6) - 0.1s
+16:12:19 - Oraculo.core.base_predictor - INFO -    ✅ beam_search: [2, 4, 5, 6, 8, 9] (2/6)
+16:12:19 - Oraculo.core.parallel_engine - INFO - ✅ markov: concluído (3/6) - 0.1s
+16:12:19 - Oraculo.core.base_predictor - INFO -    ✅ markov: [2, 3, 4, 5, 8, 9] (3/6)
+16:12:19 - Oraculo.core.parallel_engine - INFO - ✅ poisson: concluído (4/6) - 0.1s
+16:12:19 - Oraculo.core.base_predictor - INFO -    ✅ poisson: [2, 6, 24, 25, 29, 36] (4/6)
+16:12:19 - Oraculo.core.parallel_engine - INFO - ✅ mutation: concluído (5/6) - 0.1s
+16:12:19 - Oraculo.core.base_predictor - INFO -    ✅ mutation: [1, 11, 24, 32, 33, 39] (5/6)
+16:12:19 - Oraculo.core.parallel_engine - INFO - ✅ time_series: concluído (6/6) - 0.8s
+16:12:19 - Oraculo.core.base_predictor - INFO -    ✅ time_series: [1, 4, 5, 38, 41, 47] (6/6)
+16:12:19 - Oraculo.core.parallel_engine - INFO - 🎯 Predições paralelas concluídas em 0.84s (6/6 sucessos)
+16:12:19 - Oraculo.core.base_predictor - INFO - 🎯 Modelos paralelos concluídos em 0.84s: 6/6 sucessos
+16:12:20 - Oraculo.core.base_predictor - INFO - ⚡ Modo FAST_CI ativo: modelos pesados desativados (monte_carlo, neural_ensemble).
+16:12:20 - Oraculo.core.base_predictor - INFO - 🚀 Paralelização habilitada: 2 workers
+16:12:20 - Oraculo.core.base_predictor - INFO - 🧠 Executando todos os modelos probabilísticos para Quina...
+16:12:20 - Oraculo.core.base_predictor - INFO - 🚀 Executando modelos em paralelo...
+16:12:20 - Oraculo.core.parallel_engine - INFO - 🚀 Iniciando predições paralelas: 6 modelos, 2 workers
+16:12:20 - Oraculo.core.parallel_engine - INFO - ✅ bayesian: concluído (1/6) - 0.0s
+16:12:20 - Oraculo.core.base_predictor - INFO -    ✅ bayesian: [4, 26, 31, 49, 52] (1/6)
+16:12:20 - Oraculo.core.parallel_engine - INFO - ✅ beam_search: concluído (2/6) - 0.0s
+16:12:20 - Oraculo.core.base_predictor - INFO -    ✅ beam_search: [1, 2, 4, 5, 7] (2/6)
+16:12:20 - Oraculo.core.parallel_engine - INFO - ✅ markov: concluído (3/6) - 0.1s
+16:12:20 - Oraculo.core.base_predictor - INFO -    ✅ markov: [2, 4, 8, 10, 13] (3/6)
+16:12:20 - Oraculo.core.parallel_engine - INFO - ✅ poisson: concluído (4/6) - 0.1s
+16:12:20 - Oraculo.core.base_predictor - INFO -    ✅ poisson: [6, 19, 43, 59, 77] (4/6)
+16:12:20 - Oraculo.core.parallel_engine - INFO - ✅ mutation: concluído (5/6) - 0.2s
+16:12:20 - Oraculo.core.base_predictor - INFO -    ✅ mutation: [4, 24, 48, 53, 79] (5/6)
+⚠️ Neural Ensemble model adaptation failed: 'NeuralEnsembleLotofacil' object has no attribute 'model_scores'
+💾 Predições salvas:
+   📄 JSON: Oraculo/Lotofacil/predictions/prediction_2025-09-30.json
+   📊 CSV: Oraculo/Lotofacil/predictions/prediction_2025-09-30.csv
+
+================================================================================
+🎯 RESUMO DA ANÁLISE PROBABILÍSTICA
+================================================================================
+
+🏆 PREDIÇÃO ENSEMBLE FINAL:
+   Números: [1, 2, 3, 4, 5, 9, 10, 11, 12, 13, 15, 19, 20, 24, 25]
+   Confiança: 0.7548
+   Modelos utilizados: 7
+
+🎲 PREDIÇÕES POR MODELO:
+   bayesian       : [1, 2, 3, 4, 5, 9, 10, 11, 12, 13, 14, 20, 22, 24, 25] (conf: 0.589, peso: 0.00)
+   monte_carlo    : [2, 3, 6, 7, 8, 9, 10, 13, 17, 18, 19, 20, 21, 23, 24] (conf: 0.800, peso: 0.00)
+   time_series    : [1, 4, 5, 9, 10, 11, 12, 13, 15, 16, 19, 20, 23, 24, 25] (conf: 1.140, peso: 0.00)
+   beam_search    : [1, 3, 4, 10, 11, 13, 14, 15, 16, 18, 19, 20, 22, 24, 25] (conf: 0.700, peso: 0.00)
+   markov         : [2, 4, 6, 7, 9, 12, 13, 15, 16, 17, 19, 20, 21, 24, 25] (conf: 0.600, peso: 0.00)
+   poisson        : [1, 2, 3, 4, 5, 9, 12, 13, 14, 15, 18, 19, 21, 22, 24] (conf: 0.650, peso: 0.00)
+   mutation       : [1, 2, 3, 4, 6, 7, 8, 11, 12, 13, 17, 19, 21, 22, 25] (conf: 0.600, peso: 0.00)
+
+================================================================================
+
+🎯 Executando predições para MEGASENA...
+⚡ Modo FAST_CI ativo (Mega-Sena): modelos pesados desativados (monte_carlo, neural_ensemble).
+🚀 Iniciando análise completa para MegaSena...
+📊 Dados carregados: 2920 jogos históricos
+💾 Predições salvas:
+   📄 JSON: Oraculo/MegaSena/predictions/prediction_2025-09-30.json
+   📊 CSV: Oraculo/MegaSena/predictions/prediction_2025-09-30.csv
+
+================================================================================
+🎯 RESUMO DA ANÁLISE - MEGASENA
+================================================================================
+🏆 Predição Final do Ensemble: [1, 2, 4, 5, 10, 38]
+📊 Confiança do Ensemble: 74.1%
+
+📋 Modelos Executados: 6
+   • BAYESIAN: [5, 10, 34, 37, 38, 53] (Conf: 57.2%)
+   • BEAM_SEARCH: [2, 4, 5, 6, 8, 9] (Conf: 70.0%)
+   • MARKOV: [2, 3, 4, 5, 8, 9] (Conf: 60.0%)
+   • POISSON: [2, 6, 24, 25, 29, 36] (Conf: 65.0%)
+   • MUTATION: [1, 11, 24, 32, 33, 39] (Conf: 60.0%)
+   • TIME_SERIES: [1, 4, 5, 38, 41, 47] (Conf: 167.4%)
+
+================================================================================
+
+🎯 Executando predições para QUINA...
+⚡ Modo FAST_CI ativo (Quina): modelos pesados desativados (monte_carlo, neural_ensemble).
+🚀 Iniciando análise completa para Quina...
+📊 Dados carregados: 6839 jogos históricos
+Traceback (most recent call last):
+  File "Oraculo/lottery_orchestrator.py", line 209, in <module>
+    main()
+  File "Oraculo/lottery_orchestrator.py", line 200, in main
+    results = run_all_lotteries(selected_models)
+  File "Oraculo/lottery_orchestrator.py", line 102, in run_all_lotteries
+    result = run_lottery_prediction(lottery, selected_models)
+  File "Oraculo/lottery_orchestrator.py", line 67, in run_lottery_prediction
+    results = predictor.run_complete_analysis()
+  File "/mnt/d/Rede/Github/mzfshark/Loterias/Oraculo/core/base_predictor.py", line 395, in run_complete_analysis
+    model_results = self.run_all_models(data)
+  File "/mnt/d/Rede/Github/mzfshark/Loterias/Oraculo/core/base_predictor.py", line 199, in run_all_models
+    return self._run_models_parallel(data)
+  File "/mnt/d/Rede/Github/mzfshark/Loterias/Oraculo/core/base_predictor.py", line 227, in _run_models_parallel
+    results = self.parallel_engine.parallel_predict(
+  File "/mnt/d/Rede/Github/mzfshark/Loterias/Oraculo/core/parallel_engine.py", line 154, in parallel_predict
+    for future in as_completed(future_to_model):
+  File "/usr/lib/python3.8/concurrent/futures/_base.py", line 244, in as_completed
+    waiter.event.wait(wait_timeout)
+  File "/usr/lib/python3.8/threading.py", line 558, in wait
+    signaled = self._cond.wait(timeout)
+  File "/usr/lib/python3.8/threading.py", line 302, in wait
+    waiter.acquire()
+KeyboardInterrupt
+16:12:24 - core.env_config - INFO - 📋 Configurações carregadas de: /mnt/d/Rede/Github/mzfshark/Loterias/.env
+16:12:24 - Oraculo.core.env_config - INFO - 📋 Configurações carregadas de: /mnt/d/Rede/Github/mzfshark/Loterias/.env
+16:12:24 - Oraculo.core.parallel_engine - INFO - 🔧 FAST_CI ativo: limitando a 2 workers
+16:12:24 - Oraculo.core.parallel_engine - INFO - 🚀 ParallelEngine configurado: 2 workers, threads
+16:12:24 - Oraculo.core.base_predictor - INFO - ⚡ Modo FAST_CI ativo: modelos pesados desativados (monte_carlo, neural_ensemble).
+16:12:24 - Oraculo.core.base_predictor - INFO - 🚀 Paralelização habilitada: 2 workers
+16:12:24 - Oraculo.core.base_predictor - INFO - 🧠 Executando todos os modelos probabilísticos para Lotofacil...
+16:12:24 - Oraculo.core.base_predictor - INFO - 🚀 Executando modelos em paralelo...
+16:12:24 - Oraculo.core.parallel_engine - INFO - 🚀 Iniciando predições paralelas: 8 modelos, 2 workers
+16:12:25 - Oraculo.core.parallel_engine - INFO - ✅ bayesian: concluído (1/8) - 0.5s
+16:12:25 - Oraculo.core.base_predictor - INFO -    ✅ bayesian: [1, 2, 3, 4, 5, 9, 10, 11, 12, 13, 14, 20, 22, 24, 25] (1/8)
+16:12:25 - Oraculo.common.models.monte_carlo - INFO - 🎯 Executando ensemble de simulações Monte Carlo...
+16:12:25 - Oraculo.core.parallel_engine - INFO - 🔧 FAST_CI ativo: limitando a 2 workers
+16:12:25 - Oraculo.core.parallel_engine - INFO - 🚀 ParallelEngine configurado: 2 workers, processos
+16:12:25 - Oraculo.common.models.monte_carlo - INFO - 🚀 Paralelização habilitada
+16:12:25 - Oraculo.common.models.monte_carlo - INFO - 🚀 Executando estratégias Monte Carlo em paralelo...
+16:12:25 - Oraculo.core.parallel_engine - INFO - 🧠 Iniciando treinamentos paralelos: 2 jobs
+🚀 Executando predições para todas as loterias...
+
+🎯 Executando predições para LOTOFACIL...
+🚀 Iniciando análise completa para Lotofacil...
+📊 Dados carregados: 3499 jogos históricos
+16:12:25 - Oraculo.core.parallel_engine - INFO - 🔄 Treinamento Strategy_frequency_weighted: 0.04s
+16:12:25 - Oraculo.core.parallel_engine - INFO - ✅ Treinamento Strategy_frequency_weighted: concluído
+16:12:25 - Oraculo.common.models.monte_carlo - INFO - ✅ Strategy_frequency_weighted: 15 números (1/2)
+16:12:25 - Oraculo.core.parallel_engine - INFO - 🔄 Treinamento Strategy_uniform: 0.02s
+16:12:25 - Oraculo.core.parallel_engine - INFO - ✅ Treinamento Strategy_uniform: concluído
+16:12:25 - Oraculo.common.models.monte_carlo - INFO - ✅ Strategy_uniform: 15 números (2/2)
+16:12:25 - Oraculo.common.models.monte_carlo - INFO - ⚡ Estratégias paralelas concluídas em 0.20s
+16:12:25 - Oraculo.core.parallel_engine - INFO - ✅ monte_carlo: concluído (2/8) - 0.8s
+16:12:25 - Oraculo.core.base_predictor - INFO -    ✅ monte_carlo: [1, 3, 5, 7, 9, 11, 12, 16, 18, 19, 20, 21, 22, 24, 25] (2/8)
+16:12:25 - Oraculo.common.models.neural_ensemble - INFO - 🧠 Neural Ensemble inicializado com 3 modelos (modo rápido)
+16:12:25 - Oraculo.common.models.neural_ensemble - INFO - 🧠 Treinando ensemble neural com 2799 jogos...
+16:12:26 - Oraculo.common.models.neural_ensemble - INFO - 📊 Features extraídas: (2789, 71)
+16:12:26 - Oraculo.common.models.neural_ensemble - INFO - 🚀 Treinamento paralelo habilitado
+16:12:26 - Oraculo.common.models.neural_ensemble - INFO - 🚀 Iniciando treinamento paralelo dos modelos...
+16:12:26 - Oraculo.core.parallel_engine - INFO - 🧠 Iniciando treinamentos paralelos: 3 jobs
+16:12:26 - Oraculo.common.models.neural_ensemble - ERROR - Erro no treinamento do modelo GradientBoostingClassifier: 
+All the 3 fits failed.
+It is very likely that your model is misconfigured.
+You can try to debug the error by setting error_score='raise'.
+
+Below are more details about the failures:
+--------------------------------------------------------------------------------
+3 fits failed with the following error:
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.8/dist-packages/sklearn/model_selection/_validation.py", line 729, in _fit_and_score
+    estimator.fit(X_train, y_train, **fit_params)
+  File "/usr/local/lib/python3.8/dist-packages/sklearn/base.py", line 1152, in wrapper
+    return fit_method(estimator, *args, **kwargs)
+  File "/usr/local/lib/python3.8/dist-packages/sklearn/ensemble/_gb.py", line 427, in fit
+    y = self._validate_y(y, sample_weight)
+  File "/usr/local/lib/python3.8/dist-packages/sklearn/ensemble/_gb.py", line 1217, in _validate_y
+    raise ValueError(
+ValueError: y contains 1 class after sample_weight trimmed classes with zero weights, while a minimum of 2 classes are required.
+
+16:12:26 - Oraculo.core.parallel_engine - ERROR - 💥 Treinamento GradientBoostingClassifier: falha - y contains 1 class after sample_weight trimmed classes with zero weights, while a minimum of 2 classes are required.
+16:12:26 - Oraculo.core.parallel_engine - ERROR - ❌ Treinamento GradientBoostingClassifier: erro - y contains 1 class after sample_weight trimmed classes with zero weights, while a minimum of 2 classes are required.
+16:12:27 - Oraculo.core.parallel_engine - INFO - 🔄 Treinamento RandomForestClassifier: 0.44s
+16:12:27 - Oraculo.core.parallel_engine - INFO - ✅ Treinamento RandomForestClassifier: concluído
+16:12:27 - Oraculo.common.models.neural_ensemble - INFO - ✅ RandomForestClassifier: CV Score 1.0000 (2/3)
+16:12:27 - Oraculo.core.parallel_engine - INFO - ✅ time_series: concluído (3/8) - 2.8s
+16:12:27 - Oraculo.core.base_predictor - INFO -    ✅ time_series: [1, 4, 5, 9, 10, 11, 12, 13, 15, 16, 19, 20, 23, 24, 25] (3/8)
+16:12:27 - Oraculo.core.parallel_engine - INFO - ✅ beam_search: concluído (4/8) - 2.8s
+16:12:27 - Oraculo.core.base_predictor - INFO -    ✅ beam_search: [1, 2, 3, 5, 10, 11, 12, 13, 14, 18, 20, 22, 23, 24, 25] (4/8)
+16:12:27 - Oraculo.core.parallel_engine - INFO - ✅ markov: concluído (5/8) - 2.9s
+16:12:27 - Oraculo.core.base_predictor - INFO -    ✅ markov: [1, 5, 6, 8, 9, 12, 14, 15, 16, 18, 19, 20, 23, 24, 25] (5/8)
+16:12:27 - Oraculo.core.parallel_engine - INFO - ✅ poisson: concluído (6/8) - 3.0s
+16:12:27 - Oraculo.core.base_predictor - INFO -    ✅ poisson: [1, 2, 3, 4, 5, 9, 12, 13, 14, 15, 18, 19, 21, 22, 24] (6/8)
+16:12:27 - Oraculo.core.parallel_engine - INFO - ✅ mutation: concluído (7/8) - 3.0s
+16:12:27 - Oraculo.core.base_predictor - INFO -    ✅ mutation: [1, 2, 3, 4, 6, 7, 8, 12, 14, 17, 19, 20, 21, 22, 25] (7/8)
+16:12:35 - Oraculo.core.parallel_engine - INFO - 🔄 Treinamento MLPClassifier: 8.22s
+16:12:35 - Oraculo.core.parallel_engine - INFO - ✅ Treinamento MLPClassifier: concluído
+16:12:35 - Oraculo.common.models.neural_ensemble - INFO - ✅ MLPClassifier: CV Score 1.0000 (3/3)
+16:12:35 - Oraculo.common.models.neural_ensemble - ERROR - ❌ GradientBoostingClassifier: falha no treinamento
+16:12:35 - Oraculo.common.models.neural_ensemble - INFO - 🎯 Treinamento paralelo concluído em 8.39s
+16:12:35 - Oraculo.common.models.neural_ensemble - INFO - 📊 Modelos treinados: 2
+16:12:36 - Oraculo.core.parallel_engine - INFO - ✅ neural_ensemble: concluído (8/8) - 11.8s
+16:12:36 - Oraculo.core.base_predictor - WARNING -    ⚠️ neural_ensemble: sem resultado (8/8)
+16:12:36 - Oraculo.core.parallel_engine - INFO - 🎯 Predições paralelas concluídas em 11.79s (7/8 sucessos)
+16:12:36 - Oraculo.core.base_predictor - INFO - 🎯 Modelos paralelos concluídos em 11.79s: 7/8 sucessos
+16:12:36 - Oraculo.core.base_predictor - INFO - ⚡ Modo FAST_CI ativo: modelos pesados desativados (monte_carlo, neural_ensemble).
+16:12:36 - Oraculo.core.base_predictor - INFO - 🚀 Paralelização habilitada: 2 workers
+16:12:36 - Oraculo.core.base_predictor - INFO - 🧠 Executando todos os modelos probabilísticos para MegaSena...
+16:12:36 - Oraculo.core.base_predictor - INFO - 🚀 Executando modelos em paralelo...
+16:12:36 - Oraculo.core.parallel_engine - INFO - 🚀 Iniciando predições paralelas: 6 modelos, 2 workers
+16:12:36 - Oraculo.core.parallel_engine - INFO - ✅ bayesian: concluído (1/6) - 0.0s
+16:12:36 - Oraculo.core.base_predictor - INFO -    ✅ bayesian: [5, 10, 34, 37, 38, 53] (1/6)
+16:12:36 - Oraculo.core.parallel_engine - INFO - ✅ beam_search: concluído (2/6) - 0.1s
+16:12:36 - Oraculo.core.base_predictor - INFO -    ✅ beam_search: [1, 2, 4, 5, 6, 10] (2/6)
+16:12:36 - Oraculo.core.parallel_engine - INFO - ✅ markov: concluído (3/6) - 0.1s
+16:12:36 - Oraculo.core.base_predictor - INFO -    ✅ markov: [2, 4, 11, 12, 19, 22] (3/6)
+16:12:36 - Oraculo.core.parallel_engine - INFO - ✅ poisson: concluído (4/6) - 0.1s
+16:12:36 - Oraculo.core.base_predictor - INFO -    ✅ poisson: [2, 6, 24, 25, 29, 36] (4/6)
+16:12:36 - Oraculo.core.parallel_engine - INFO - ✅ mutation: concluído (5/6) - 0.1s
+16:12:36 - Oraculo.core.base_predictor - INFO -    ✅ mutation: [9, 10, 13, 18, 46, 47] (5/6)
+16:12:37 - Oraculo.core.parallel_engine - INFO - ✅ time_series: concluído (6/6) - 0.9s
+16:12:37 - Oraculo.core.base_predictor - INFO -    ✅ time_series: [1, 4, 5, 38, 41, 47] (6/6)
+16:12:37 - Oraculo.core.parallel_engine - INFO - 🎯 Predições paralelas concluídas em 0.87s (6/6 sucessos)
+16:12:37 - Oraculo.core.base_predictor - INFO - 🎯 Modelos paralelos concluídos em 0.88s: 6/6 sucessos
+16:12:37 - Oraculo.core.base_predictor - INFO - ⚡ Modo FAST_CI ativo: modelos pesados desativados (monte_carlo, neural_ensemble).
+16:12:37 - Oraculo.core.base_predictor - INFO - 🚀 Paralelização habilitada: 2 workers
+16:12:38 - Oraculo.core.base_predictor - INFO - 🧠 Executando todos os modelos probabilísticos para Quina...
+16:12:38 - Oraculo.core.base_predictor - INFO - 🚀 Executando modelos em paralelo...
+16:12:38 - Oraculo.core.parallel_engine - INFO - 🚀 Iniciando predições paralelas: 6 modelos, 2 workers
+16:12:38 - Oraculo.core.parallel_engine - INFO - ✅ bayesian: concluído (1/6) - 0.0s
+16:12:38 - Oraculo.core.base_predictor - INFO -    ✅ bayesian: [4, 26, 31, 49, 52] (1/6)
+16:12:38 - Oraculo.core.parallel_engine - INFO - ✅ beam_search: concluído (2/6) - 0.1s
+16:12:38 - Oraculo.core.base_predictor - INFO -    ✅ beam_search: [1, 4, 5, 6, 9] (2/6)
+16:12:38 - Oraculo.core.parallel_engine - INFO - ✅ markov: concluído (3/6) - 0.1s
+16:12:38 - Oraculo.core.base_predictor - INFO -    ✅ markov: [2, 5, 11, 14, 19] (3/6)
+16:12:38 - Oraculo.core.parallel_engine - INFO - ✅ poisson: concluído (4/6) - 0.2s
+16:12:38 - Oraculo.core.base_predictor - INFO -    ✅ poisson: [6, 19, 43, 59, 77] (4/6)
+16:12:38 - Oraculo.core.parallel_engine - INFO - ✅ mutation: concluído (5/6) - 0.2s
+16:12:38 - Oraculo.core.base_predictor - INFO -    ✅ mutation: [10, 20, 22, 25, 73] (5/6)
+16:12:38 - Oraculo.core.parallel_engine - INFO - ✅ time_series: concluído (6/6) - 0.9s
+16:12:38 - Oraculo.core.base_predictor - INFO -    ✅ time_series: [4, 5, 15, 45, 54] (6/6)
+16:12:38 - Oraculo.core.parallel_engine - INFO - 🎯 Predições paralelas concluídas em 0.85s (6/6 sucessos)
+16:12:38 - Oraculo.core.base_predictor - INFO - 🎯 Modelos paralelos concluídos em 0.86s: 6/6 sucessos
+16:12:39 - Oraculo.core.base_predictor - INFO - ⚡ Modo FAST_CI ativo: modelos pesados desativados (monte_carlo, neural_ensemble).
+16:12:39 - Oraculo.core.base_predictor - INFO - 🚀 Paralelização habilitada: 2 workers
+16:12:39 - Oraculo.core.base_predictor - INFO - 🧠 Executando todos os modelos probabilísticos para Milionaria...
+16:12:39 - Oraculo.core.base_predictor - INFO - 🚀 Executando modelos em paralelo...
+16:12:39 - Oraculo.core.parallel_engine - INFO - 🚀 Iniciando predições paralelas: 6 modelos, 2 workers
+16:12:39 - Oraculo.core.parallel_engine - INFO - ✅ bayesian: concluído (1/6) - 0.0s
+16:12:39 - Oraculo.core.base_predictor - INFO -    ✅ bayesian: [1, 6, 16, 23, 44, 45] (1/6)
+16:12:39 - Oraculo.core.parallel_engine - INFO - ✅ beam_search: concluído (2/6) - 0.0s
+16:12:39 - Oraculo.core.base_predictor - INFO -    ✅ beam_search: [1, 6, 7, 8, 11, 13] (2/6)
+16:12:39 - Oraculo.core.parallel_engine - INFO - ✅ markov: concluído (3/6) - 0.0s
+16:12:39 - Oraculo.core.base_predictor - INFO -    ✅ markov: [1, 2, 3, 4, 6, 8] (3/6)
+16:12:39 - Oraculo.core.parallel_engine - INFO - ✅ poisson: concluído (4/6) - 0.0s
+16:12:39 - Oraculo.core.base_predictor - INFO -    ✅ poisson: [3, 7, 9, 13, 15, 17] (4/6)
+16:12:39 - Oraculo.core.parallel_engine - INFO - ✅ mutation: concluído (5/6) - 0.0s
+16:12:39 - Oraculo.core.base_predictor - INFO -    ✅ mutation: [1, 25, 29, 30, 42, 44] (5/6)
+16:12:39 - Oraculo.core.parallel_engine - INFO - ✅ time_series: concluído (6/6) - 0.0s
+16:12:39 - Oraculo.core.base_predictor - INFO -    ✅ time_series: [1, 3, 7, 15, 23, 44] (6/6)
+16:12:39 - Oraculo.core.parallel_engine - INFO - 🎯 Predições paralelas concluídas em 0.04s (6/6 sucessos)
+16:12:39 - Oraculo.core.base_predictor - INFO - 🎯 Modelos paralelos concluídos em 0.04s: 6/6 sucessos
+16:12:39 - Oraculo.core.base_predictor - INFO - ⚡ Modo FAST_CI ativo: modelos pesados desativados (monte_carlo, neural_ensemble).
+16:12:39 - Oraculo.core.base_predictor - INFO - 🚀 Paralelização habilitada: 2 workers
+16:12:39 - Oraculo.core.base_predictor - INFO - 🧠 Executando todos os modelos probabilísticos para SuperSete...
+16:12:39 - Oraculo.core.base_predictor - INFO - 🚀 Executando modelos em paralelo...
+16:12:39 - Oraculo.core.parallel_engine - INFO - 🚀 Iniciando predições paralelas: 6 modelos, 2 workers
+16:12:39 - Oraculo.core.parallel_engine - INFO - ✅ bayesian: concluído (1/6) - 0.0s
+16:12:39 - Oraculo.core.base_predictor - WARNING -    ⚠️ bayesian: sem resultado (1/6)
+16:12:39 - Oraculo.core.parallel_engine - INFO - ✅ time_series: concluído (2/6) - 0.0s
+16:12:39 - Oraculo.core.base_predictor - WARNING -    ⚠️ time_series: sem resultado (2/6)
+16:12:39 - Oraculo.core.parallel_engine - INFO - ✅ beam_search: concluído (3/6) - 0.0s
+16:12:39 - Oraculo.core.base_predictor - WARNING -    ⚠️ beam_search: sem resultado (3/6)
+16:12:39 - Oraculo.core.parallel_engine - INFO - ✅ markov: concluído (4/6) - 0.0s
+16:12:39 - Oraculo.core.base_predictor - WARNING -    ⚠️ markov: sem resultado (4/6)
+16:12:39 - Oraculo.core.parallel_engine - INFO - ✅ poisson: concluído (5/6) - 0.0s
+16:12:39 - Oraculo.core.base_predictor - WARNING -    ⚠️ poisson: sem resultado (5/6)
+16:12:39 - Oraculo.core.parallel_engine - INFO - ✅ mutation: concluído (6/6) - 0.0s
+16:12:39 - Oraculo.core.base_predictor - WARNING -    ⚠️ mutation: sem resultado (6/6)
+16:12:39 - Oraculo.core.parallel_engine - INFO - 🎯 Predições paralelas concluídas em 0.01s (0/6 sucessos)
+16:12:39 - Oraculo.core.base_predictor - INFO - 🎯 Modelos paralelos concluídos em 0.01s: 0/6 sucessos
+⚠️ Neural Ensemble model adaptation failed: 'NeuralEnsembleLotofacil' object has no attribute 'model_scores'
+💾 Predições salvas:
+   📄 JSON: Oraculo/Lotofacil/predictions/prediction_2025-09-30.json
+   📊 CSV: Oraculo/Lotofacil/predictions/prediction_2025-09-30.csv
+
+================================================================================
+🎯 RESUMO DA ANÁLISE PROBABILÍSTICA
+================================================================================
+
+🏆 PREDIÇÃO ENSEMBLE FINAL:
+   Números: [1, 3, 4, 5, 9, 10, 11, 12, 13, 16, 19, 20, 22, 24, 25]
+   Confiança: 0.7594
+   Modelos utilizados: 7
+
+🎲 PREDIÇÕES POR MODELO:
+   bayesian       : [1, 2, 3, 4, 5, 9, 10, 11, 12, 13, 14, 20, 22, 24, 25] (conf: 0.589, peso: 0.00)
+   monte_carlo    : [1, 3, 5, 7, 9, 11, 12, 16, 18, 19, 20, 21, 22, 24, 25] (conf: 0.833, peso: 0.00)
+   time_series    : [1, 4, 5, 9, 10, 11, 12, 13, 15, 16, 19, 20, 23, 24, 25] (conf: 1.140, peso: 0.00)
+   beam_search    : [1, 2, 3, 5, 10, 11, 12, 13, 14, 18, 20, 22, 23, 24, 25] (conf: 0.700, peso: 0.00)
+   markov         : [1, 5, 6, 8, 9, 12, 14, 15, 16, 18, 19, 20, 23, 24, 25] (conf: 0.600, peso: 0.00)
+   poisson        : [1, 2, 3, 4, 5, 9, 12, 13, 14, 15, 18, 19, 21, 22, 24] (conf: 0.650, peso: 0.00)
+   mutation       : [1, 2, 3, 4, 6, 7, 8, 12, 14, 17, 19, 20, 21, 22, 25] (conf: 0.600, peso: 0.00)
+
+================================================================================
+
+🎯 Executando predições para MEGASENA...
+⚡ Modo FAST_CI ativo (Mega-Sena): modelos pesados desativados (monte_carlo, neural_ensemble).
+🚀 Iniciando análise completa para MegaSena...
+📊 Dados carregados: 2920 jogos históricos
+💾 Predições salvas:
+   📄 JSON: Oraculo/MegaSena/predictions/prediction_2025-09-30.json
+   📊 CSV: Oraculo/MegaSena/predictions/prediction_2025-09-30.csv
+
+================================================================================
+🎯 RESUMO DA ANÁLISE - MEGASENA
+================================================================================
+🏆 Predição Final do Ensemble: [1, 2, 4, 5, 10, 38]
+📊 Confiança do Ensemble: 74.1%
+
+📋 Modelos Executados: 6
+   • BAYESIAN: [5, 10, 34, 37, 38, 53] (Conf: 57.2%)
+   • BEAM_SEARCH: [1, 2, 4, 5, 6, 10] (Conf: 70.0%)
+   • MARKOV: [2, 4, 11, 12, 19, 22] (Conf: 60.0%)
+   • POISSON: [2, 6, 24, 25, 29, 36] (Conf: 65.0%)
+   • MUTATION: [9, 10, 13, 18, 46, 47] (Conf: 60.0%)
+   • TIME_SERIES: [1, 4, 5, 38, 41, 47] (Conf: 167.4%)
+
+================================================================================
+
+🎯 Executando predições para QUINA...
+⚡ Modo FAST_CI ativo (Quina): modelos pesados desativados (monte_carlo, neural_ensemble).
+🚀 Iniciando análise completa para Quina...
+📊 Dados carregados: 6839 jogos históricos
+💾 Predições salvas:
+   📄 JSON: Oraculo/Quina/predictions/prediction_2025-09-30.json
+   📊 CSV: Oraculo/Quina/predictions/prediction_2025-09-30.csv
+
+================================================================================
+🎯 RESUMO DA ANÁLISE - QUINA
+================================================================================
+🏆 Predição Final do Ensemble: [4, 5, 26, 49, 52]
+📊 Confiança do Ensemble: 87.7%
+
+📋 Modelos Executados: 6
+   • BAYESIAN: [4, 26, 31, 49, 52] (Conf: 95.0%)
+   • BEAM_SEARCH: [1, 4, 5, 6, 9] (Conf: 70.0%)
+   • MARKOV: [2, 5, 11, 14, 19] (Conf: 60.0%)
+   • POISSON: [6, 19, 43, 59, 77] (Conf: 65.0%)
+   • MUTATION: [10, 20, 22, 25, 73] (Conf: 60.0%)
+   • TIME_SERIES: [4, 5, 15, 45, 54] (Conf: 183.5%)
+
+================================================================================
+
+🎯 Executando predições para MILIONARIA...
+⚡ Modo FAST_CI ativo (+Milionária): modelos pesados desativados (monte_carlo, neural_ensemble).
+🚀 Iniciando análise completa para Milionaria...
+📊 Dados carregados: 6 jogos históricos
+💾 Predições salvas:
+   📄 JSON: Oraculo/Milionaria/predictions/prediction_2025-09-30.json
+   📊 CSV: Oraculo/Milionaria/predictions/prediction_2025-09-30.csv
+
+================================================================================
+🎯 RESUMO DA ANÁLISE - MILIONARIA
+================================================================================
+🏆 Predição Final do Ensemble (Números): [1, 3, 7, 15, 23, 44]
+🍀 Trevos Preditos: [1, 2]
+📊 Confiança do Ensemble: 68.6%
+
+📋 Modelos Executados: 6
+   • BAYESIAN: [1, 6, 16, 23, 44, 45] + Trevos: [1, 2] (Conf: 10.0%)
+   • BEAM_SEARCH: [1, 6, 7, 8, 11, 13] + Trevos: [1, 2] (Conf: 70.0%)
+   • MARKOV: [1, 2, 3, 4, 6, 8] + Trevos: [1, 2] (Conf: 60.0%)
+   • POISSON: [3, 7, 9, 13, 15, 17] + Trevos: [1, 2] (Conf: 65.0%)
+   • MUTATION: [1, 25, 29, 30, 42, 44] + Trevos: [1, 2] (Conf: 60.0%)
+   • TIME_SERIES: [1, 3, 7, 15, 23, 44] + Trevos: [1, 2] (Conf: 333.5%)
+
+================================================================================
+
+🎯 Executando predições para SUPERSETE...
+⚡ Modo FAST_CI ativo (SuperSete): modelos pesados desativados (monte_carlo, neural_ensemble).
+🚀 Iniciando análise completa para SuperSete...
+📊 Dados carregados: 752 jogos históricos
+⚠️ Modelo bayesian falhou: signal only works in main thread
+⚠️ Modelo time_series falhou: signal only works in main thread
+⚠️ Modelo beam_search falhou: signal only works in main thread
+⚠️ Modelo markov falhou: signal only works in main thread
+⚠️ Modelo poisson falhou: signal only works in main thread
+⚠️ Modelo mutation falhou: signal only works in main thread
+
+================================================================================
+📊 RESUMO GERAL - 5/5 LOTERIAS EXECUTADAS COM SUCESSO
+================================================================================
+✅ LOTOFACIL
+   🎯 Predição: [1, 3, 4, 5, 9, 10, 11, 12, 13, 16, 19, 20, 22, 24, 25]
+   📊 Confiança: 75.9%
+✅ MEGASENA
+   🎯 Predição: [1, 2, 4, 5, 10, 38]
+   📊 Confiança: 74.1%
+✅ QUINA
+   🎯 Predição: [4, 5, 26, 49, 52]
+   📊 Confiança: 87.7%
+✅ MILIONARIA
+   🎯 Predição: [1, 3, 7, 15, 23, 44]
+   📊 Confiança: 68.6%
+✅ SUPERSETE
+   🎯 Predição: []
+   📊 Confiança: 0.0%
+
+================================================================================

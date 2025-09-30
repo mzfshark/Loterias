@@ -1,7 +1,7 @@
 import pandas as pd
 import os
 import numpy as np
-from typing import List, Dict, Tuple
+from typing import List, Dict, Tuple, Any
 from collections import Counter, defaultdict
 import random
 import time
@@ -58,6 +58,10 @@ class MonteCarloLotofacilSimulator:
         """Load historical data for analysis."""
         self.historical_data = historical_games
         self._analyze_patterns()
+    
+    def set_historical_data(self, historical_games: List[List[int]]):
+        """Alias para load_historical_data para compatibilidade."""
+        self.load_historical_data(historical_games)
     
     def _analyze_patterns(self):
         """Analyze historical patterns for informed sampling."""
