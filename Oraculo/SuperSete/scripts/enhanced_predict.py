@@ -46,11 +46,14 @@ class EnhancedSuperSetePredictor(BaseLotteryPredictor):
         self._merge_auto_weights()
         # Reaplica guard FAST_CI após redefinição
         try:
-            if os.environ.get('FAST_CI', '').strip() == '1' or os.environ.get('GITHUB_ACTIONS', '') == 'true':
+            fast_ci = os.environ.get('FAST_CI', '').strip()
+            if fast_ci == '1':
                 for heavy in ('monte_carlo', 'neural_ensemble'):
                     if heavy in self.models:
                         self.models[heavy]['enabled'] = False
                 print("⚡ Modo FAST_CI ativo (SuperSete): modelos pesados desativados (monte_carlo, neural_ensemble).")
+            else:
+                print(f"🔍 Modo completo (SuperSete): todos os modelos habilitados (FAST_CI={fast_ci})")
         except Exception:
             pass
 

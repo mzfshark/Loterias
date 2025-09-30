@@ -53,7 +53,8 @@ if __name__ == '__main__':
     results = predictor.run_complete_analysis()
 
     # Heatmap: pular em FAST_CI
-    if os.environ.get('FAST_CI', '').strip() == '1' or os.environ.get('GITHUB_ACTIONS', '') == 'true':
+    fast_ci = os.environ.get('FAST_CI', '').strip()
+    if fast_ci == '1':
         print("⏭️ FAST_CI ativo: pulando geração de heatmap do SuperSete.")
     else:
         csv_path = "Oraculo/SuperSete/data/SuperSete.csv"

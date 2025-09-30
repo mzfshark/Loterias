@@ -1,6 +1,16 @@
 #!/usr/bin/env python3
 """
-Enhanced +Milionaria Prediction System with Advanced Probabilistic Models
+Enhanced +Miliona        try:
+            fast_ci = os.environ.get('FAST_CI', '').strip()
+            if fast_ci == '1':
+                for heavy in ('monte_carlo', 'neural_ensemble'):
+                    if heavy in self.models:
+                        self.models[heavy]['enabled'] = False
+                print("⚡ Modo FAST_CI ativo (Milionária): modelos pesados desativados (monte_carlo, neural_ensemble).")
+            else:
+                print(f"🔍 Modo completo (Milionária): todos os modelos habilitados (FAST_CI={fast_ci})")
+        except Exception:
+            passiction System with Advanced Probabilistic Models
 
 This script adapts all sophisticated probabilistic models from Lotofacil
 to work with +Milionaria format (6 numbers from 1-50 + 2 clovers from 1-6).

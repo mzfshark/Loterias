@@ -20,7 +20,8 @@ class MonteCarloLotofacilSimulator:
         """
         # Apply FAST_CI protection and set reasonable defaults
         if n_simulations is None:
-            if os.environ.get('FAST_CI', '').strip() == '1' or os.environ.get('GITHUB_ACTIONS', '') == 'true':
+            fast_ci = os.environ.get('FAST_CI', '').strip()
+            if fast_ci == '1':
                 n_simulations = 100  # Very fast for CI
             else:
                 n_simulations = 1000  # Reasonable default for local runs
@@ -34,7 +35,8 @@ class MonteCarloLotofacilSimulator:
         
         # Statistical models for sampling
         # Reduce strategies for FAST_CI
-        if os.environ.get('FAST_CI', '').strip() == '1' or os.environ.get('GITHUB_ACTIONS', '') == 'true':
+        fast_ci = os.environ.get('FAST_CI', '').strip()
+        if fast_ci == '1':
             self.sampling_strategies = ['frequency_weighted', 'uniform']  # Only 2 fastest strategies
         else:
             self.sampling_strategies = [

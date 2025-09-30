@@ -114,7 +114,8 @@ class ModelAdapter:
             
             # Create simulator com proteção FAST_CI
             # Usa verbose=False para silenciar logs de progresso
-            n_sims = 50 if os.environ.get('FAST_CI', '').strip() == '1' or os.environ.get('GITHUB_ACTIONS', '') == 'true' else 500
+            fast_ci = os.environ.get('FAST_CI', '').strip()
+            n_sims = 50 if fast_ci == '1' else 500
             simulator = MonteCarloLotofacilSimulator(n_simulations=n_sims, verbose=False)
             
             # Adapt configuration

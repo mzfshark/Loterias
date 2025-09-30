@@ -1,6 +1,16 @@
 #!/usr/bin/env python3
 """
-Enhanced MegaSena Prediction System with Advanced Probabilistic Models
+Enhanced MegaSen        try:
+            fast_ci = os.environ.get('FAST_CI', '').strip()
+            if fast_ci == '1':
+                for heavy in ('monte_carlo', 'neural_ensemble'):
+                    if heavy in self.models:
+                        self.models[heavy]['enabled'] = False
+                print("⚡ Modo FAST_CI ativo (MegaSena): modelos pesados desativados (monte_carlo, neural_ensemble).")
+            else:
+                print(f"🔍 Modo completo (MegaSena): todos os modelos habilitados (FAST_CI={fast_ci})")
+        except Exception:
+            passtion System with Advanced Probabilistic Models
 
 This script adapts all sophisticated probabilistic models from Lotofacil
 to work with MegaSena format (6 numbers from 1-60).
