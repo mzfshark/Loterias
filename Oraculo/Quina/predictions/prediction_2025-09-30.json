@@ -35,22 +35,22 @@
     {
       "modelo": "beam_search",
       "jogo": [
-        2,
         4,
         5,
         6,
-        7
+        8,
+        9
       ],
       "confidence": 0.7
     },
     {
       "modelo": "markov",
       "jogo": [
-        1,
-        2,
-        3,
         8,
-        9
+        10,
+        15,
+        19,
+        21
       ],
       "confidence": 0.6
     },
@@ -68,11 +68,11 @@
     {
       "modelo": "mutation",
       "jogo": [
-        1,
-        10,
-        15,
-        16,
-        33
+        20,
+        29,
+        62,
+        75,
+        76
       ],
       "confidence": 0.6
     }

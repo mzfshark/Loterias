@@ -1,0 +1,97 @@
+name: Deploy to GitHub Pages
+
+on:
+  workflow_run:
+    workflows: ["HTML Publisher"]
+    types:
+      - completed
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    
+    steps:
+      - name: 🔍 Check workflow status
+        if: github.event_name == 'workflow_run'
+        run: |
+          if [ "${{ github.event.workflow_run.conclusion }}" != "success" ]; then
+            echo "❌ HTML Publisher workflow failed. Skipping deployment."
+            exit 1
+          fi
+          echo "✅ HTML Publisher workflow completed successfully"
+
+      - name: 📥 Checkout repository
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+        with:
+          ref: gh-pages
+          fetch-depth: 1
+
+      - name: 🔍 Verify HTML files exist
+        run: |
+          echo "📊 Checking generated files..."
+          
+          if [ ! -f "index.html" ]; then
+            echo "❌ index.html not found in gh-pages branch"
+            exit 1
+          fi
+          
+          echo "✅ index.html found ($(stat -c%s index.html) bytes)"
+          
+          # Check for CSS file
+          if [ -f "styles.css" ]; then
+            echo "✅ styles.css found ($(stat -c%s styles.css) bytes)"
+          else
+            echo "⚠️ styles.css not found"
+          fi
+          
+          # List all HTML files
+          echo "📄 HTML files in repository:"
+          find . -name "*.html" -type f | head -10
+
+      - name: 🔧 Setup Pages
+        uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5.0.0
+
+      - name: 📦 Upload artifact
+        uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa # v3.0.1
+        with:
+          path: '.'
+
+      - name: 🚀 Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4.0.5
+
+      - name: 📊 Deployment summary
+        run: |
+          echo "🎉 **Deployment completed successfully!**" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "📊 **Dashboard URL:** ${{ steps.deployment.outputs.page_url }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "🔗 **Direct Links:**" >> $GITHUB_STEP_SUMMARY
+          echo "- [Dashboard Principal](${{ steps.deployment.outputs.page_url }})" >> $GITHUB_STEP_SUMMARY
+          echo "- [Repository](https://github.com/${{ github.repository }})" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "📅 **Deployed at:** $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+          echo "📝 **Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+
+      - name: 🔗 Update repository description
+        continue-on-error: true
+        run: |
+          echo "🔄 Updating repository description with Pages URL..."
+          # This would require a GitHub token with repo permissions
+          # The URL will be available at: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}
