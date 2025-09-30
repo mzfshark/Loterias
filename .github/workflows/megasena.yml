@@ -45,7 +45,7 @@ jobs:
 
       - name: Executar pipeline completa (FAST_CI)
         env:
-          FAST_CI: "1"
+          FAST_CI: "0"
         run: |
           set -euo pipefail
           echo "Iniciando predição Mega-Sena..."
@@ -58,7 +58,7 @@ jobs:
 
       - name: Executar benchmark (FAST_CI)
         env:
-          FAST_CI: "1"
+          FAST_CI: "0"
         run: |
           set -euo pipefail
           echo "Iniciando benchmark Mega-Sena..."
