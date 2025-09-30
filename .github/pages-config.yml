@@ -1,0 +1,20 @@
+# GitHub Pages Configuration
+# This file helps configure the Pages deployment
+
+name: "🎯 Oráculo de Loterias Brasileiras"
+description: "Dashboard interativo com análises e predições de loterias brasileiras usando machine learning"
+
+# Pages settings
+pages:
+  source_branch: "gh-pages"
+  build_type: "static"
+  
+# Security settings  
+security:
+  enforce_https: true
+  
+# Custom domain (optional)
+# domain: "your-domain.com"
+
+# Analytics (optional)
+# google_analytics: "UA-XXXXXXXXX-X"

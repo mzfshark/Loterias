@@ -133,7 +133,7 @@ jobs:
             echo "ℹ️ Nenhuma alteração detectada. Nada para comitar."
           fi
 
-      - name: Publicar via GitHub Pages
+      - name: 📦 Deploy to gh-pages
         uses: peaceiris/actions-gh-pages@4f9cc6602d3f66b9c108549d475ec49e8ef4d45e # v4.0.0
         with:
           github_token: ${{ secrets.GH_PAT }}
@@ -143,4 +143,15 @@ jobs:
           force_orphan: true
           user_name: 'mzfshark'
           user_email: 'mzfshark@gmail.com'
-          commit_message: '🚀 Deploy dashboard loterias - ${{ github.sha }}'
+          commit_message: |
+            � Dashboard atualizado - $(date '+%Y-%m-%d %H:%M UTC')
+            
+            🤖 Atualização automática via GitHub Actions
+            📈 Predições e análises atualizadas
+            🔄 Commit: ${{ github.sha }}
+
+      - name: 🎯 Prepare for Pages deployment
+        run: |
+          echo "✅ Files published to gh-pages branch"
+          echo "🔄 Pages deployment will be triggered automatically"
+          echo "📊 Dashboard will be available at: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}"
