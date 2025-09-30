@@ -9,29 +9,41 @@
     6,
     38
   ],
-  "ensemble_confidence": 0.7344679863265388,
+  "ensemble_confidence": 0.7418013196598721,
   "models": [
     {
       "modelo": "beam_search",
       "jogo": [
-        2,
-        4,
+        3,
         5,
         6,
-        7,
-        8
+        8,
+        10,
+        11
       ],
       "confidence": 0.7
     },
     {
       "modelo": "markov",
       "jogo": [
-        1,
-        3,
+        6,
         9,
-        10,
-        11,
-        16
+        18,
+        24,
+        25,
+        29
+      ],
+      "confidence": 0.6
+    },
+    {
+      "modelo": "mutation",
+      "jogo": [
+        1,
+        7,
+        37,
+        44,
+        59,
+        60
       ],
       "confidence": 0.6
     },
@@ -46,18 +58,6 @@
         53
       ],
       "confidence": 0.5716655945203487
-    },
-    {
-      "modelo": "mutation",
-      "jogo": [
-        1,
-        7,
-        8,
-        32,
-        42,
-        56
-      ],
-      "confidence": 0.6
     },
     {
       "modelo": "poisson",
@@ -99,13 +99,13 @@
       "modelo": "monte_carlo",
       "jogo": [
         1,
-        6,
-        7,
-        9,
-        10,
-        13
+        2,
+        16,
+        19,
+        20,
+        21
       ],
-      "confidence": 0.3111111111111111
+      "confidence": 0.34444444444444444
     }
   ]
 }

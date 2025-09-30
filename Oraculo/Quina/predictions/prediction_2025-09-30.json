@@ -8,16 +8,38 @@
     4,
     5
   ],
-  "ensemble_confidence": 0.8744887275884882,
+  "ensemble_confidence": 0.8678220609218216,
   "models": [
+    {
+      "modelo": "beam_search",
+      "jogo": [
+        2,
+        4,
+        5,
+        9,
+        12
+      ],
+      "confidence": 0.7
+    },
+    {
+      "modelo": "markov",
+      "jogo": [
+        3,
+        7,
+        12,
+        14,
+        15
+      ],
+      "confidence": 0.6
+    },
     {
       "modelo": "mutation",
       "jogo": [
-        1,
-        2,
-        32,
-        44,
-        60
+        17,
+        27,
+        35,
+        73,
+        76
       ],
       "confidence": 0.6
     },
@@ -31,28 +53,6 @@
         52
       ],
       "confidence": 0.95
-    },
-    {
-      "modelo": "beam_search",
-      "jogo": [
-        4,
-        5,
-        8,
-        9,
-        10
-      ],
-      "confidence": 0.7
-    },
-    {
-      "modelo": "markov",
-      "jogo": [
-        8,
-        10,
-        13,
-        17,
-        18
-      ],
-      "confidence": 0.6
     },
     {
       "modelo": "poisson",
@@ -79,13 +79,13 @@
     {
       "modelo": "monte_carlo",
       "jogo": [
-        1,
+        7,
+        13,
         16,
-        20,
-        22,
-        25
+        17,
+        21
       ],
-      "confidence": 0.3111111111111111
+      "confidence": 0.2777777777777778
     },
     {
       "modelo": "neural_ensemble",

@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     
     env:
-      FAST_CI: '1'
+      FAST_CI: '0'
       PYTHONUNBUFFERED: '0'
 
     steps:
