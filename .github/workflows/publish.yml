@@ -29,7 +29,7 @@ jobs:
     
     env:
       FAST_CI: '0'
-      PYTHONUNBUFFERED: '1'
+      PYTHONUNBUFFERED: '0'
       
     steps:
       - name: Debounce de publicação (aguardar 1 minuto)
