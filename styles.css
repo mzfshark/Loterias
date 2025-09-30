@@ -163,13 +163,301 @@ main { padding: 20px 0 60px; }
   color: var(--bg) !important;
 }
 
+/* Seção de Benchmark Aprimorada */
+.benchmark-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.benchmark-header {
+  padding: 0 0 12px 16px;
+  margin-bottom: 16px;
+  border-radius: 8px 8px 0 0;
+}
+
+.benchmark-header .card-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 4px 0;
+}
+
+.benchmark-icon {
+  font-size: 1.2em;
+}
+
+.benchmark-subtitle {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--muted);
+  font-weight: 400;
+}
+
+/* Sumário do benchmark */
+.benchmark-summary {
+  margin-bottom: 20px;
+}
+
+.summary-header {
+  font-weight: 600;
+  cursor: pointer;
+  padding: 8px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.summary-content {
+  margin-top: 8px;
+}
+
+.md-content {
+  background: var(--surface-2);
+  padding: 16px;
+  border-radius: 6px;
+  border-left: 3px solid var(--accent);
+  font-size: 0.9rem;
+  line-height: 1.5;
+  overflow-x: auto;
+}
+
+/* Container de gráficos */
+.benchmark-chart-container {
+  margin: 16px 0;
+}
+
+.chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding: 0 4px;
+}
+
+.chart-header h4 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.chart-info {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+/* Wrapper para gráfico interativo */
+.benchmark-chart-wrapper {
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  position: relative;
+  width: 100%;
+  max-width: 100%;
+}
+
+.benchmark-chart-wrapper .plotly-graph-div {
+  background: transparent !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-height: 400px;
+  height: auto !important;
+}
+
+.benchmark-chart-wrapper .js-plotly-plot {
+  width: 100% !important;
+  height: auto !important;
+}
+
+.benchmark-chart-wrapper .plotly .modebar {
+  background: var(--surface) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 4px !important;
+}
+
+.benchmark-chart-wrapper .plotly .modebar-btn {
+  color: var(--text) !important;
+}
+
+.benchmark-chart-wrapper .plotly .modebar-btn:hover {
+  background: var(--accent) !important;
+  color: var(--bg) !important;
+}
+
+/* Wrapper para imagem PNG */
+.benchmark-img-wrapper {
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--surface-2);
+  padding: 8px;
+}
+
 .benchmark-img {
   width: 100%;
-  max-width: 800px;
+  max-width: 100%;
   height: auto;
   border-radius: 4px;
   display: block;
   margin: 0 auto;
+}
+
+/* Seção de ações */
+.benchmark-actions {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.actions-header {
+  margin-bottom: 8px;
+}
+
+.actions-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.actions-buttons {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.btn-download {
+  border: none !important;
+  font-weight: 600;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.btn-download:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+/* Estado vazio */
+.benchmark-empty {
+  text-align: center;
+}
+
+.benchmark-empty-state {
+  padding: 40px 20px;
+}
+
+.empty-icon {
+  font-size: 3rem;
+  margin-bottom: 16px;
+  opacity: 0.6;
+}
+
+.empty-message {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0 0 8px 0;
+  color: var(--text);
+}
+
+/* Responsividade */
+@media (max-width: 640px) {
+  .benchmark-header {
+    padding-left: 12px;
+  }
+  
+  .chart-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+  
+  .chart-info {
+    font-size: 0.75rem;
+  }
+  
+  .actions-buttons {
+    flex-direction: column;
+  }
+  
+  .benchmark-chart-wrapper .plotly-graph-div {
+    min-height: 300px;
+  }
+}
+
+/* Cores específicas por jogo (cores oficiais) */
+[data-game="lotofacil"] .benchmark-chart-wrapper {
+  border-color: #c2318f20;
+}
+
+[data-game="supersete"] .benchmark-chart-wrapper {
+  border-color: #a8cf4520;
+}
+
+[data-game="megasena"] .benchmark-chart-wrapper {
+  border-color: #009e4c20;
+}
+
+[data-game="quina"] .benchmark-chart-wrapper {
+  border-color: #42338b20;
+}
+
+[data-game="milionaria"] .benchmark-chart-wrapper {
+  border-color: #2e307a20;
+}
+
+/* Responsividade adicional para benchmark */
+@media (max-width: 1024px) {
+  .benchmark-chart-wrapper .plotly-graph-div {
+    min-height: 350px;
+  }
+  
+  .benchmark-grid {
+    gap: 1.2rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .benchmark-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .benchmark-metrics {
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 0.8rem;
+  }
+  
+  .benchmark-chart-wrapper .plotly .modebar {
+    position: relative !important;
+    top: auto !important;
+    right: auto !important;
+    margin-bottom: 0.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .benchmark-metrics {
+    grid-template-columns: 1fr 1fr;
+  }
+  
+  .benchmark-metric {
+    text-align: center;
+  }
+  
+  .benchmark-chart-wrapper .plotly-graph-div {
+    min-height: 250px;
+  }
+  
+  .benchmark-section h2 {
+    font-size: 1.5rem;
+  }
+  
+  .benchmark-metric-value {
+    font-size: 1.5rem;
+  }
+  
+  .benchmark-metric-label {
+    font-size: 0.75rem;
+  }
 }
 
 /* Mobile tweaks */

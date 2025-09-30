@@ -227,6 +227,42 @@ def carregar_heatmap(path: Path) -> str:
     return full_path.read_text(encoding="utf-8")
   return "<p class='muted'>Heatmap não disponível.</p>"
 
+def get_game_colors(slug: str) -> dict:
+  """Retorna as cores específicas de cada jogo para charts e visualizações (cores oficiais)"""
+  colors = {
+    "lotofacil": {
+      "primary": "#c2318f",    # Rosa oficial Lotofácil
+      "secondary": "#d14ba3",  # Rosa claro
+      "accent": "#e073b7",     # Rosa suave
+      "gradient": ["#c2318f", "#d14ba3", "#e073b7"]
+    },
+    "supersete": {
+      "primary": "#a8cf45",    # Verde-limão oficial SuperSete
+      "secondary": "#b6d65c",  # Verde-limão claro
+      "accent": "#c4dd73",     # Verde-limão suave
+      "gradient": ["#a8cf45", "#b6d65c", "#c4dd73"]
+    },
+    "megasena": {
+      "primary": "#009e4c",    # Verde oficial MegaSena
+      "secondary": "#1fb160",  # Verde claro
+      "accent": "#4fc474",     # Verde suave
+      "gradient": ["#009e4c", "#1fb160", "#4fc474"]
+    },
+    "quina": {
+      "primary": "#42338b",    # Roxo oficial Quina
+      "secondary": "#5a4ca0",  # Roxo claro
+      "accent": "#7265b4",     # Roxo suave
+      "gradient": ["#42338b", "#5a4ca0", "#7265b4"]
+    },
+    "milionaria": {
+      "primary": "#2e307a",    # Azul oficial +Milionária
+      "secondary": "#454891",  # Azul claro
+      "accent": "#5c60a8",     # Azul suave
+      "gradient": ["#2e307a", "#454891", "#5c60a8"]
+    }
+  }
+  return colors.get(slug, colors["lotofacil"])  # Fallback para lotofacil
+
 def gerar_conteudo_jogo(slug: str, cfg: dict) -> str:
   html = [f"<section class='tabcontent' id='{slug}'>"]
   # Cabeçalho com logo como ícone (125px de largura)
@@ -255,7 +291,7 @@ def gerar_conteudo_jogo(slug: str, cfg: dict) -> str:
   # Tabela de palpites
   html.append(gerar_tabela_previsoes(prediction_dir))
 
-  # Backtest / Acertos reais (se existir)
+  # Backtest / Acertos reais (se existir) - Versão melhorada
   try:
     # Resolve caminhos relativos ao diretório raiz do projeto
     current_dir = Path.cwd()
@@ -269,34 +305,113 @@ def gerar_conteudo_jogo(slug: str, cfg: dict) -> str:
     chart_html = base / "docs" / "benchmark.html"
     chart_png = base / "docs" / "charts" / "benchmark_summary.png"
     
+    # Obter cores do jogo
+    game_colors = get_game_colors(slug)
+    
     if summary_md.exists() or result_csv.exists() or chart_html.exists() or chart_png.exists():
-      html.append("<div class='card'><h3 class='card-title'>📈 Backtest / Acertos Reais</h3>")
-      links = []
-      if result_csv.exists():
-        # Usar caminho relativo do CSV para o HTML
-        rel_csv = result_csv.relative_to(project_root)
-        links.append(f"<a class='btn' href='{rel_csv.as_posix()}' download>📥 Baixar resultados (CSV)</a>")
+      html.append(f"""
+      <div class='card benchmark-card' data-game='{slug}'>
+        <div class='benchmark-header' style='border-left: 4px solid {game_colors["primary"]}'>
+          <h3 class='card-title'>
+            <span class='benchmark-icon' style='color: {game_colors["primary"]}'>📈</span>
+            Análise de Performance
+          </h3>
+          <p class='benchmark-subtitle'>Backtest em dados históricos reais</p>
+        </div>
+      """)
+      
+      # Sumário do benchmark com melhor formatação
       if summary_md.exists():
-        # Render simples do markdown como preformatado para evitar dependências
         md_text = summary_md.read_text(encoding='utf-8')
-        html.append(f"<details open><summary>Sumário</summary><pre class='md'>{md_text}</pre></details>")
+        html.append(f"""
+        <div class='benchmark-summary'>
+          <details open>
+            <summary class='summary-header' style='color: {game_colors["primary"]}'>
+              📊 Resumo dos Resultados
+            </summary>
+            <div class='summary-content'>
+              <pre class='md-content'>{md_text}</pre>
+            </div>
+          </details>
+        </div>
+        """)
       
-      # Preferir HTML interativo, fallback para PNG estática
+      # Chart com tema personalizado
       if chart_html.exists():
-        # Carregar e incluir o HTML do benchmark interativo
+        # Carregar e processar o HTML do benchmark interativo
         benchmark_content = chart_html.read_text(encoding='utf-8')
-        html.append(f"<div class='benchmark-wrap'>{benchmark_content}</div>")
+        
+        # Aplicar tema das cores do jogo no chart
+        styled_content = f"""
+        <div class='benchmark-chart-container' data-game='{slug}'>
+          <div class='chart-header'>
+            <h4 style='color: {game_colors["primary"]}'>📊 Gráfico Interativo</h4>
+            <span class='chart-info'>Clique e arraste para explorar os dados</span>
+          </div>
+          <div class='benchmark-chart-wrapper' style='--game-primary: {game_colors["primary"]}; --game-secondary: {game_colors["secondary"]};'>
+            {benchmark_content}
+          </div>
+        </div>
+        """
+        html.append(styled_content)
+        
       elif chart_png.exists():
-        # Fallback para imagem PNG estática
+        # Fallback para imagem PNG estática com melhor apresentação
         rel_png = chart_png.relative_to(project_root)
-        html.append(f"<div class='benchmark-wrap'><img src='{rel_png.as_posix()}' alt='Benchmark Chart' class='benchmark-img'></div>")
+        html.append(f"""
+        <div class='benchmark-chart-container' data-game='{slug}'>
+          <div class='chart-header'>
+            <h4 style='color: {game_colors["primary"]}'>📊 Gráfico de Performance</h4>
+            <span class='chart-info'>Análise visual dos resultados</span>
+          </div>
+          <div class='benchmark-img-wrapper' style='border: 2px solid {game_colors["primary"]}20'>
+            <img src='{rel_png.as_posix()}' alt='Benchmark Chart' class='benchmark-img' loading='lazy'>
+          </div>
+        </div>
+        """)
       
-      if links:
-        html.append("<div class='actions'>" + " ".join(links) + "</div>")
-      html.append("</div>")
+      # Seção de ações com melhor visual
+      actions_html = []
+      if result_csv.exists():
+        rel_csv = result_csv.relative_to(project_root)
+        actions_html.append(f"""
+        <a class='btn btn-download' href='{rel_csv.as_posix()}' download 
+           style='background: linear-gradient(45deg, {game_colors["primary"]}, {game_colors["secondary"]}); color: white;'>
+          📥 Baixar Dados (CSV)
+        </a>
+        """)
+      
+      if actions_html:
+        html.append(f"""
+        <div class='benchmark-actions'>
+          <div class='actions-header'>
+            <span class='actions-title'>Dados Disponíveis</span>
+          </div>
+          <div class='actions-buttons'>
+            {"".join(actions_html)}
+          </div>
+        </div>
+        """)
+      
+      html.append("</div>")  # Fecha benchmark-card
+      
     else:
       # Indica ausência de artefatos de benchmark para dar visibilidade
-      html.append("<div class='card'><h3 class='card-title'>📈 Backtest / Acertos Reais</h3><p class='muted'>Nenhum artefato de benchmark encontrado.</p></div>")
+      html.append(f"""
+      <div class='card benchmark-card benchmark-empty' data-game='{slug}'>
+        <div class='benchmark-header' style='border-left: 4px solid {game_colors["primary"]}'>
+          <h3 class='card-title'>
+            <span class='benchmark-icon' style='color: {game_colors["primary"]}'>📈</span>
+            Análise de Performance
+          </h3>
+        </div>
+        <div class='benchmark-empty-state'>
+          <div class='empty-icon' style='color: {game_colors["secondary"]}'>📊</div>
+          <p class='empty-message'>Análise de benchmark em preparação</p>
+          <p class='muted'>Os dados de performance histórica serão exibidos aqui após a próxima execução.</p>
+        </div>
+      </div>
+      """)
   except Exception:
     # Em caso de erro, não mostra a seção
     pass
@@ -361,19 +476,153 @@ html_template = Template("""
   </footer>
 
   <script>
+    // Cores específicas de cada jogo (cores oficiais)
+    const gameColors = {
+      'lotofacil': { primary: '#c2318f', secondary: '#d14ba3', accent: '#e073b7' },
+      'supersete': { primary: '#a8cf45', secondary: '#b6d65c', accent: '#c4dd73' },
+      'megasena': { primary: '#009e4c', secondary: '#1fb160', accent: '#4fc474' },
+      'quina': { primary: '#42338b', secondary: '#5a4ca0', accent: '#7265b4' },
+      'milionaria': { primary: '#2e307a', secondary: '#454891', accent: '#5c60a8' }
+    };
+
     function activateTab(targetId, btn){
       document.querySelectorAll('.tabcontent').forEach(el => el.classList.remove('active'));
       document.querySelectorAll('.tab-button').forEach(el => el.classList.remove('active'));
       const section = document.getElementById(targetId);
       if(section) section.classList.add('active');
       if(btn) btn.classList.add('active');
+      
+      // Aplicar cores nos gráficos Plotly quando a aba for ativada
+      setTimeout(() => applyGameColorsToCharts(targetId), 100);
     }
+
+    function applyGameColorsToCharts(gameId) {
+      const colors = gameColors[gameId];
+      if (!colors) return;
+
+      // Encontrar gráficos Plotly na aba ativa
+      const activeSection = document.getElementById(gameId);
+      if (!activeSection) return;
+
+      const plotlyDivs = activeSection.querySelectorAll('.plotly-graph-div');
+      plotlyDivs.forEach(div => {
+        if (window.Plotly && div.layout) {
+          try {
+            // Atualizar cores do layout
+            const update = {
+              'paper_bgcolor': 'rgba(0,0,0,0)',
+              'plot_bgcolor': 'rgba(0,0,0,0)',
+              'font.color': '#e8eef5',
+              'xaxis.gridcolor': colors.primary + '20',
+              'yaxis.gridcolor': colors.primary + '20',
+              'xaxis.zerolinecolor': colors.primary + '40',
+              'yaxis.zerolinecolor': colors.primary + '40'
+            };
+
+            // Atualizar cores das séries de dados
+            const dataUpdate = div.data?.map(trace => ({
+              ...trace,
+              marker: {
+                ...trace.marker,
+                color: trace.marker?.color || colors.primary,
+                line: {
+                  ...trace.marker?.line,
+                  color: colors.secondary
+                }
+              },
+              line: {
+                ...trace.line,
+                color: colors.primary
+              }
+            }));
+
+            if (dataUpdate) {
+              window.Plotly.restyle(div, dataUpdate);
+            }
+            window.Plotly.relayout(div, update);
+          } catch (e) {
+            console.log('Could not update chart colors:', e);
+          }
+        }
+      });
+    }
+
+    // Função para redimensionar gráficos quando necessário
+    function resizePlotlyCharts() {
+      const plotlyDivs = document.querySelectorAll('.plotly-graph-div');
+      plotlyDivs.forEach(div => {
+        if (window.Plotly && div.layout) {
+          try {
+            window.Plotly.Plots.resize(div);
+          } catch (e) {
+            console.log('Could not resize chart:', e);
+          }
+        }
+      });
+    }
+
+    // Configuração responsiva para gráficos Plotly
+    function configurePlotlyResponsive() {
+      const plotlyDivs = document.querySelectorAll('.plotly-graph-div');
+      plotlyDivs.forEach(div => {
+        if (window.Plotly && div.layout) {
+          try {
+            const update = {
+              autosize: true,
+              responsive: true,
+              'xaxis.automargin': true,
+              'yaxis.automargin': true
+            };
+            window.Plotly.relayout(div, update);
+          } catch (e) {
+            console.log('Could not configure responsive chart:', e);
+          }
+        }
+      });
+    }
+
+    // Event listeners para responsividade
+    window.addEventListener('resize', () => {
+      clearTimeout(window.resizeTimeout);
+      window.resizeTimeout = setTimeout(() => {
+        resizePlotlyCharts();
+        configurePlotlyResponsive();
+      }, 250);
+    });
+
+    // Configurar responsividade inicial
+    document.addEventListener('DOMContentLoaded', () => {
+      setTimeout(() => {
+        configurePlotlyResponsive();
+      }, 500);
+    });
+    function resizeCharts() {
+      document.querySelectorAll('.plotly-graph-div').forEach(div => {
+        if (window.Plotly) {
+          window.Plotly.Plots.resize(div);
+        }
+      });
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
       const buttons = document.querySelectorAll('.tab-button');
       buttons.forEach(btn => {
         btn.addEventListener('click', () => activateTab(btn.dataset.target, btn));
       });
-      if(buttons.length){ activateTab(buttons[0].dataset.target, buttons[0]); }
+      if(buttons.length){ 
+        activateTab(buttons[0].dataset.target, buttons[0]);
+      }
+
+      // Redimensionar gráficos quando a janela for redimensionada
+      window.addEventListener('resize', resizeCharts);
+      
+      // Aplicar cores iniciais após carregar
+      setTimeout(() => {
+        const activeTab = document.querySelector('.tab-button.active');
+        if (activeTab) {
+          applyGameColorsToCharts(activeTab.dataset.target);
+        }
+      }, 500);
     });
   </script>
 </body>
