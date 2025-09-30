@@ -1,9 +1,7 @@
 lottery,timestamp,model,prediction,confidence
-MegaSena,2025-09-30,beam_search,"[3, 5, 6, 8, 10, 11]",0.7
-MegaSena,2025-09-30,markov,"[6, 9, 18, 24, 25, 29]",0.6
-MegaSena,2025-09-30,mutation,"[1, 7, 37, 44, 59, 60]",0.6
-MegaSena,2025-09-30,bayesian,"[5, 10, 34, 37, 38, 53]",0.5716655945203487
+MegaSena,2025-09-30,bayesian,"[5, 10, 34, 37, 38, 53]",0.5718640769935976
+MegaSena,2025-09-30,beam_search,"[1, 3, 4, 5, 8, 10]",0.7
+MegaSena,2025-09-30,markov,"[2, 7, 9, 12, 15, 16]",0.6
 MegaSena,2025-09-30,poisson,"[2, 6, 24, 25, 29, 36]",0.65
-MegaSena,2025-09-30,time_series,"[1, 4, 5, 38, 41, 47]",1.674255957316755
-MegaSena,2025-09-30,neural_ensemble,"[1, 2, 3, 4, 5, 6]",1.369047619047619
-MegaSena,2025-09-30,monte_carlo,"[1, 2, 16, 19, 20, 21]",0.34444444444444444
+MegaSena,2025-09-30,mutation,"[9, 20, 22, 30, 38, 54]",0.6
+MegaSena,2025-09-30,time_series,"[1, 4, 5, 38, 41, 47]",1.674155861057425
