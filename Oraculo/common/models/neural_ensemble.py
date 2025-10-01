@@ -464,20 +464,26 @@ class NeuralEnsembleLotofacil:
         # Generate predictions
         probabilities = self.predict_probabilities(historical_data, lookback)
 
-        # Select top 15 numbers
-        sorted_probs = sorted(probabilities.items(), key=lambda x: x[1], reverse=True)
-        prediction = [num for num, _ in sorted_probs[:15]]
+        # Rank numbers by predicted probability (highest first)
+        ranked_probs = sorted(probabilities.items(), key=lambda x: x[1], reverse=True)
+        # Keep two representations:
+        # - prediction: ranked list (preserves model ranking for adapters)
+        # - prediction_sorted: numerically sorted list (for display / compatibility)
+        prediction_ranked = [num for num, _ in ranked_probs[:15]]
+        prediction_sorted = sorted(prediction_ranked)
 
-        # Calculate confidence score
-        top_15_probs = [prob for _, prob in sorted_probs[:15]]
-        confidence = np.mean(top_15_probs) / np.mean([prob for _, prob in sorted_probs])
+        # Calculate confidence score using top-K mean vs overall mean
+        top_15_probs = [prob for _, prob in ranked_probs[:15]]
+        overall_mean = np.mean([prob for _, prob in ranked_probs]) if ranked_probs else 1.0
+        confidence = np.mean(top_15_probs) / overall_mean if overall_mean > 0 else 0.0
 
         return {
-            'prediction': sorted(prediction),
+            'prediction': prediction_ranked,
+            'prediction_sorted': prediction_sorted,
             'probabilities': probabilities,
             'confidence': confidence,
             'model_scores': self.model_scores if self.is_trained else [],
-            'top_numbers_with_probs': sorted_probs[:15],
+            'top_numbers_with_probs': ranked_probs[:15],
         }
 
     # ---- Stub mínimo para compatibilidade com o ModelAdapter ----
