@@ -207,9 +207,8 @@ def gerar_tabela_previsoes(prediction_dir: Path) -> str:
       tabela_html = df_csv.head(preview_rows).to_html(index=False, classes="table")
     else:
       tabela_html = view.head(preview_rows).to_html(index=False, classes="table")
-  link = f"<a class='btn' href='{csv_path.as_posix()}' download>📥 Baixar CSV</a>"
-  count_info = f"<span class='muted'>Exibindo {preview_rows} de {len(df_csv)} linhas</span>" if len(df_csv) > preview_rows else ""
-  models_table = f"<div class='card'><h3 class='card-title'>Modelos Individuais</h3><div class='table-wrap'>{tabela_html}</div><div class='actions'>{link}{count_info}</div></div>"
+  # Não mostrar botão de download CSV na interface gerada (não necessário)
+  models_table = f"<div class='card'><h3 class='card-title'>Modelos Individuais</h3><div class='table-wrap'>{tabela_html}</div></div>"
   
   # Retorna ensemble primeiro (se existe) + tabela de modelos
   return ensemble_html + models_table if ensemble_html else models_table
@@ -308,7 +307,7 @@ def gerar_conteudo_jogo(slug: str, cfg: dict) -> str:
     # Obter cores do jogo
     game_colors = get_game_colors(slug)
     
-    if summary_md.exists() or result_csv.exists() or chart_html.exists() or chart_png.exists():
+  if summary_md.exists() or result_csv.exists() or chart_html.exists() or chart_png.exists():
       html.append(f"""
       <div class='card benchmark-card' data-game='{slug}'>
         <div class='benchmark-header' style='border-left: 4px solid {game_colors["primary"]}'>
@@ -320,55 +319,52 @@ def gerar_conteudo_jogo(slug: str, cfg: dict) -> str:
         </div>
       """)
       
-      # Sumário do benchmark com melhor formatação
-      if summary_md.exists():
-        md_text = summary_md.read_text(encoding='utf-8')
-        html.append(f"""
-        <div class='benchmark-summary'>
-          <details open>
-            <summary class='summary-header' style='color: {game_colors["primary"]}'>
-              📊 Resumo dos Resultados
-            </summary>
-            <div class='summary-content'>
-              <pre class='md-content'>{md_text}</pre>
-            </div>
-          </details>
-        </div>
-        """)
-      
-      # Chart com tema personalizado
+      # Sumário do benchmark com melhor formatação e embedding do gráfico interativo
+      # Preferir: HTML interativo (chart_html) + tabela de resultados (result_csv)
+      # Fallback: summary_md ou imagem estática
+      # 1) Chart interativo
       if chart_html.exists():
-        # Carregar e processar o HTML do benchmark interativo
-        benchmark_content = chart_html.read_text(encoding='utf-8')
-        
-        # Aplicar tema das cores do jogo no chart
-        styled_content = f"""
-        <div class='benchmark-chart-container' data-game='{slug}'>
-          <div class='chart-header'>
-            <h4 style='color: {game_colors["primary"]}'>📊 Gráfico Interativo</h4>
-            <span class='chart-info'>Clique e arraste para explorar os dados</span>
+        try:
+          benchmark_content = chart_html.read_text(encoding='utf-8')
+          styled_content = f"""
+          <div class='benchmark-chart-container' data-game='{slug}'>
+            <div class='chart-header'>
+              <h4 style='color: {game_colors['primary']}'>📊 Gráfico Interativo</h4>
+              <span class='chart-info'>Interaja com o gráfico: zoom, pan e tooltip.</span>
+            </div>
+            <div class='benchmark-chart-wrapper' style='--game-primary: {game_colors['primary']}; --game-secondary: {game_colors['secondary']};'>
+              {benchmark_content}
+            </div>
           </div>
-          <div class='benchmark-chart-wrapper' style='--game-primary: {game_colors["primary"]}; --game-secondary: {game_colors["secondary"]};'>
-            {benchmark_content}
-          </div>
-        </div>
-        """
-        html.append(styled_content)
-        
-      elif chart_png.exists():
-        # Fallback para imagem PNG estática com melhor apresentação
-        rel_png = chart_png.relative_to(project_root)
-        html.append(f"""
-        <div class='benchmark-chart-container' data-game='{slug}'>
-          <div class='chart-header'>
-            <h4 style='color: {game_colors["primary"]}'>📊 Gráfico de Performance</h4>
-            <span class='chart-info'>Análise visual dos resultados</span>
-          </div>
-          <div class='benchmark-img-wrapper' style='border: 2px solid {game_colors["primary"]}20'>
-            <img src='{rel_png.as_posix()}' alt='Benchmark Chart' class='benchmark-img' loading='lazy'>
-          </div>
-        </div>
-        """)
+          """
+          html.append(styled_content)
+        except Exception:
+          pass
+
+      # 2) Tabela de resultados (CSV de benchmark)
+      if result_csv.exists():
+        try:
+          df_res = pd.read_csv(result_csv)
+          # Limitar e formatar para exibição
+          preview = df_res.head(200)
+          tabela_bench = preview.to_html(index=False, classes='table table-striped')
+          html.append(f"<div class='card'><h3 class='card-title'>Tabela de Benchmark (Top 200)</h3><div class='table-wrap'>{tabela_bench}</div></div>")
+        except Exception:
+          # fallback para summary_md
+          if summary_md.exists():
+            try:
+              md_text = summary_md.read_text(encoding='utf-8')
+              html.append(f"<div class='benchmark-summary'><pre class='md-content'>{md_text}</pre></div>")
+            except Exception:
+              pass
+      else:
+        # 3) Fallback para markdown summary se não houver CSV
+        if summary_md.exists():
+          try:
+            md_text = summary_md.read_text(encoding='utf-8')
+            html.append(f"<div class='benchmark-summary'><pre class='md-content'>{md_text}</pre></div>")
+          except Exception:
+            pass
       
       # Seção de ações com melhor visual
       actions_html = []
@@ -381,17 +377,7 @@ def gerar_conteudo_jogo(slug: str, cfg: dict) -> str:
         </a>
         """)
       
-      if actions_html:
-        html.append(f"""
-        <div class='benchmark-actions'>
-          <div class='actions-header'>
-            <span class='actions-title'>Dados Disponíveis</span>
-          </div>
-          <div class='actions-buttons'>
-            {"".join(actions_html)}
-          </div>
-        </div>
-        """)
+      # Não exibimos ações de download direto na página; usuários podem acessar os artefatos no repositório
       
       html.append("</div>")  # Fecha benchmark-card
       
