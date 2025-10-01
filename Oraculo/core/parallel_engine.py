@@ -111,9 +111,18 @@ class ParallelEngine:
         try:
             yield self._executor
         finally:
+            # Use non-blocking shutdown to avoid deadlocks when the
+            # application receives KeyboardInterrupt while threads are
+            # busy. Pending futures should be cancelled by the caller
+            # when handling interrupts.
             if self._executor:
-                self._executor.shutdown(wait=True)
-                self._executor = None
+                try:
+                    self._executor.shutdown(wait=False)
+                except Exception:
+                    # Best-effort shutdown; log and continue
+                    logger.exception("Erro durante shutdown do executor")
+                finally:
+                    self._executor = None
     
     def parallel_predict(self, models: Dict[str, Callable], data: Any, 
                         progress_callback: Optional[Callable] = None) -> Dict[str, Any]:
@@ -151,24 +160,39 @@ class ParallelEngine:
             }
             
             # Coleta resultados conforme completam
-            for future in as_completed(future_to_model):
-                model_name = future_to_model[future]
-                completed_count += 1
-                
-                try:
-                    result = future.result(timeout=self.timeout_predict)
-                    results[model_name] = result
-                    
-                    elapsed = time.time() - start_time
-                    logger.info(f"✅ {model_name}: concluído ({completed_count}/{total_models}) "
-                               f"- {elapsed:.1f}s")
-                    
-                    if progress_callback:
-                        progress_callback(model_name, result, completed_count, total_models)
-                        
-                except Exception as e:
-                    logger.error(f"❌ {model_name}: erro - {e}")
-                    results[model_name] = None
+            try:
+                for future in as_completed(future_to_model):
+                    model_name = future_to_model[future]
+                    completed_count += 1
+
+                    try:
+                        result = future.result(timeout=self.timeout_predict)
+                        results[model_name] = result
+
+                        elapsed = time.time() - start_time
+                        logger.info(f"✅ {model_name}: concluído ({completed_count}/{total_models}) "
+                                   f"- {elapsed:.1f}s")
+
+                        if progress_callback:
+                            progress_callback(model_name, result, completed_count, total_models)
+
+                    except Exception as e:
+                        logger.error(f"❌ {model_name}: erro - {e}")
+                        results[model_name] = None
+
+            except KeyboardInterrupt:
+                # Usuário interrompeu (Ctrl-C). Cancela futures pendentes e
+                # retorna resultados parciais. Usamos cancel() em cada future
+                # que ainda não terminou.
+                logger.warning("⏹️ Execução interrompida pelo usuário. Cancelando tarefas pendentes...")
+                for future, mname in future_to_model.items():
+                    try:
+                        if not future.done():
+                            future.cancel()
+                            results[mname] = None
+                    except Exception:
+                        logger.exception(f"Falha ao cancelar future para {mname}")
+                # Não re-raise; retornamos os resultados parciais coletados até aqui.
         
         total_time = time.time() - start_time
         success_count = sum(1 for v in results.values() if v is not None)
@@ -252,23 +276,34 @@ class ParallelEngine:
             
             # Ordena resultados pela ordem original
             indexed_results = {}
-            
-            for future in as_completed(future_to_job):
-                job_index = future_to_job[future]
-                job_name = training_jobs[job_index]['name']
-                
-                try:
-                    result = future.result(timeout=self.timeout_train)
-                    indexed_results[job_index] = result
-                    
-                    logger.info(f"✅ Treinamento {job_name}: concluído")
-                    
-                    if progress_callback:
-                        progress_callback(job_name, result, len(indexed_results), total_jobs)
-                        
-                except Exception as e:
-                    logger.error(f"❌ Treinamento {job_name}: erro - {e}")
-                    indexed_results[job_index] = None
+
+            try:
+                for future in as_completed(future_to_job):
+                    job_index = future_to_job[future]
+                    job_name = training_jobs[job_index]['name']
+
+                    try:
+                        result = future.result(timeout=self.timeout_train)
+                        indexed_results[job_index] = result
+
+                        logger.info(f"✅ Treinamento {job_name}: concluído")
+
+                        if progress_callback:
+                            progress_callback(job_name, result, len(indexed_results), total_jobs)
+
+                    except Exception as e:
+                        logger.error(f"❌ Treinamento {job_name}: erro - {e}")
+                        indexed_results[job_index] = None
+
+            except KeyboardInterrupt:
+                logger.warning("⏹️ Treinamentos interrompidos pelo usuário. Cancelando jobs pendentes...")
+                for future, idx in future_to_job.items():
+                    try:
+                        if not future.done():
+                            future.cancel()
+                            indexed_results[idx] = None
+                    except Exception:
+                        logger.exception(f"Falha ao cancelar job index {idx}")
             
             # Reconstrói lista na ordem original
             results = [indexed_results.get(i) for i in range(total_jobs)]
