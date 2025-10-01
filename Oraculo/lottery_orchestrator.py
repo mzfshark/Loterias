@@ -193,7 +193,12 @@ Examples:
     selected_models = None
     if args.models:
         selected_models = [m.strip() for m in args.models.split(',')]
-        print(f"🎯 Modelos selecionados: {selected_models}")
+        # If user passed 'all' as the filter, treat it as no filter (run all models)
+        if len(selected_models) == 1 and selected_models[0].lower() == 'all':
+            selected_models = None
+            print("🎯 Modelos selecionados: all (executando todos os modelos)")
+        else:
+            print(f"🎯 Modelos selecionados: {selected_models}")
     
     # Run predictions
     if args.game == 'all':
