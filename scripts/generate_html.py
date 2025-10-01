@@ -307,7 +307,7 @@ def gerar_conteudo_jogo(slug: str, cfg: dict) -> str:
     # Obter cores do jogo
     game_colors = get_game_colors(slug)
     
-  if summary_md.exists() or result_csv.exists() or chart_html.exists() or chart_png.exists():
+    if summary_md.exists() or result_csv.exists() or chart_html.exists() or chart_png.exists():
       html.append(f"""
       <div class='card benchmark-card' data-game='{slug}'>
         <div class='benchmark-header' style='border-left: 4px solid {game_colors["primary"]}'>
