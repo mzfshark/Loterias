@@ -1,0 +1,51 @@
+{
+  "lottery": "MegaSena",
+  "timestamp": "2025-10-10",
+  "ensemble_prediction": [
+    4,
+    10,
+    15,
+    19,
+    20,
+    21
+  ],
+  "ensemble_confidence": 0.6249999999999999,
+  "models": [
+    {
+      "modelo": "beam_search",
+      "jogo": [
+        2,
+        4,
+        5,
+        7,
+        8,
+        10
+      ],
+      "confidence": 0.7
+    },
+    {
+      "modelo": "markov",
+      "jogo": [
+        4,
+        10,
+        15,
+        19,
+        20,
+        21
+      ],
+      "confidence": 0.6
+    },
+    {
+      "modelo": "mutation",
+      "jogo": [
+        4,
+        6,
+        49,
+        51,
+        52,
+        58
+      ],
+      "confidence": 0.6
+    }
+  ]
+}
