@@ -1,0 +1,87 @@
+{
+  "lottery": "Milionaria",
+  "timestamp": "2025-10-23",
+  "ensemble_prediction": [
+    1,
+    3,
+    7,
+    15,
+    23,
+    44
+  ],
+  "ensemble_confidence": 0.6864773864773865,
+  "models": [
+    {
+      "modelo": "time_series",
+      "jogo": [
+        1,
+        3,
+        7,
+        15,
+        23,
+        44
+      ],
+      "confidence": 3.334584584584585
+    },
+    {
+      "modelo": "beam_search",
+      "jogo": [
+        1,
+        3,
+        5,
+        6,
+        7,
+        9
+      ],
+      "confidence": 0.7
+    },
+    {
+      "modelo": "markov",
+      "jogo": [
+        1,
+        2,
+        3,
+        4,
+        6,
+        8
+      ],
+      "confidence": 0.6
+    },
+    {
+      "modelo": "bayesian",
+      "jogo": [
+        1,
+        6,
+        16,
+        23,
+        44,
+        45
+      ],
+      "confidence": 0.1
+    },
+    {
+      "modelo": "poisson",
+      "jogo": [
+        3,
+        7,
+        9,
+        13,
+        15,
+        17
+      ],
+      "confidence": 0.65
+    },
+    {
+      "modelo": "mutation",
+      "jogo": [
+        1,
+        10,
+        16,
+        25,
+        39,
+        48
+      ],
+      "confidence": 0.6
+    }
+  ]
+}
