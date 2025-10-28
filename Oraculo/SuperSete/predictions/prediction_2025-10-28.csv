@@ -1,0 +1,9 @@
+lottery,timestamp,model,prediction,confidence
+SuperSete,2025-10-28,beam_search,"[3, 7, 3, 2, 8, 4, 5]",0.6
+SuperSete,2025-10-28,time_series,"[2, 9, 9, 7, 6, 6, 6]",0.55
+SuperSete,2025-10-28,monte_carlo,"[3, 0, 2, 6, 8, 4, 7]",0.65
+SuperSete,2025-10-28,neural_ensemble,"[5, 6, 5, 4, 5, 5, 5]",0.6
+SuperSete,2025-10-28,markov,"[5, 0, 2, 7, 4, 7, 4]",0.6
+SuperSete,2025-10-28,bayesian,"[9, 9, 7, 5, 2, 2, 9]",0.7
+SuperSete,2025-10-28,poisson,"[2, 5, 6, 3, 3, 0, 3]",0.5
+SuperSete,2025-10-28,mutation,"[2, 9, 7, 7, 0, 0, 5]",0.55
