@@ -1,0 +1,7 @@
+lottery,timestamp,model,prediction,confidence
+Quina,2025-10-31,bayesian,"[4, 26, 31, 49, 52]",0.95
+Quina,2025-10-31,beam_search,"[2, 4, 5, 6, 8]",0.7
+Quina,2025-10-31,markov,"[4, 8, 10, 16, 17]",0.6
+Quina,2025-10-31,poisson,"[6, 19, 43, 55, 64]",0.65
+Quina,2025-10-31,mutation,"[12, 40, 61, 62, 65]",0.6
+Quina,2025-10-31,time_series,"[4, 5, 15, 45, 54]",1.834764401761717
