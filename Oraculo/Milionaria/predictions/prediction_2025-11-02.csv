@@ -1,0 +1,7 @@
+lottery,timestamp,model,prediction,confidence
+Milionaria,2025-11-02,time_series,"[1, 3, 7, 15, 23, 44]",3.334584584584585
+Milionaria,2025-11-02,beam_search,"[1, 3, 6, 9, 11, 13]",0.7
+Milionaria,2025-11-02,markov,"[1, 2, 3, 4, 6, 8]",0.6
+Milionaria,2025-11-02,bayesian,"[1, 6, 16, 23, 44, 45]",0.1
+Milionaria,2025-11-02,poisson,"[3, 7, 9, 13, 15, 17]",0.65
+Milionaria,2025-11-02,mutation,"[5, 13, 15, 23, 39, 42]",0.6
