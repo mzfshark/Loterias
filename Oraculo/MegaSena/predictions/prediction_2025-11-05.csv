@@ -1,0 +1,4 @@
+lottery,timestamp,model,prediction,confidence
+MegaSena,2025-11-05,beam_search,"[2, 4, 5, 6, 9, 10]",0.7
+MegaSena,2025-11-05,mutation,"[3, 15, 25, 27, 51, 55]",0.6
+MegaSena,2025-11-05,markov,"[2, 3, 7, 14, 16, 18]",0.6
