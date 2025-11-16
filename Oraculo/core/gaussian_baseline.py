@@ -171,3 +171,8 @@ class GaussianBaseline:
     def z_for(self, n: int, is_bonus: bool = False) -> float:
         key = f"bonus:{n}" if is_bonus else str(n)
         return self.z.get(key, 0.0)
+
+    def z_for_col(self, col: int, digit: int) -> float:
+        if not self.z_col or col < 0 or col >= len(self.z_col):
+            return 0.0
+        return self.z_col[col].get(digit, 0.0)

@@ -331,53 +331,7 @@ class BaseLotteryPredictor(ABC):
             'individual_predictions': predictions
         }
     
-    def save_predictions(self, results: Dict[str, Any], timestamp: str = None) -> Tuple[str, str]:
-        """Save predictions to JSON and CSV files."""
-        if timestamp is None:
-            timestamp = datetime.now().strftime("%Y-%m-%d")
-        
-        # Ensure predictions directory exists
-        predictions_dir = Path(self.config.predictions_path)
-        predictions_dir.mkdir(parents=True, exist_ok=True)
-        
-        # Prepare data for saving
-        save_data = {
-            'lottery': self.config.name,
-            'timestamp': timestamp,
-            'ensemble_prediction': self._serialize_prediction(results.get('ensemble_prediction', [])),
-            'ensemble_confidence': float(results.get('ensemble_confidence', 0.0)),
-            'models': []
-        }
-        
-        # Add individual model results
-        for model_name, result in results.get('model_results', {}).items():
-            save_data['models'].append({
-                'modelo': model_name,
-                'jogo': self._serialize_prediction(result.get('prediction', [])),
-                'confidence': float(result.get('confidence', 0.0))
-            })
-        
-        # Save JSON
-        json_path = predictions_dir / f"prediction_{timestamp}.json"
-        with open(json_path, 'w', encoding='utf-8') as f:
-            json.dump(save_data, f, ensure_ascii=False, indent=2)
-        
-        # Save CSV
-        csv_data = []
-        for model_data in save_data['models']:
-            csv_data.append({
-                'lottery': self.config.name,
-                'timestamp': timestamp,
-                'model': model_data['modelo'],
-                'prediction': str(model_data['jogo']),
-                'confidence': model_data['confidence']
-            })
-        
-        csv_df = pd.DataFrame(csv_data)
-        csv_path = predictions_dir / f"prediction_{timestamp}.csv"
-        csv_df.to_csv(csv_path, index=False)
-        
-        return str(json_path), str(csv_path)
+    
     
     def _serialize_prediction(self, prediction: List[Any]) -> List[int]:
         """Convert prediction to JSON-serializable format."""
@@ -474,3 +428,110 @@ class BaseLotteryPredictor(ABC):
             print(f"   • {model_name.upper()}: {prediction} (Conf: {confidence:.1%})")
         
         print(f"\n{'='*80}")
+
+    def _compute_galton_metrics(self, prediction: List[int]) -> Tuple[Optional[float], Optional[float]]:
+        """Calcula métricas de Galton (z-score médio e densidade média) para uma predição.
+
+        - Para jogos padrão (não SuperSete): usa `z_for`/`density_for` por número e retorna a média.
+        - Para SuperSete: usa métricas por coluna (`z_for_col`/`density_for_col`) posição a posição.
+        """
+        try:
+            if not prediction or self.gaussian is None:
+                return None, None
+
+            game = self.config.name.lower()
+
+            # SuperSete: 7 colunas, dígitos 0..9
+            if game == 'supersete':
+                if len(prediction) < 7:
+                    return None, None
+                z_vals: List[float] = []
+                d_vals: List[float] = []
+                for col, digit in enumerate(prediction[:7]):
+                    try:
+                        d_int = int(digit)
+                    except Exception:
+                        d_int = 0
+                    z_vals.append(float(self.gaussian.z_for_col(col, d_int)))
+                    d_vals.append(float(self.gaussian.density_for_col(col, d_int)))
+                if not z_vals:
+                    return None, None
+                return (sum(z_vals) / len(z_vals), sum(d_vals) / len(d_vals))
+
+            # Jogos de números (inclui +Milionária principais)
+            z_vals: List[float] = []
+            d_vals: List[float] = []
+            for n in prediction:
+                try:
+                    ni = int(n)
+                except Exception:
+                    continue
+                z_vals.append(float(self.gaussian.z_for(ni)))
+                d_vals.append(float(self.gaussian.density_for(ni)))
+            if not z_vals:
+                return None, None
+            return (sum(z_vals) / len(z_vals), sum(d_vals) / len(d_vals))
+        except Exception:
+            return None, None
+
+    def save_predictions(self, results: Dict[str, Any], timestamp: str = None) -> Tuple[str, str]:
+        """Save predictions to JSON and CSV files, incluindo métricas de Galton quando disponíveis."""
+        if timestamp is None:
+            timestamp = datetime.now().strftime("%Y-%m-%d")
+
+        # Ensure predictions directory exists
+        predictions_dir = Path(self.config.predictions_path)
+        predictions_dir.mkdir(parents=True, exist_ok=True)
+
+        # Prepare data for saving
+        ensemble_pred = self._serialize_prediction(results.get('ensemble_prediction', []))
+        ensemble_conf = float(results.get('ensemble_confidence', 0.0))
+        ens_z, ens_d = self._compute_galton_metrics(ensemble_pred)
+
+        save_data = {
+            'lottery': self.config.name,
+            'timestamp': timestamp,
+            'ensemble_prediction': ensemble_pred,
+            'ensemble_confidence': ensemble_conf,
+            # Campos opcionais para o ensemble (não usados pela UI atual, mas úteis)
+            'ensemble_galton_zscore': ens_z,
+            'ensemble_galton_density': ens_d,
+            'models': []
+        }
+
+        # Add individual model results
+        for model_name, result in results.get('model_results', {}).items():
+            pred_list = self._serialize_prediction(result.get('prediction', []))
+            conf_val = float(result.get('confidence', 0.0))
+            z_val, d_val = self._compute_galton_metrics(pred_list)
+            save_data['models'].append({
+                'modelo': model_name,
+                'jogo': pred_list,
+                'confidence': conf_val,
+                'galton_zscore': z_val,
+                'galton_density': d_val
+            })
+
+        # Save JSON
+        json_path = predictions_dir / f"prediction_{timestamp}.json"
+        with open(json_path, 'w', encoding='utf-8') as f:
+            json.dump(save_data, f, ensure_ascii=False, indent=2)
+
+        # Save CSV
+        csv_data = []
+        for model_data in save_data['models']:
+            csv_data.append({
+                'lottery': self.config.name,
+                'timestamp': timestamp,
+                'model': model_data['modelo'],
+                'prediction': str(model_data['jogo']),
+                'confidence': model_data['confidence'],
+                'galton_zscore': model_data.get('galton_zscore', None),
+                'galton_density': model_data.get('galton_density', None)
+            })
+
+        csv_df = pd.DataFrame(csv_data)
+        csv_path = predictions_dir / f"prediction_{timestamp}.csv"
+        csv_df.to_csv(csv_path, index=False)
+
+        return str(json_path), str(csv_path)
