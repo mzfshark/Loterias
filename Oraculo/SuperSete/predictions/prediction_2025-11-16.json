@@ -2,29 +2,16 @@
   "lottery": "SuperSete",
   "timestamp": "2025-11-16",
   "ensemble_prediction": [
-    4,
-    5,
-    8,
+    6,
+    9,
+    6,
     2,
+    7,
     6,
-    6,
-    8
+    6
   ],
   "ensemble_confidence": 0.7,
   "models": [
-    {
-      "modelo": "bayesian",
-      "jogo": [
-        9,
-        5,
-        8,
-        2,
-        6,
-        1,
-        8
-      ],
-      "confidence": 0.7
-    },
     {
       "modelo": "neural_ensemble",
       "jogo": [
@@ -37,6 +24,32 @@
         5
       ],
       "confidence": 0.6
+    },
+    {
+      "modelo": "monte_carlo",
+      "jogo": [
+        3,
+        0,
+        8,
+        6,
+        0,
+        1,
+        6
+      ],
+      "confidence": 0.65
+    },
+    {
+      "modelo": "bayesian",
+      "jogo": [
+        6,
+        9,
+        6,
+        2,
+        7,
+        6,
+        2
+      ],
+      "confidence": 0.7
     },
     {
       "modelo": "time_series",
@@ -52,25 +65,25 @@
       "confidence": 0.55
     },
     {
-      "modelo": "mutation",
-      "jogo": [
-        2,
-        9,
-        9,
-        6,
-        7,
-        7,
-        7
-      ],
-      "confidence": 0.55
-    },
-    {
       "modelo": "beam_search",
       "jogo": [
         5,
+        7,
         9,
-        9,
-        1,
+        2,
+        5,
+        6,
+        9
+      ],
+      "confidence": 0.6
+    },
+    {
+      "modelo": "markov",
+      "jogo": [
+        8,
+        0,
+        3,
+        4,
         4,
         6,
         4
@@ -81,40 +94,27 @@
       "modelo": "poisson",
       "jogo": [
         4,
-        5,
         2,
-        4,
-        6,
+        2,
         5,
+        6,
+        6,
         6
       ],
       "confidence": 0.5
     },
     {
-      "modelo": "markov",
+      "modelo": "mutation",
       "jogo": [
-        4,
+        2,
         6,
-        3,
+        8,
+        8,
         7,
-        4,
         6,
-        4
+        6
       ],
-      "confidence": 0.6
-    },
-    {
-      "modelo": "monte_carlo",
-      "jogo": [
-        3,
-        9,
-        9,
-        5,
-        9,
-        4,
-        1
-      ],
-      "confidence": 0.65
+      "confidence": 0.55
     }
   ]
 }
