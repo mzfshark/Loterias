@@ -2,16 +2,33 @@
   "lottery": "SuperSete",
   "timestamp": "2025-11-16",
   "ensemble_prediction": [
-    6,
-    9,
-    6,
+    5,
+    0,
     2,
-    7,
     6,
-    6
+    8,
+    6,
+    7
   ],
   "ensemble_confidence": 0.7,
+  "ensemble_galton_zscore": 0.2330831954805293,
+  "ensemble_galton_density": 0.03817310311330884,
   "models": [
+    {
+      "modelo": "bayesian",
+      "jogo": [
+        5,
+        1,
+        2,
+        0,
+        8,
+        6,
+        7
+      ],
+      "confidence": 0.7,
+      "galton_zscore": 0.06169849292131634,
+      "galton_density": 0.044644673608708864
+    },
     {
       "modelo": "neural_ensemble",
       "jogo": [
@@ -23,33 +40,9 @@
         5,
         5
       ],
-      "confidence": 0.6
-    },
-    {
-      "modelo": "monte_carlo",
-      "jogo": [
-        3,
-        0,
-        8,
-        6,
-        0,
-        1,
-        6
-      ],
-      "confidence": 0.65
-    },
-    {
-      "modelo": "bayesian",
-      "jogo": [
-        6,
-        9,
-        6,
-        2,
-        7,
-        6,
-        2
-      ],
-      "confidence": 0.7
+      "confidence": 0.6,
+      "galton_zscore": 0.11311390368908024,
+      "galton_density": 0.030825864306848645
     },
     {
       "modelo": "time_series",
@@ -62,59 +55,84 @@
         6,
         6
       ],
-      "confidence": 0.55
+      "confidence": 0.55,
+      "galton_zscore": 0.02742155240947374,
+      "galton_density": 0.03939350854546598
+    },
+    {
+      "modelo": "mutation",
+      "jogo": [
+        2,
+        8,
+        9,
+        8,
+        7,
+        5,
+        6
+      ],
+      "confidence": 0.55,
+      "galton_zscore": -0.7266711388510634,
+      "galton_density": 0.03213068898266632
     },
     {
       "modelo": "beam_search",
       "jogo": [
         5,
         7,
-        9,
         2,
-        5,
         6,
+        8,
+        4,
         9
       ],
-      "confidence": 0.6
-    },
-    {
-      "modelo": "markov",
-      "jogo": [
-        8,
-        0,
-        3,
-        4,
-        4,
-        6,
-        4
-      ],
-      "confidence": 0.6
+      "confidence": 0.6,
+      "galton_zscore": 0.6272680113667192,
+      "galton_density": 0.03643838226148821
     },
     {
       "modelo": "poisson",
       "jogo": [
+        3,
+        3,
+        2,
         4,
-        2,
-        2,
         5,
-        6,
-        6,
-        6
+        5,
+        7
       ],
-      "confidence": 0.5
+      "confidence": 0.5,
+      "galton_zscore": -0.16110162040566053,
+      "galton_density": 0.03480509543434561
     },
     {
-      "modelo": "mutation",
+      "modelo": "markov",
       "jogo": [
-        2,
+        5,
+        0,
+        7,
+        6,
+        4,
+        7,
+        4
+      ],
+      "confidence": 0.6,
+      "galton_zscore": 0.3016370765042145,
+      "galton_density": 0.03502327331799994
+    },
+    {
+      "modelo": "monte_carlo",
+      "jogo": [
+        3,
+        0,
+        3,
         6,
         8,
-        8,
-        7,
         6,
         6
       ],
-      "confidence": 0.55
+      "confidence": 0.65,
+      "galton_zscore": 0.3187755467601358,
+      "galton_density": 0.03677640397315783
     }
   ]
 }
