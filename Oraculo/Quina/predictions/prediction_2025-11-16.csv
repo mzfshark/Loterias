@@ -1,9 +1,7 @@
 lottery,timestamp,model,prediction,confidence
 Quina,2025-11-16,bayesian,"[4, 26, 31, 49, 52]",0.95
-Quina,2025-11-16,beam_search,"[1, 2, 4, 5, 7]",0.7
-Quina,2025-11-16,mutation,"[19, 31, 51, 65, 66]",0.6
-Quina,2025-11-16,markov,"[4, 5, 8, 9, 11]",0.6
+Quina,2025-11-16,beam_search,"[2, 4, 5, 6, 9]",0.7
+Quina,2025-11-16,markov,"[1, 3, 4, 6, 7]",0.6
 Quina,2025-11-16,poisson,"[6, 19, 43, 59, 64]",0.65
-Quina,2025-11-16,monte_carlo,"[1, 3, 15, 17, 18]",0.26666666666666666
+Quina,2025-11-16,mutation,"[2, 3, 12, 14, 70]",0.6
 Quina,2025-11-16,time_series,"[4, 5, 15, 45, 54]",1.834732018595104
-Quina,2025-11-16,neural_ensemble,"[4, 5, 9, 13, 15]",1.6666666666666667
