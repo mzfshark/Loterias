@@ -3,62 +3,14 @@
   "timestamp": "2025-11-16",
   "ensemble_prediction": [
     3,
-    6,
     7,
     9,
+    13,
     15,
-    23
+    17
   ],
-  "ensemble_confidence": 0.9718406376301114,
+  "ensemble_confidence": 0.6864773864773865,
   "models": [
-    {
-      "modelo": "markov",
-      "jogo": [
-        1,
-        2,
-        3,
-        6,
-        7,
-        8
-      ],
-      "confidence": 0.6
-    },
-    {
-      "modelo": "beam_search",
-      "jogo": [
-        1,
-        3,
-        5,
-        6,
-        7,
-        11
-      ],
-      "confidence": 0.7
-    },
-    {
-      "modelo": "mutation",
-      "jogo": [
-        2,
-        6,
-        19,
-        20,
-        33,
-        41
-      ],
-      "confidence": 0.6
-    },
-    {
-      "modelo": "monte_carlo",
-      "jogo": [
-        1,
-        3,
-        9,
-        21,
-        23,
-        25
-      ],
-      "confidence": 0.38095238095238093
-    },
     {
       "modelo": "time_series",
       "jogo": [
@@ -70,6 +22,42 @@
         44
       ],
       "confidence": 3.334584584584585
+    },
+    {
+      "modelo": "beam_search",
+      "jogo": [
+        1,
+        5,
+        6,
+        9,
+        10,
+        13
+      ],
+      "confidence": 0.7
+    },
+    {
+      "modelo": "markov",
+      "jogo": [
+        1,
+        2,
+        3,
+        4,
+        6,
+        8
+      ],
+      "confidence": 0.6
+    },
+    {
+      "modelo": "bayesian",
+      "jogo": [
+        1,
+        6,
+        16,
+        23,
+        44,
+        45
+      ],
+      "confidence": 0.1
     },
     {
       "modelo": "poisson",
@@ -84,16 +72,16 @@
       "confidence": 0.65
     },
     {
-      "modelo": "neural_ensemble",
+      "modelo": "mutation",
       "jogo": [
         1,
-        3,
+        2,
         6,
-        7,
-        16,
-        23
+        8,
+        12,
+        15
       ],
-      "confidence": 1.6666666666666672
+      "confidence": 0.6
     }
   ]
 }
