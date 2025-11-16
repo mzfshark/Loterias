@@ -213,7 +213,8 @@ class MonteCarloLotofacilSimulator:
             
             # Calculate pattern scores
             candidate_sum = sum(candidate)
-            sum_score = -abs(candidate_sum - self.sum_mean) / self.sum_std
+            denom = self.sum_std if (isinstance(self.sum_std, (int, float)) and self.sum_std and self.sum_std > 1e-9) else 1.0
+            sum_score = -abs(candidate_sum - self.sum_mean) / denom
             
             # Calculate consecutive score
             consecutive_count = sum(1 for i in range(len(candidate) - 1) 
@@ -246,7 +247,8 @@ class MonteCarloLotofacilSimulator:
         
         # For each position, use KDE to estimate probability density
         all_games_matrix = np.array([sorted(game) for game in limited_data])
-        
+        low, high = min(self.numbers_range), max(self.numbers_range)
+
         for i in range(self.combination_size):
             if i < all_games_matrix.shape[1]:
                 position_data = all_games_matrix[:, i]
@@ -254,15 +256,31 @@ class MonteCarloLotofacilSimulator:
                 # Simple Gaussian KDE approximation
                 mean_pos = np.mean(position_data)
                 std_pos = np.std(position_data)
-                
-                # Sample from Gaussian and round to nearest valid number
-                sample = int(np.clip(np.random.normal(mean_pos, std_pos), 1, 25))
-                
-                # Ensure uniqueness
-                while sample in selected_numbers:
-                    sample = int(np.clip(np.random.normal(mean_pos, std_pos), 1, 25))
-                
-                selected_numbers.append(sample)
+                # Guardar contra std zero/NaN para evitar laço infinito
+                if not np.isfinite(std_pos) or std_pos <= 1e-9:
+                    remaining = [n for n in self.numbers_range if n not in selected_numbers]
+                    if remaining:
+                        selected_numbers.append(random.choice(remaining))
+                    else:
+                        break
+                else:
+                    # Sample from Gaussian and round to nearest valid number
+                    # Usa faixa correta do jogo
+                    max_attempts = 50
+                    attempt = 0
+                    while True:
+                        val = np.random.normal(mean_pos, std_pos)
+                        sample = int(np.clip(val, low, high))
+                        if sample not in selected_numbers:
+                            selected_numbers.append(sample)
+                            break
+                        attempt += 1
+                        if attempt >= max_attempts:
+                            # Fallback para um restante qualquer
+                            remaining = [n for n in self.numbers_range if n not in selected_numbers]
+                            if remaining:
+                                selected_numbers.append(random.choice(remaining))
+                            break
             else:
                 # Fallback for additional numbers
                 remaining = [n for n in self.numbers_range if n not in selected_numbers]
