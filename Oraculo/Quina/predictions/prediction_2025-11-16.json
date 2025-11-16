@@ -2,7 +2,7 @@
   "lottery": "Quina",
   "timestamp": "2025-11-16",
   "ensemble_prediction": [
-    15,
+    6,
     19,
     45,
     54,
@@ -24,22 +24,22 @@
     {
       "modelo": "beam_search",
       "jogo": [
+        2,
         4,
         5,
-        10,
-        11,
-        12
+        6,
+        7
       ],
       "confidence": 0.7
     },
     {
       "modelo": "markov",
       "jogo": [
-        5,
+        2,
         8,
-        10,
-        15,
-        16
+        12,
+        16,
+        17
       ],
       "confidence": 0.6
     },
@@ -57,11 +57,11 @@
     {
       "modelo": "mutation",
       "jogo": [
-        21,
-        52,
-        53,
-        57,
-        58
+        39,
+        42,
+        63,
+        64,
+        66
       ],
       "confidence": 0.6
     },
