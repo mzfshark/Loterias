@@ -672,7 +672,7 @@ abas_html = "\n".join([
   gerar_conteudo_jogo(slug, cfg) for slug, cfg in jogos.items()
 ])
 
-html_template = Template("""
+html_template = Template(r"""
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -712,12 +712,68 @@ html_template = Template("""
   <script>
     // Cores específicas de cada jogo (cores oficiais)
     const gameColors = {
-      'lotofacil': { primary: '#c2318f', secondary: '#d14ba3', accent: '#e073b7' },
-      'supersete': { primary: '#a8cf45', secondary: '#b6d65c', accent: '#c4dd73' },
-      'megasena': { primary: '#009e4c', secondary: '#1fb160', accent: '#4fc474' },
-      'quina': { primary: '#42338b', secondary: '#5a4ca0', accent: '#7265b4' },
-      'milionaria': { primary: '#2e307a', secondary: '#454891', accent: '#5c60a8' }
+      'lotofacil': { primary: '#c2318f', secondary: '#d14ba3', accent: '#e073b7', heatLevels: 9 },
+      'supersete': { primary: '#a8cf45', secondary: '#b6d65c', accent: '#c4dd73', heatLevels: 7 },
+      'megasena': { primary: '#009e4c', secondary: '#1fb160', accent: '#4fc474', heatLevels: 9 },
+      'quina': { primary: '#42338b', secondary: '#5a4ca0', accent: '#7265b4', heatLevels: 7 },
+      'milionaria': { primary: '#2e307a', secondary: '#454891', accent: '#5c60a8', heatLevels: 7 }
     };
+
+    // Utilidades de cor para gerar tons mantendo o matiz
+    function hexToRgb(hex){
+      const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+      return m ? { r: parseInt(m[1],16), g: parseInt(m[2],16), b: parseInt(m[3],16) } : { r: 0, g: 0, b: 0 };
+    }
+    function rgbToHex(r,g,b){
+      const toHex = v => v.toString(16).padStart(2,'0');
+      return `#${toHex(Math.max(0,Math.min(255,r)))}${toHex(Math.max(0,Math.min(255,g)))}${toHex(Math.max(0,Math.min(255,b)))}`;
+    }
+    function rgbToHsl(r,g,b){
+      r/=255; g/=255; b/=255;
+      const max=Math.max(r,g,b), min=Math.min(r,g,b);
+      let h, s, l=(max+min)/2;
+      if(max===min){ h=s=0; }
+      else {
+        const d=max-min;
+        s=l>0.5? d/(2-max-min) : d/(max+min);
+        switch(max){
+          case r: h=(g-b)/d + (g<b?6:0); break;
+          case g: h=(b-r)/d + 2; break;
+          case b: h=(r-g)/d + 4; break;
+        }
+        h/=6;
+      }
+      return { h, s, l };
+    }
+    function hslToRgb(h,s,l){
+      let r,g,b;
+      if(s===0){ r=g=b=l; }
+      else {
+        const hue2rgb=(p,q,t)=>{ if(t<0)t+=1; if(t>1)t-=1; if(t<1/6)return p+(q-p)*6*t; if(t<1/2)return q; if(t<2/3)return p+(q-p)*(2/3 - t)*6; return p; };
+        const q=l<0.5 ? l*(1+s) : l+s - l*s;
+        const p=2*l - q;
+        r=hue2rgb(p,q,h+1/3); g=hue2rgb(p,q,h); b=hue2rgb(p,q,h-1/3);
+      }
+      return { r: Math.round(r*255), g: Math.round(g*255), b: Math.round(b*255) };
+    }
+    function lightenDarkenHsl(h,s,l,delta){
+      const nl = Math.max(0, Math.min(1, l + delta));
+      return { h, s, l: nl };
+    }
+    function generateShades(baseHex, levels){
+      const {r,g,b} = hexToRgb(baseHex);
+      const {h,s,l} = rgbToHsl(r,g,b);
+      const result = [];
+      // Distribui lightness de 0.9 (claro) a 0.25 (escuro)
+      const minL = 0.25, maxL = 0.9;
+      for(let i=0;i<levels;i++){
+        const t = i/(levels-1);
+        const li = maxL + (minL - maxL) * t; // linear interpolate
+        const {r:rr,g:rg,b:rb} = hslToRgb(h, s, li);
+        result.push(rgbToHex(rr,rg,rb));
+      }
+      return result;
+    }
 
     function activateTab(targetId, btn){
       document.querySelectorAll('.tabcontent').forEach(el => el.classList.remove('active'));
@@ -737,6 +793,12 @@ html_template = Template("""
       // Encontrar gráficos Plotly na aba ativa
       const activeSection = document.getElementById(gameId);
       if (!activeSection) return;
+
+      // Gerar escala de tons para heatmaps
+      const levels = colors.heatLevels || 9;
+      const shades = generateShades(colors.primary, levels);
+      // Expor variáveis CSS para possíveis usos futuros
+      shades.forEach((c, idx) => activeSection.style.setProperty(`--game-heat-${idx+1}`, c));
 
       const plotlyDivs = activeSection.querySelectorAll('.plotly-graph-div');
       plotlyDivs.forEach(div => {
@@ -766,7 +828,8 @@ html_template = Template("""
                 update['marker.color'] = c;
                 // Heatmaps: aplicar colorscale coerente com a paleta
                 if (t.type === 'heatmap' || t.type === 'contour') {
-                  update['colorscale'] = [[0, colors.accent], [0.5, colors.secondary], [1, colors.primary]];
+                  const scale = shades.map((col, j) => [j/(shades.length-1), col]);
+                  update['colorscale'] = scale;
                   update['reversescale'] = false;
                   update['showscale'] = true;
                 }
