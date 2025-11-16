@@ -8,7 +8,7 @@
     59,
     64
   ],
-  "ensemble_confidence": 0.5584398779140024,
+  "ensemble_confidence": 0.5556220457205662,
   "ensemble_galton_zscore": -0.036734465328442115,
   "ensemble_galton_density": 0.01982425458310081,
   "models": [
@@ -23,33 +23,33 @@
       ],
       "confidence": 0.6282145406954819,
       "galton_zscore": 2.2843856489839682,
-      "galton_density": 0.0021401994696206364
+      "galton_density": 0.002140199469620636
     },
     {
       "modelo": "beam_search",
       "jogo": [
-        2,
         4,
         5,
-        9,
-        10
+        6,
+        7,
+        8
       ],
-      "confidence": 0.47082260013089644,
-      "galton_zscore": 1.118844647376449,
-      "galton_density": 0.009488449984817368
+      "confidence": 0.4717814517640228,
+      "galton_zscore": 0.6506358689529155,
+      "galton_density": 0.011719670840219144
     },
     {
       "modelo": "markov",
       "jogo": [
         2,
-        5,
-        7,
-        11,
-        12
+        10,
+        13,
+        16,
+        20
       ],
-      "confidence": 0.41321024370590076,
-      "galton_zscore": -0.056658243133698896,
-      "galton_density": 0.01506569341553314
+      "confidence": 0.39894176154044053,
+      "galton_zscore": 0.20235086833463875,
+      "galton_density": 0.011025606659961365
     },
     {
       "modelo": "poisson",
@@ -67,15 +67,15 @@
     {
       "modelo": "mutation",
       "jogo": [
-        4,
-        38,
-        48,
-        53,
-        60
+        10,
+        44,
+        60,
+        71,
+        76
       ],
-      "confidence": 0.40683662641551505,
-      "galton_zscore": 0.7203690912713141,
-      "galton_density": 0.008680936830814048
+      "confidence": 0.4003201607665476,
+      "galton_zscore": 0.4713218687056049,
+      "galton_density": 0.01494631690649954
     },
     {
       "modelo": "time_series",
