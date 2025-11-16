@@ -169,81 +169,145 @@ class EnhancedSuperSetePredictor(BaseLotteryPredictor):
         """Modelo Bayesiano simplificado para SuperSete."""
         if not data:
             return self._generate_random_prediction('bayesian')
-        
-        # Calcula frequência por coluna
-        column_freqs = [np.zeros(10) for _ in range(7)]
-        for game in data[-100:]:  # Últimos 100 jogos
+
+        window = data[-100:]  # janela de histórico
+        column_freqs = [np.zeros(10, dtype=float) for _ in range(7)]
+        for game in window:
             for col, digit in enumerate(game[:7]):
                 if 0 <= digit <= 9:
-                    column_freqs[col][digit] += 1
-        
-        # Gera predição baseada em frequências
+                    column_freqs[col][digit] += 1.0
+
         prediction = []
+        entropies = []
+        variances = []
         for col_freq in column_freqs:
-            # Adiciona prior Bayesiano
-            col_freq += 0.1
-            probabilities = col_freq / col_freq.sum()
-            digit = np.random.choice(10, p=probabilities)
+            col_freq += 0.5  # smoothing bayesiano (prior > 0.1 para maior regularização)
+            probs = col_freq / col_freq.sum()
+            # entropia
+            entropy = -np.sum(probs * np.log(probs))
+            entropies.append(float(entropy))
+            variances.append(float(np.var(probs)))
+            digit = np.random.choice(10, p=probs)
             prediction.append(int(digit))
-        
+
+        mean_entropy = float(np.mean(entropies))
+        norm_entropy = mean_entropy / np.log(10)
+        base_conf = 0.70
+        dynamic_conf = base_conf * (1 - norm_entropy)
+        dispersion = float(np.mean([abs(prediction[i] - np.mean([g[i] for g in window])) for i in range(7)])) if window else 0.0
+
         return {
             'prediction': prediction,
-            'confidence': 0.7,
-            'method': 'bayesian_frequency'
+            'confidence': dynamic_conf,
+            'method': 'bayesian_frequency',
+            'metrics': {
+                'column_entropies': entropies,
+                'mean_entropy': mean_entropy,
+                'column_variances': variances,
+                'prediction_dispersion': dispersion
+            }
         }
     
     def _simple_neural_model(self, data: List[List[int]]) -> Dict[str, Any]:
         """Modelo Neural simplificado."""
         if len(data) < 10:
             return self._generate_random_prediction('neural')
-        
-        # Padrão de tendência por coluna
+
+        window = data[-20:]
         prediction = []
+        entropies = []
+        variances = []
         for col in range(7):
-            recent_values = [game[col] for game in data[-20:] if col < len(game)]
+            recent_values = [game[col] for game in window if col < len(game)]
             if recent_values:
-                # Média ponderada dos valores recentes
                 weights = np.exp(np.linspace(-1, 0, len(recent_values)))
                 avg = np.average(recent_values, weights=weights)
-                prediction.append(int(np.round(avg)) % 10)
+                pred_digit = int(np.round(avg)) % 10
+                prediction.append(pred_digit)
+                # distribuição aproximada via kernel gaussiano discreto centralizado na média
+                centers = np.arange(10)
+                dist = np.exp(-0.5 * ((centers - avg) ** 2) / (1.5 ** 2)) + 1e-9
+                dist /= dist.sum()
+                entropy = -np.sum(dist * np.log(dist))
+                entropies.append(float(entropy))
+                variances.append(float(np.var(dist)))
             else:
-                prediction.append(np.random.randint(0, 10))
-        
+                rd = np.random.randint(0, 10)
+                prediction.append(rd)
+                entropies.append(np.log(10))
+                variances.append(0.0)
+
+        mean_entropy = float(np.mean(entropies))
+        norm_entropy = mean_entropy / np.log(10)
+        base_conf = 0.60
+        dynamic_conf = base_conf * (1 - norm_entropy)
+        dispersion = float(np.mean([abs(prediction[i] - np.mean([g[i] for g in window])) for i in range(7)])) if window else 0.0
+
         return {
             'prediction': prediction,
-            'confidence': 0.6,
-            'method': 'neural_trend'
+            'confidence': dynamic_conf,
+            'method': 'neural_trend',
+            'metrics': {
+                'column_entropies': entropies,
+                'mean_entropy': mean_entropy,
+                'column_variances': variances,
+                'prediction_dispersion': dispersion
+            }
         }
     
     def _simple_monte_carlo_model(self, data: List[List[int]]) -> Dict[str, Any]:
         """Modelo Monte Carlo simplificado."""
         if not data:
             return self._generate_random_prediction('monte_carlo')
-        
-        # Simula múltiplas predições baseadas em distribuições históricas
-        predictions = []
-        for _ in range(100):  # 100 simulações
-            pred = []
-            for col in range(7):
-                col_values = [game[col] for game in data[-50:] if col < len(game)]
-                if col_values:
-                    pred.append(int(np.random.choice(col_values)))
-                else:
-                    pred.append(np.random.randint(0, 10))
-            predictions.append(pred)
-        
-        # Moda de cada coluna
-        final_pred = []
+
+        window = data[-50:]
+        sims = 150  # número de simulações
+        alpha = 0.8  # smoothing para escassez
+        column_probs = []
         for col in range(7):
-            col_values = [pred[col] for pred in predictions]
-            from collections import Counter
-            most_common = Counter(col_values).most_common(1)
-            final_pred.append(int(most_common[0][0]) if most_common else np.random.randint(0, 10))
-        
+            col_values = [game[col] for game in window if col < len(game)]
+            counts = np.zeros(10, dtype=float)
+            for v in col_values:
+                if 0 <= v <= 9:
+                    counts[v] += 1
+            probs = (counts + alpha) / (counts.sum() + alpha * 10)
+            column_probs.append(probs)
+
+        sim_matrix = np.zeros((sims, 7), dtype=int)
+        for s in range(sims):
+            for col in range(7):
+                sim_matrix[s, col] = int(np.random.choice(10, p=column_probs[col]))
+
+        final_pred = []
+        entropies = []
+        variances = []
+        for col in range(7):
+            col_samples = sim_matrix[:, col]
+            counts = np.zeros(10, dtype=float)
+            for v in col_samples:
+                counts[v] += 1
+            dist = counts / counts.sum()
+            entropy = -np.sum(dist * np.log(dist + 1e-12))
+            entropies.append(float(entropy))
+            variances.append(float(np.var(dist)))
+            final_pred.append(int(np.argmax(dist)))
+
+        mean_entropy = float(np.mean(entropies))
+        norm_entropy = mean_entropy / np.log(10)
+        base_conf = 0.65
+        dynamic_conf = base_conf * (1 - norm_entropy)
+        dispersion = float(np.mean([abs(final_pred[i] - np.mean([g[i] for g in window])) for i in range(7)])) if window else 0.0
+
         return {
             'prediction': final_pred,
-            'confidence': 0.65,
-            'method': 'monte_carlo_mode'
+            'confidence': dynamic_conf,
+            'method': 'monte_carlo_multinomial',
+            'metrics': {
+                'column_entropies': entropies,
+                'mean_entropy': mean_entropy,
+                'column_variances': variances,
+                'prediction_dispersion': dispersion
+            }
         }
     
     def _simple_time_series_model(self, data: List[List[int]]) -> Dict[str, Any]:
@@ -274,57 +338,97 @@ class EnhancedSuperSetePredictor(BaseLotteryPredictor):
         """Modelo de Markov simplificado."""
         if len(data) < 3:
             return self._generate_random_prediction('markov')
-        
+
+        window = data[-30:]
+        alpha = 0.5  # regularização
         prediction = []
+        entropies = []
+        variances = []
         for col in range(7):
-            col_values = [game[col] for game in data[-20:] if col < len(game)]
-            if len(col_values) >= 2:
-                # Transições de estado
-                transitions = {}
+            col_values = [game[col] for game in window if col < len(game)]
+            if len(col_values) >= 3:
+                # matriz de transições regularizada
+                trans_counts = np.zeros((10, 10), dtype=float)
                 for i in range(len(col_values) - 1):
-                    current = col_values[i]
-                    next_val = col_values[i + 1]
-                    if current not in transitions:
-                        transitions[current] = []
-                    transitions[current].append(next_val)
-                
-                # Predição baseada no último valor
+                    a = col_values[i]
+                    b = col_values[i + 1]
+                    if 0 <= a <= 9 and 0 <= b <= 9:
+                        trans_counts[a, b] += 1
                 last_val = col_values[-1]
-                if last_val in transitions and transitions[last_val]:
-                    next_digit = np.random.choice(transitions[last_val])
-                else:
-                    next_digit = np.random.randint(0, 10)
-                prediction.append(int(next_digit))
+                row = trans_counts[last_val] if 0 <= last_val <= 9 else np.zeros(10)
+                probs = (row + alpha) / (row.sum() + alpha * 10)
+                entropy = -np.sum(probs * np.log(probs))
+                entropies.append(float(entropy))
+                variances.append(float(np.var(probs)))
+                next_digit = int(np.random.choice(10, p=probs))
+                prediction.append(next_digit)
             else:
-                prediction.append(np.random.randint(0, 10))
-        
+                rd = np.random.randint(0, 10)
+                prediction.append(rd)
+                entropies.append(np.log(10))
+                variances.append(0.0)
+
+        mean_entropy = float(np.mean(entropies))
+        norm_entropy = mean_entropy / np.log(10)
+        base_conf = 0.60
+        dynamic_conf = base_conf * (1 - norm_entropy)
+        dispersion = float(np.mean([abs(prediction[i] - np.mean([g[i] for g in window])) for i in range(7)])) if window else 0.0
+
         return {
             'prediction': prediction,
-            'confidence': 0.6,
-            'method': 'markov_chain'
+            'confidence': dynamic_conf,
+            'method': 'markov_chain_regularized',
+            'metrics': {
+                'column_entropies': entropies,
+                'mean_entropy': mean_entropy,
+                'column_variances': variances,
+                'prediction_dispersion': dispersion
+            }
         }
     
     def _simple_poisson_model(self, data: List[List[int]]) -> Dict[str, Any]:
         """Modelo de Poisson simplificado."""
         if not data:
             return self._generate_random_prediction('poisson')
-        
+
+        window = data[-50:]
         prediction = []
+        entropies = []
+        variances = []
         for col in range(7):
-            col_values = [game[col] for game in data[-50:] if col < len(game)]
+            col_values = [game[col] for game in window if col < len(game)]
             if col_values:
-                # Lambda como média da coluna
-                lambda_val = np.mean(col_values)
-                # Gera valor de Poisson e limita a 0-9
-                poisson_val = np.random.poisson(lambda_val)
-                prediction.append(int(poisson_val % 10))
+                lambda_val = max(0.01, min(9.0, float(np.mean(col_values))))
+                k = np.arange(10)
+                pmf = np.exp(-lambda_val) * (lambda_val ** k) / np.maximum(1, np.array([np.math.factorial(int(x)) for x in k]))
+                pmf /= pmf.sum()  # truncada e normalizada
+                entropy = -np.sum(pmf * np.log(pmf + 1e-12))
+                entropies.append(float(entropy))
+                variances.append(float(np.var(pmf)))
+                digit = int(np.random.choice(10, p=pmf))
+                prediction.append(digit)
             else:
-                prediction.append(np.random.randint(0, 10))
-        
+                rd = np.random.randint(0, 10)
+                prediction.append(rd)
+                entropies.append(np.log(10))
+                variances.append(0.0)
+
+        mean_entropy = float(np.mean(entropies))
+        norm_entropy = mean_entropy / np.log(10)
+        base_conf = 0.50
+        dynamic_conf = base_conf * (1 - norm_entropy)
+        dispersion = float(np.mean([abs(prediction[i] - np.mean([g[i] for g in window])) for i in range(7)])) if window else 0.0
+
         return {
             'prediction': prediction,
-            'confidence': 0.5,
-            'method': 'poisson_distribution'
+            'confidence': dynamic_conf,
+            'method': 'poisson_truncated',
+            'metrics': {
+                'column_entropies': entropies,
+                'mean_entropy': mean_entropy,
+                'column_variances': variances,
+                'prediction_dispersion': dispersion
+            }
         }
     
     def _simple_mutation_model(self, data: List[List[int]]) -> Dict[str, Any]:
@@ -350,10 +454,36 @@ class EnhancedSuperSetePredictor(BaseLotteryPredictor):
         while len(prediction) < 7:
             prediction.append(np.random.randint(0, 10))
         
+        window = data[-30:]
+        entropies = []
+        variances = []
+        for col in range(7):
+            col_values = [game[col] for game in window if col < len(game)]
+            counts = np.zeros(10, dtype=float)
+            for v in col_values:
+                if 0 <= v <= 9:
+                    counts[v] += 1
+            dist = (counts + 0.3) / (counts.sum() + 0.3 * 10)
+            entropy = -np.sum(dist * np.log(dist))
+            entropies.append(float(entropy))
+            variances.append(float(np.var(dist)))
+
+        mean_entropy = float(np.mean(entropies))
+        norm_entropy = mean_entropy / np.log(10)
+        base_conf = 0.55
+        dynamic_conf = base_conf * (1 - norm_entropy)
+        dispersion = float(np.mean([abs(prediction[i] - np.mean([g[i] for g in window])) for i in range(7)])) if window else 0.0
+
         return {
             'prediction': prediction[:7],
-            'confidence': 0.55,
-            'method': 'genetic_mutation'
+            'confidence': dynamic_conf,
+            'method': 'genetic_mutation',
+            'metrics': {
+                'column_entropies': entropies,
+                'mean_entropy': mean_entropy,
+                'column_variances': variances,
+                'prediction_dispersion': dispersion
+            }
         }
     
     def _simple_beam_search_model(self, data: List[List[int]]) -> Dict[str, Any]:
