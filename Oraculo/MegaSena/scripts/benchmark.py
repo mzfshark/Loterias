@@ -3,9 +3,7 @@ import os
 import glob
 from datetime import datetime
 import plotly.graph_objects as go
-import plotly.express as px
 from plotly.subplots import make_subplots
-import plotly.offline as pyo
 import json
 
 # === CONFIGURAÇÃO ===
@@ -47,6 +45,7 @@ def verificar_paths():
 
 # === PARÂMETROS ===
 N_VALID = 300
+TEST_MODE = False
 
 
 def parse_date_multi(s: str):
@@ -166,7 +165,6 @@ def _processar_concurso_megasena(row):
     }
 
 def _filtrar_palpites_validos(preds, data_conc_dt):
-    """Filtra palpites válidos anteriores ao concurso."""
     palpites_validos = []
     for p in preds:
         p_dt = parse_date_multi(p["data"])
@@ -174,16 +172,74 @@ def _filtrar_palpites_validos(preds, data_conc_dt):
             palpites_validos.append(p)
     return palpites_validos
 
-def _gerar_registro_megasena(pmais_recente, concurso_data):
-    """Gera um registro de benchmark para MegaSena."""
-    acertos = comparar(pmais_recente["jogo"], concurso_data["nums_reais"])
-    
+def _gerar_registro_megasena(pred, concurso_data):
+    acertos = comparar(pred["jogo"], concurso_data["nums_reais"])
     return {
-        "modelo": pmais_recente["modelo"],
-        "data_palpite": pmais_recente["data"],
+        "modelo": pred["modelo"],
+        "data_palpite": pred["data"],
         "data_concurso": concurso_data["data_conc"],
+        "concurso": concurso_data["concurso"],
         "acertos_totais": acertos,
+        "acertos_por_coluna": "-",
+        "nums_reais": concurso_data["nums_reais"],
+        "nums_preditos": pred["jogo"],
+        "simulada": pred.get("simulada", False)
     }
+
+def _dominio_numeros(historico_df):
+    cols = [c for c in historico_df.columns if c.startswith("Bola")]
+    vals = set()
+    for _, r in historico_df.iterrows():
+        for c in cols[:6]:
+            try:
+                vals.add(int(r.get(c)))
+            except Exception:
+                continue
+    # Fallback padrão MegaSena 1..60
+    return sorted(vals) if vals else list(range(1, 61))
+
+def _predicao_baseline_random_ms(data_palpite, dominio):
+    import random
+    nums = sorted(random.sample(dominio, 6))
+    return {"data": data_palpite, "modelo": "baseline_random", "jogo": nums, "simulada": True}
+
+def _predicao_baseline_freq_ms(concurso_data, historico_df, data_palpite):
+    import random
+    if str(concurso_data["concurso"]).isdigit():
+        conc = int(concurso_data["concurso"])
+        hist = historico_df[historico_df["Concurso"] < conc]
+    else:
+        hist = historico_df
+    cols = [c for c in hist.columns if c.startswith("Bola")]
+    freq = {}
+    for _, r in hist.iterrows():
+        for c in cols[:6]:
+            try:
+                n = int(r.get(c))
+            except Exception:
+                continue
+            freq[n] = freq.get(n, 0) + 1
+    ordenados = sorted(freq.items(), key=lambda x: (-x[1], x[0]))
+    nums = [n for n, _ in ordenados[:6]]
+    dominio = _dominio_numeros(historico_df)
+    if len(nums) < 6:
+        restantes = [n for n in dominio if n not in nums]
+        nums.extend(random.sample(restantes, 6 - len(nums)))
+    return {"data": data_palpite, "modelo": "baseline_freq", "jogo": sorted(nums), "simulada": True}
+
+def _gerar_predicoes_simuladas(concurso_data, historico_df):
+    from datetime import timedelta
+    from random import seed
+    try:
+        seed(int(concurso_data["concurso"]))
+    except Exception:
+        pass
+    data_palpite = (concurso_data["data_conc_dt"] - timedelta(hours=1)).strftime("%Y-%m-%d")
+    dominio = _dominio_numeros(historico_df)
+    return [
+        _predicao_baseline_random_ms(data_palpite, dominio),
+        _predicao_baseline_freq_ms(concurso_data, historico_df, data_palpite)
+    ]
 
 def benchmark():
     """Executa o benchmark comparando predições com resultados históricos."""
@@ -193,38 +249,19 @@ def benchmark():
 
     print(f"🔍 Processando {len(df_real)} concursos...")
 
-    for i, (_, row) in enumerate(df_real.iterrows()):
-        if i < 3:  # Debug dos primeiros 3
-            print(f"🔍 Debug concurso {i+1}: {row.get('Concurso', '?')}")
-            print(f"   Colunas disponíveis: {list(row.index)}")
-        
+    for _, row in df_real.iterrows():
         concurso_data = _processar_concurso_megasena(row)
         if not concurso_data:
-            if i < 3:
-                print(f"   ❌ Falha no processamento do concurso")
+            continue
+        if not concurso_data.get("concurso") or concurso_data.get("concurso") == "?":
             continue
 
-        if i < 3:
-            print(f"   ✅ Concurso processado: {concurso_data['concurso']}")
-
-        # Para teste: permite qualquer predição (mesmo posterior ao concurso)
-        palpites_validos = preds
+        palpites_validos = preds if TEST_MODE else _filtrar_palpites_validos(preds, concurso_data["data_conc_dt"])
         if not palpites_validos:
-            continue
+            palpites_validos = _gerar_predicoes_simuladas(concurso_data, df_real)
 
-        # Para cada modelo, testa contra este concurso
         for pred in palpites_validos:
-            acertos = comparar(pred["jogo"], concurso_data["nums_reais"])
-            registro = {
-                "modelo": pred["modelo"],
-                "data_palpite": pred["data"],
-                "data_concurso": concurso_data["data_conc"],
-                "concurso": concurso_data["concurso"],
-                "acertos_totais": acertos,
-                "nums_reais": concurso_data["nums_reais"],
-                "nums_preditos": pred["jogo"]
-            }
-            registros.append(registro)
+            registros.append(_gerar_registro_megasena(pred, concurso_data))
 
     print(f"📊 Gerados {len(registros)} registros de comparação")
 
@@ -250,7 +287,7 @@ def _calcular_faixas_acertos_megasena(df):
         }
     return faixas_acertos
 
-def _gerar_relatorio_markdown_megasena(resumo, faixas_acertos):
+def _gerar_relatorio_markdown_megasena(resumo, faixas_acertos, df_full):
     """Gera o relatório markdown com as estatísticas."""
     melhor_modelo = resumo.loc[resumo["media_acertos"].idxmax()]
     
@@ -271,6 +308,12 @@ def _gerar_relatorio_markdown_megasena(resumo, faixas_acertos):
         
         for modelo, faixas in faixas_acertos.items():
             f.write(f"| {modelo} | {faixas['4_ou_mais']} | {faixas['5_ou_mais']} | {faixas['6_acertos']} |\n")
+        f.write("\n## 🧪 Predições Simuladas\n\n")
+        simuladas_group = df_full[df_full.get("simulada", False)].groupby("modelo").size().reset_index(name="predicoes_simuladas")
+        if not simuladas_group.empty:
+            f.write(simuladas_group.to_markdown(index=False))
+        else:
+            f.write("Nenhuma predição simulada necessária no período.\n")
         
         f.write(f"\n## 🥇 Melhor Modelo: **{melhor_modelo['modelo']}**\n")
         f.write(f"- Média de acertos: **{melhor_modelo['media_acertos']:.2f}**\n")
@@ -439,7 +482,7 @@ def gerar_summary(df):
     os.makedirs(os.path.dirname(SUMMARY_MD), exist_ok=True)
     
     faixas_acertos = _calcular_faixas_acertos_megasena(df)
-    melhor_modelo = _gerar_relatorio_markdown_megasena(resumo, faixas_acertos)
+    melhor_modelo = _gerar_relatorio_markdown_megasena(resumo, faixas_acertos, df)
     _gerar_grafico_interativo_megasena(resumo, df)
     
     print(f"📈 Gráfico interativo salvo em: {CHART_HTML}")

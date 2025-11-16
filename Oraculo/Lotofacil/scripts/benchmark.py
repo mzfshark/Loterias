@@ -5,9 +5,7 @@ import os
 import glob
 from datetime import datetime
 import plotly.graph_objects as go
-import plotly.express as px
 from plotly.subplots import make_subplots
-import plotly.offline as pyo
 import json
 
 # === CONFIGURAÇÃO ===
@@ -48,6 +46,7 @@ def verificar_paths():
 
 # === PARÂMETROS ===
 N_VALID = 300
+TEST_MODE = False  # Quando False, só usa predições anteriores ao concurso
 
 def parse_date_multi(s: str):
     """Tenta converter datas em múltiplos formatos comuns."""
@@ -99,15 +98,23 @@ def _processar_conteudo_list(conteudo, data):
     return dados
 
 def _processar_conteudo_dict(conteudo, data):
-    """Processa conteúdo no formato de dicionário."""
-    dados = []
+    """Processa conteúdo no formato de dicionário.
+    Aceita dois formatos:
+    - {"models": [{"modelo":..., "jogo": [...]}, ...]}
+    - {"modelo": ..., "jogo": [...]} (único)
+    Retorna lista homogênea de entradas.
+    """
+    if not isinstance(conteudo, dict):
+        return []
     if "models" in conteudo and isinstance(conteudo["models"], list):
-        for m in conteudo["models"]:
-            if isinstance(m, dict) and "modelo" in m and "jogo" in m:
-                dados.append({"data": data, "modelo": m["modelo"], "jogo": m["jogo"]})
-    elif "modelo" in conteudo and "jogo" in conteudo:
-        dados.append({"data": data, "modelo": conteudo["modelo"], "jogo": conteudo["jogo"]})
-    return dados
+        return [
+            {"data": data, "modelo": m["modelo"], "jogo": m["jogo"]}
+            for m in conteudo["models"]
+            if isinstance(m, dict) and "modelo" in m and "jogo" in m
+        ]
+    if "modelo" in conteudo and "jogo" in conteudo:
+        return [{"data": data, "modelo": conteudo["modelo"], "jogo": conteudo["jogo"]}]
+    return []
 
 def load_predictions():
     """Carrega todas as predições dos arquivos JSON."""
@@ -184,8 +191,50 @@ def _gerar_registro_lotofacil(pred, concurso_data):
         "acertos_totais": acertos,
         "acertos_por_coluna": "-",
         "nums_reais": concurso_data["nums_reais"],
-        "nums_preditos": pred["jogo"]
+        "nums_preditos": pred["jogo"],
+        "simulada": pred.get("simulada", False)
     }
+
+def _predicao_baseline_random(data_palpite):
+    import random
+    nums = sorted(random.sample(range(1, 26), 15))
+    return {"data": data_palpite, "modelo": "baseline_random", "jogo": nums, "simulada": True}
+
+def _predicao_baseline_freq(concurso_data, historico_df, data_palpite):
+    import random
+    if str(concurso_data["concurso"]).isdigit():
+        conc_num = int(concurso_data["concurso"])
+        historico_prev = historico_df[historico_df["Concurso"] < conc_num]
+    else:
+        historico_prev = historico_df
+    colunas_bolas = [c for c in historico_prev.columns if c.startswith("Bola")]
+    freq_map = {}
+    for _, row in historico_prev.iterrows():
+        for c in colunas_bolas[:15]:
+            try:
+                num = int(row.get(c))
+            except Exception:
+                continue
+            freq_map[num] = freq_map.get(num, 0) + 1
+    ordenados = sorted(freq_map.items(), key=lambda x: (-x[1], x[0]))
+    freq_nums = [n for n, _ in ordenados[:15]]
+    if len(freq_nums) < 15:
+        restantes = [n for n in range(1, 26) if n not in freq_nums]
+        freq_nums.extend(sorted(random.sample(restantes, 15 - len(freq_nums))))
+    return {"data": data_palpite, "modelo": "baseline_freq", "jogo": sorted(freq_nums), "simulada": True}
+
+def _gerar_predicoes_simuladas(concurso_data, historico_df):
+    from datetime import timedelta
+    from random import seed
+    try:
+        seed(int(concurso_data["concurso"]))
+    except Exception:
+        pass
+    data_palpite = (concurso_data["data_conc_dt"] - timedelta(hours=1)).strftime("%Y-%m-%d")
+    return [
+        _predicao_baseline_random(data_palpite),
+        _predicao_baseline_freq(concurso_data, historico_df, data_palpite)
+    ]
 
 def benchmark():
     """Executa o benchmark comparando predições com resultados históricos."""
@@ -199,13 +248,18 @@ def benchmark():
         concurso_data = _processar_concurso_lotofacil(row)
         if not concurso_data:
             continue
-
-        # Para teste: permite qualquer predição (mesmo posterior ao concurso)
-        palpites_validos = preds
-        if not palpites_validos:
+        # Ignorar concursos sem ID
+        if not concurso_data.get("concurso") or concurso_data.get("concurso") == "?":
             continue
 
-        # Para cada modelo, testa contra este concurso
+        if TEST_MODE:
+            palpites_validos = preds
+        else:
+            palpites_validos = _filtrar_palpites_validos(preds, concurso_data["data_conc_dt"])
+
+        if not palpites_validos:
+            palpites_validos = _gerar_predicoes_simuladas(concurso_data, df_real)
+
         for pred in palpites_validos:
             registro = _gerar_registro_lotofacil(pred, concurso_data)
             registros.append(registro)
@@ -235,7 +289,7 @@ def _calcular_faixas_acertos_lotofacil(df):
         }
     return faixas_acertos
 
-def _gerar_relatorio_markdown_lotofacil(resumo, faixas_acertos):
+def _gerar_relatorio_markdown_lotofacil(resumo, faixas_acertos, df_full):
     """Gera o relatório markdown com as estatísticas."""
     melhor_modelo = resumo.loc[resumo["media_acertos"].idxmax()]
     
@@ -253,6 +307,13 @@ def _gerar_relatorio_markdown_lotofacil(resumo, faixas_acertos):
         
         for modelo, faixas in faixas_acertos.items():
             f.write(f"| {modelo} | {faixas['11_ou_mais']} | {faixas['12_ou_mais']} | {faixas['13_ou_mais']} | {faixas['14_ou_mais']} | {faixas['15_acertos']} |\n")
+
+        f.write("\n## 🧪 Predições Simuladas\n\n")
+        simuladas_group = df_full[df_full.get("simulada", False)].groupby("modelo").size().reset_index(name="predicoes_simuladas")
+        if not simuladas_group.empty:
+            f.write(simuladas_group.to_markdown(index=False))
+        else:
+            f.write("Nenhuma predição simulada necessária no período.\n")
         
         f.write(f"\n## 🥇 Melhor Modelo: **{melhor_modelo['modelo']}**\n")
         f.write(f"- Média de acertos: **{melhor_modelo['media_acertos']:.2f}**\n")
@@ -411,7 +472,7 @@ def gerar_summary(df):
     resumo.columns = ["modelo", "media_acertos", "desvio_padrao", "n"]
     
     faixas_acertos = _calcular_faixas_acertos_lotofacil(df)
-    melhor_modelo = _gerar_relatorio_markdown_lotofacil(resumo, faixas_acertos)
+    melhor_modelo = _gerar_relatorio_markdown_lotofacil(resumo, faixas_acertos, df)
     _gerar_grafico_interativo_lotofacil(resumo, df)
     
     print(f"📈 Gráfico interativo salvo em: {CHART_HTML}")

@@ -4,9 +4,7 @@ import os
 import glob
 from datetime import datetime
 import plotly.graph_objects as go
-import plotly.express as px
 from plotly.subplots import make_subplots
-import plotly.offline as pyo
 import json
 
 # === CONFIGURAÇÃO ===
@@ -19,7 +17,7 @@ CHART_HTML = "../docs/charts/benchmark_interactive.html"
 
 # === PARÂMETROS ===
 N_VALID = 300
-TEST_MODE = True  # Permite qualquer predição ser comparada com qualquer concurso
+TEST_MODE = False  # Quando False, usa só predições anteriores ao concurso
 
 # Verificação de caminhos
 def verificar_paths():
@@ -94,15 +92,25 @@ def _processar_conteudo_list(conteudo, data):
             dados.append({"data": data, "modelo": entrada["modelo"], "jogo": entrada["jogo"]})
     return dados
 
+def _extrair_registro_modelo(item, data):
+    """Extrai um registro de predição se o item possuir as chaves esperadas."""
+    if isinstance(item, dict) and "modelo" in item and "jogo" in item:
+        return {"data": data, "modelo": item["modelo"], "jogo": item["jogo"]}
+    return None
+
 def _processar_conteudo_dict(conteudo, data):
-    """Processa conteúdo no formato de dicionário."""
+    """Processa conteúdo no formato de dicionário com baixa complexidade."""
     dados = []
-    if "models" in conteudo and isinstance(conteudo["models"], list):
-        for m in conteudo["models"]:
-            if isinstance(m, dict) and "modelo" in m and "jogo" in m:
-                dados.append({"data": data, "modelo": m["modelo"], "jogo": m["jogo"]})
-    elif "modelo" in conteudo and "jogo" in conteudo:
-        dados.append({"data": data, "modelo": conteudo["modelo"], "jogo": conteudo["jogo"]})
+    itens = []
+    if isinstance(conteudo.get("models"), list):
+        itens = conteudo["models"]
+    else:
+        itens = [conteudo]
+
+    for item in itens:
+        reg = _extrair_registro_modelo(item, data)
+        if reg:
+            dados.append(reg)
     return dados
 
 def load_predictions():
@@ -169,31 +177,95 @@ def _calcular_acertos_supersete(palpite, nums_reais):
     return acertos, acertos_por_coluna
 
 def _filtrar_palpites_validos(preds, data_conc_dt):
-    """Filtra palpites válidos anteriores ao concurso."""
     palpites_validos = []
     for p in preds:
         p_dt = parse_date_multi(p["data"])
-        if TEST_MODE:
-            # Em modo teste, aceita qualquer predição com data válida
-            if p_dt:
-                palpites_validos.append(p)
-        else:
-            # Modo normal: apenas predições anteriores ao concurso
-            if p_dt and p_dt < data_conc_dt:
-                palpites_validos.append(p)
+        if p_dt and p_dt < data_conc_dt:
+            palpites_validos.append(p)
     return palpites_validos
 
-def _gerar_registro_supersete(pmais_recente, concurso_data):
-    """Gera um registro de benchmark para SuperSete."""
-    acertos, acertos_por_coluna = _calcular_acertos_supersete(pmais_recente["jogo"], concurso_data["nums_reais"])
-    
+def _gerar_registro_supersete(pred, concurso_data):
+    acertos, acertos_por_coluna = _calcular_acertos_supersete(pred["jogo"], concurso_data["nums_reais"])
     return {
-        "modelo": pmais_recente["modelo"],
-        "data_palpite": pmais_recente["data"],
+        "modelo": pred["modelo"],
+        "data_palpite": pred["data"],
         "data_concurso": concurso_data["data_conc"],
+        "concurso": concurso_data["concurso"],
         "acertos_totais": acertos,
-        "acertos_por_coluna": acertos_por_coluna
+        "acertos_por_coluna": acertos_por_coluna,
+        "nums_reais": concurso_data["nums_reais"],
+        "nums_preditos": pred["jogo"],
+        "simulada": pred.get("simulada", False)
     }
+
+def _predicao_baseline_random_ss(data_palpite):
+    import random
+    nums = [random.randint(0, 9) for _ in range(7)]
+    return {"data": data_palpite, "modelo": "baseline_random", "jogo": nums, "simulada": True}
+
+def _historico_antes_concurso(historico_df, concurso_val):
+    """Filtra o histórico para concursos anteriores ao informado (quando possível)."""
+    if str(concurso_val).isdigit():
+        try:
+            conc = int(concurso_val)
+            return historico_df[historico_df["Concurso"] < conc]
+        except Exception:
+            return historico_df
+    return historico_df
+
+def _contar_frequencias_por_coluna(hist_df):
+    """Conta frequências 0..9 por coluna 1..7 no histórico informado."""
+    contagens = {i: {d: 0 for d in range(10)} for i in range(1, 8)}
+    for i in range(1, 8):
+        col = f"Coluna {i}"
+        if col not in hist_df.columns:
+            continue
+        for _, r in hist_df.iterrows():
+            try:
+                d = int(r.get(col))
+            except Exception:
+                continue
+            if 0 <= d <= 9:
+                contagens[i][d] += 1
+    return contagens
+
+def _mais_frequentes_por_coluna(contagens):
+    """Seleciona o dígito mais frequente por coluna (desempate pelo menor dígito)."""
+    nums = []
+    for i in range(1, 8):
+        pares = list(contagens.get(i, {}).items())
+        if not pares:
+            nums.append(0)
+            continue
+        mais_freq = sorted(pares, key=lambda x: (-x[1], x[0]))[0][0]
+        nums.append(mais_freq)
+    return nums
+
+def _predicao_baseline_freq_ss(concurso_data, historico_df, data_palpite):
+    hist = _historico_antes_concurso(historico_df, concurso_data.get("concurso"))
+    contagens = _contar_frequencias_por_coluna(hist)
+    nums = _mais_frequentes_por_coluna(contagens)
+    return {"data": data_palpite, "modelo": "baseline_freq", "jogo": nums, "simulada": True}
+
+def _gerar_predicoes_simuladas(concurso_data, historico_df):
+    from datetime import timedelta
+    from random import seed
+    try:
+        seed(int(concurso_data["concurso"]))
+    except Exception:
+        pass
+    data_palpite = (concurso_data["data_conc_dt"] - timedelta(hours=1)).strftime("%Y-%m-%d")
+    return [
+        _predicao_baseline_random_ss(data_palpite),
+        _predicao_baseline_freq_ss(concurso_data, historico_df, data_palpite)
+    ]
+
+def _obter_palpites_para_concurso(concurso_data, todos_preds, historico_df):
+    """Obtém palpites válidos (pré-sorteio) ou simula caso não existam."""
+    palpites_validos = todos_preds if TEST_MODE else _filtrar_palpites_validos(todos_preds, concurso_data["data_conc_dt"])
+    if not palpites_validos:
+        return _gerar_predicoes_simuladas(concurso_data, historico_df)
+    return palpites_validos
 
 def benchmark():
     """Executa o benchmark comparando predições com resultados históricos."""
@@ -202,35 +274,17 @@ def benchmark():
     registros = []
 
     print(f"🔍 Processando {len(df_real)} concursos...")
-    
-    debug_count = 0
     for _, row in df_real.iterrows():
-        debug_count += 1
-        if debug_count <= 3:  # Debug primeiros 3 concursos
-            concurso = row.get('Concurso', '?')
-            print(f"🔍 Debug concurso {debug_count}: {concurso}")
-            print(f"   Colunas disponíveis: {list(row.index)}")
-        
         concurso_data = _processar_concurso_supersete(row)
         if not concurso_data:
-            if debug_count <= 3:
-                print(f"   ❌ Falha no processamento do concurso")
             continue
-        
-        if debug_count <= 3:
-            print(f"   ✅ Concurso processado: {concurso_data['concurso']}")
-            print(f"   📅 Data concurso: {concurso_data['data_conc_dt']}")
-
-        palpites_validos = _filtrar_palpites_validos(preds, concurso_data["data_conc_dt"])
-        if debug_count <= 3:
-            print(f"   🎯 Palpites válidos encontrados: {len(palpites_validos)}")
-        
-        if not palpites_validos:
+        conc_id = concurso_data.get("concurso")
+        if not conc_id or conc_id == "?":
             continue
 
-        pmais_recente = max(palpites_validos, key=lambda x: parse_date_multi(x["data"]))
-        registro = _gerar_registro_supersete(pmais_recente, concurso_data)
-        registros.append(registro)
+        palpites = _obter_palpites_para_concurso(concurso_data, preds, df_real)
+        for pred in palpites:
+            registros.append(_gerar_registro_supersete(pred, concurso_data))
 
     print(f"📊 Gerados {len(registros)} registros de comparação")
 
@@ -256,11 +310,11 @@ def _calcular_faixas_acertos_supersete(df):
         }
     return faixas_acertos
 
-def _gerar_relatorio_markdown_supersete(resumo, faixas_acertos):
+def _gerar_relatorio_markdown_supersete(resumo, faixas_acertos, df_full):
     """Gera o relatório markdown com as estatísticas."""
     melhor_modelo = resumo.loc[resumo["media_acertos"].idxmax()]
     
-    with open(SUMMARY_MD, "w") as f:
+    with open(SUMMARY_MD, "w", encoding="utf-8") as f:
         f.write("# 🎯 Benchmark Summary - SuperSete\n\n")
         f.write(f"**Período analisado:** Últimos {N_VALID} concursos\n")
         f.write(f"**Modelos testados:** {len(resumo)} modelos\n\n")
@@ -274,6 +328,12 @@ def _gerar_relatorio_markdown_supersete(resumo, faixas_acertos):
         
         for modelo, faixas in faixas_acertos.items():
             f.write(f"| {modelo} | {faixas['4_ou_mais']} | {faixas['5_ou_mais']} | {faixas['6_ou_mais']} | {faixas['7_acertos']} |\n")
+        f.write("\n## 🧪 Predições Simuladas\n\n")
+        simuladas_group = df_full[df_full.get("simulada", False)].groupby("modelo").size().reset_index(name="predicoes_simuladas")
+        if not simuladas_group.empty:
+            f.write(simuladas_group.to_markdown(index=False))
+        else:
+            f.write("Nenhuma predição simulada necessária no período.\n")
         
         f.write(f"\n## 🥇 Melhor Modelo: **{melhor_modelo['modelo']}**\n")
         f.write(f"- Média de acertos: **{melhor_modelo['media_acertos']:.2f}**\n")
@@ -281,57 +341,50 @@ def _gerar_relatorio_markdown_supersete(resumo, faixas_acertos):
     
     return melhor_modelo
 
-def _gerar_grafico_interativo_supersete(resumo, df):
-    """Gera gráfico interativo de benchmark com múltiplas visualizações."""
-    charts_dir = os.path.dirname(CHART_HTML)
-    os.makedirs(charts_dir, exist_ok=True)
+def _cores_supersete():
+    super_color = "#a8cf45"
+    paleta = [super_color, "#8fb535", "#76a025", "#5d8b15", "#447605"]
+    return super_color, paleta
 
-    # Cor oficial do SuperSete
-    SUPERSETE_COLOR = "#a8cf45"
-    
-    # Criar paleta de cores baseada na cor principal
-    cores = [SUPERSETE_COLOR, "#8fb535", "#76a025", "#5d8b15", "#447605"]
-
-    # Criar subplots 2x2
-    fig = make_subplots(
+def _criar_subplots_supersete():
+    return make_subplots(
         rows=2, cols=2,
-        subplot_titles=("📊 Média de Acertos por Modelo", "📦 Distribuição de Acertos", 
-                       "📈 Acertos por Concurso (Temporal)", "🥧 Proporção de Modelos"),
+        subplot_titles=(
+            "📊 Média de Acertos por Modelo",
+            "📦 Distribuição de Acertos",
+            "📈 Acertos por Concurso (Temporal)",
+            "🥧 Proporção de Modelos"
+        ),
         specs=[[{"secondary_y": False}, {"secondary_y": False}],
                [{"secondary_y": False}, {"type": "domain"}]],
         vertical_spacing=0.15,
         horizontal_spacing=0.1
     )
 
-    # 1. Gráfico de Barras - Média de Acertos
+def _adicionar_barras_media(fig, resumo, cor):
     fig.add_trace(
         go.Bar(
             x=resumo["modelo"],
             y=resumo["media_acertos"],
             error_y=dict(type='data', array=resumo["desvio_padrao"]),
             name="Média de Acertos",
-            marker_color=SUPERSETE_COLOR,
-            text=[f'{v:.2f}' for v in resumo["media_acertos"]],
+            marker_color=cor,
+            text=[f"{v:.2f}" for v in resumo["media_acertos"]],
             textposition='outside',
             visible=True
         ),
         row=1, col=1
     )
 
-    # 2. Box Plot - Distribuição
+def _adicionar_box_distribuicao(fig, resumo, df, cores):
     for i, modelo in enumerate(resumo["modelo"]):
         dados_modelo = df[df["modelo"] == modelo]["acertos_totais"]
         fig.add_trace(
-            go.Box(
-                y=dados_modelo,
-                name=modelo,
-                marker_color=cores[i % len(cores)],
-                visible=True
-            ),
+            go.Box(y=dados_modelo, name=modelo, marker_color=cores[i % len(cores)], visible=True),
             row=1, col=2
         )
 
-    # 3. Scatter Plot Temporal
+def _adicionar_temporal(fig, resumo, df, cores):
     for i, modelo in enumerate(resumo["modelo"]):
         dados_modelo = df[df["modelo"] == modelo]
         fig.add_trace(
@@ -346,31 +399,25 @@ def _gerar_grafico_interativo_supersete(resumo, df):
             row=2, col=1
         )
 
-    # 4. Pie Chart - Proporção de uso dos modelos
+def _adicionar_pizza(fig, df, cores):
     modelo_counts = df["modelo"].value_counts()
     fig.add_trace(
-        go.Pie(
-            labels=modelo_counts.index,
-            values=modelo_counts.values,
-            name="Proporção",
-            marker_colors=cores[:len(modelo_counts)],
-            visible=True
-        ),
+        go.Pie(labels=modelo_counts.index, values=modelo_counts.values, name="Proporção",
+               marker_colors=cores[:len(modelo_counts)], visible=True),
         row=2, col=2
     )
 
-    # Configurar layout
+def _configurar_layout_grafico(fig, resumo, super_color):
     fig.update_layout(
         title={
             'text': "🎯 SuperSete - Análise Interativa de Performance dos Modelos",
             'x': 0.5,
             'xanchor': 'center',
-            'font': {'size': 16, 'color': SUPERSETE_COLOR}
+            'font': {'size': 16, 'color': super_color}
         },
         showlegend=True,
         height=800,
         font=dict(size=10),
-        # Botões para alternar tipos de gráfico
         updatemenus=[
             dict(
                 type="buttons",
@@ -379,13 +426,13 @@ def _gerar_grafico_interativo_supersete(resumo, df):
                     dict(label="📊 Visão Completa", method="update",
                          args=[{"visible": [True] * len(fig.data)}]),
                     dict(label="📊 Apenas Barras", method="update",
-                         args=[{"visible": [True if i < 1 else False for i in range(len(fig.data))]}]),
+                         args=[{"visible": [i < 1 for i in range(len(fig.data))]}]),
                     dict(label="📦 Apenas Distribuição", method="update",
-                         args=[{"visible": [True if 1 <= i < 1 + len(resumo) else False for i in range(len(fig.data))]}]),
+                         args=[{"visible": [1 <= i < 1 + len(resumo) for i in range(len(fig.data))]}]),
                     dict(label="📈 Apenas Temporal", method="update",
-                         args=[{"visible": [True if 1 + len(resumo) <= i < 1 + 2*len(resumo) else False for i in range(len(fig.data))]}]),
+                         args=[{"visible": [1 + len(resumo) <= i < 1 + 2*len(resumo) for i in range(len(fig.data))]}]),
                     dict(label="🥧 Apenas Pizza", method="update",
-                         args=[{"visible": [True if i >= len(fig.data)-1 else False for i in range(len(fig.data))]}])
+                         args=[{"visible": [i == len(fig.data)-1 for i in range(len(fig.data))]}])
                 ]),
                 pad={"r": 10, "t": 10},
                 showactive=True,
@@ -397,17 +444,28 @@ def _gerar_grafico_interativo_supersete(resumo, df):
         ]
     )
 
-    # Configurar eixos dos subplots
+def _atualizar_eixos(fig):
     fig.update_xaxes(title_text="Modelos", row=1, col=1)
     fig.update_yaxes(title_text="Média de Acertos", row=1, col=1)
-    
     fig.update_xaxes(title_text="Modelos", row=1, col=2)
     fig.update_yaxes(title_text="Acertos", row=1, col=2)
-    
     fig.update_xaxes(title_text="Concursos", row=2, col=1)
     fig.update_yaxes(title_text="Acertos", row=2, col=1)
 
-    # Salvar gráfico
+def _gerar_grafico_interativo_supersete(resumo, df):
+    """Gera gráfico interativo de benchmark com múltiplas visualizações (modular)."""
+    charts_dir = os.path.dirname(CHART_HTML)
+    os.makedirs(charts_dir, exist_ok=True)
+
+    super_color, cores = _cores_supersete()
+    fig = _criar_subplots_supersete()
+    _adicionar_barras_media(fig, resumo, super_color)
+    _adicionar_box_distribuicao(fig, resumo, df, cores)
+    _adicionar_temporal(fig, resumo, df, cores)
+    _adicionar_pizza(fig, df, cores)
+    _configurar_layout_grafico(fig, resumo, super_color)
+    _atualizar_eixos(fig)
+
     fig.write_html(CHART_HTML, include_plotlyjs='cdn')
     print(f"📈 Gráfico interativo SuperSete salvo em: {CHART_HTML}")
 
@@ -421,7 +479,7 @@ def gerar_summary(df):
     resumo.columns = ["modelo", "media_acertos", "desvio_padrao", "n"]
     
     faixas_acertos = _calcular_faixas_acertos_supersete(df)
-    melhor_modelo = _gerar_relatorio_markdown_supersete(resumo, faixas_acertos)
+    melhor_modelo = _gerar_relatorio_markdown_supersete(resumo, faixas_acertos, df)
     _gerar_grafico_interativo_supersete(resumo, df)
     
     print(f"📈 Gráfico interativo salvo em: {CHART_HTML}")
