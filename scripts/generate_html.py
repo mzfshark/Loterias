@@ -83,6 +83,93 @@ def _df_de_arquivo(path: Path) -> pd.DataFrame:
   except Exception:
     return pd.DataFrame()
 
+def classificar_modelo(modelo: str):
+  modelo = str(modelo).lower()
+  if "bayes" in modelo:
+    return "🔮", "#7f3fbf"
+  if "monte" in modelo:
+    return "🎲", "#3fbf7f"
+  if "markov" in modelo:
+    return "🔗", "#bfbf3f"
+  if "gauss" in modelo or "galton" in modelo or "zscore" in modelo:
+    return "📘", "#3f7fbf"
+  if "ml" in modelo or "neural" in modelo or "ensemble" in modelo:
+    return "🤖", "#bf6f3f"
+  if "gen" in modelo or "genetic" in modelo or "evol" in modelo:
+    return "🧬", "#bf3f8f"
+  if "poisson" in modelo or "freq" in modelo:
+    return "📊", "#3f9fbf"
+  return "📐", "#888"
+
+
+def gerar_modelos_individuais(df: pd.DataFrame) -> str:
+  """Gera cards individuais para cada modelo, com suporte à Distribuição de Galton e sem timestamp."""
+  if df is None or df.empty:
+    return "<p class='muted'>Nenhuma previsão individual disponível.</p>"
+
+  html = ["<div class='modelos-container'>"]
+
+  for _, row in df.iterrows():
+    modelo = row.get("modelo", row.get("model", "Desconhecido"))
+    jogo = row.get("jogo") or row.get("prediction")
+    conf = row.get("confidence", None)
+
+    # Galton fields
+    z = row.get("galton_zscore", None)
+    dens = row.get("galton_density", None)
+
+    # Format prediction
+    try:
+      jogo_fmt = " ".join(
+        str(x)
+        for x in str(jogo)
+        .replace("[", "")
+        .replace("]", "")
+        .replace(",", " ")
+        .split()
+      )
+    except Exception:
+      jogo_fmt = str(jogo)
+
+    try:
+      conf_fmt = f"{float(conf)*100:.1f}%" if conf is not None else "--"
+    except Exception:
+      conf_fmt = "--"
+    try:
+      z_fmt = f"{float(z):.2f}" if z is not None else "--"
+    except Exception:
+      z_fmt = "--"
+    try:
+      dens_fmt = f"{float(dens):.4f}" if dens is not None else "--"
+    except Exception:
+      dens_fmt = "--"
+
+    # Get icon + color
+    tipo_icon, tipo_cor = classificar_modelo(modelo)
+
+    card = f"""
+    <div class='modelo-card' style='border-left: 4px solid {tipo_cor}'>
+        <div class='modelo-header'>
+            <span class='modelo-icon' style='color:{tipo_cor}'>{tipo_icon}</span>
+            <h4 class='modelo-nome'>{modelo}</h4>
+        </div>
+        <div class='modelo-body'>
+            <div class='modelo-pred'>🎯 {jogo_fmt}</div>
+            <div class='modelo-metrics'>
+                <span class='metric'>🔐 Confiança: {conf_fmt}</span>
+                <span class='metric'>📉 Z-Score: {z_fmt}</span>
+                <span class='metric'>📈 Densidade: {dens_fmt}</span>
+            </div>
+        </div>
+    </div>
+    """
+
+    html.append(card)
+
+  html.append("</div>")
+  return "\n".join(html)
+
+
 def gerar_tabela_previsoes(prediction_dir: Path) -> str:
   if not prediction_dir.exists():
     return "<p class='muted'>Nenhuma previsão encontrada.</p>"
@@ -100,7 +187,6 @@ def gerar_tabela_previsoes(prediction_dir: Path) -> str:
       if isinstance(data, dict) and 'ensemble_prediction' in data:
         ensemble_pred = data['ensemble_prediction']
         ensemble_conf = data.get('ensemble_confidence', 0.0)
-        timestamp = data.get('timestamp', 'N/A')
         
         def _format_prediction(pred):
           if isinstance(pred, list):
@@ -113,7 +199,6 @@ def gerar_tabela_previsoes(prediction_dir: Path) -> str:
           <div class='ensemble-result'>
             <div class='prediction'>{_format_prediction(ensemble_pred)}</div>
             <div class='confidence'>Confiança: {ensemble_conf:.1%}</div>
-            <div class='timestamp'>Gerado em: {timestamp}</div>
           </div>
         </div>
         """
@@ -164,7 +249,6 @@ def gerar_tabela_previsoes(prediction_dir: Path) -> str:
     jogo_col = 'prediction'
 
   conf_col = 'confidence' if 'confidence' in df_csv.columns else None
-  time_col = 'timestamp' if 'timestamp' in df_csv.columns else ('data' if 'data' in df_csv.columns else None)
 
   # Organização especial: Lotofácil (colunas Bola1..BolaN) em uma única coluna 'jogo'
   if bola_cols:
@@ -187,28 +271,37 @@ def gerar_tabela_previsoes(prediction_dir: Path) -> str:
       view['modelo'] = 'desconhecido'
     view['jogo'] = df_csv.apply(_jogo_str, axis=1)
     if conf_col:
-      view['confiança'] = df_csv[conf_col]
-    if time_col:
-      view['gerado_em'] = df_csv[time_col]
-    tabela_html = view.head(preview_rows).to_html(index=False, classes="table")
+      view['confidence'] = df_csv[conf_col]
+    # Galton: campos opcionais se existirem
+    if 'galton_zscore' in df_csv.columns:
+      view['galton_zscore'] = df_csv['galton_zscore']
+    if 'galton_density' in df_csv.columns:
+      view['galton_density'] = df_csv['galton_density']
   else:
     # Padrão para todos os demais jogos: modelo, jogo, confiança, timestamp (quando existirem)
     view = pd.DataFrame()
     if modelo_col:
       view['modelo'] = df_csv[modelo_col]
+    else:
+      view['modelo'] = df_csv.get('model', 'desconhecido')
     if jogo_col:
       view['jogo'] = df_csv[jogo_col].apply(_normalize_prediction)
     if conf_col:
-      view['confiança'] = df_csv[conf_col]
-    if time_col:
-      view['gerado_em'] = df_csv[time_col]
-    # Se por algum motivo não identificamos colunas, caímos na tabela original
-    if view.empty:
-      tabela_html = df_csv.head(preview_rows).to_html(index=False, classes="table")
-    else:
-      tabela_html = view.head(preview_rows).to_html(index=False, classes="table")
-  # Não mostrar botão de download CSV na interface gerada (não necessário)
-  models_table = f"<div class='card'><h3 class='card-title'>Modelos Individuais</h3><div class='table-wrap'>{tabela_html}</div></div>"
+      view['confidence'] = df_csv[conf_col]
+    # Galton: campos opcionais
+    if 'galton_zscore' in df_csv.columns:
+      view['galton_zscore'] = df_csv['galton_zscore']
+    if 'galton_density' in df_csv.columns:
+      view['galton_density'] = df_csv['galton_density']
+
+  # Substitui tabela por cards de modelos individuais (sem timestamp)
+  models_table = f"""
+  <div class='card'>
+      <h3 class='card-title'>🧪 Modelos Individuais</h3>
+      <p class='muted'>Resultados por estratégia estatística e IA.</p>
+      {gerar_modelos_individuais(view.head(preview_rows))}
+  </div>
+  """
   
   # Retorna ensemble primeiro (se existe) + tabela de modelos
   return ensemble_html + models_table if ensemble_html else models_table

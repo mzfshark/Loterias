@@ -468,3 +468,47 @@ main { padding: 20px 0 60px; }
   .ensemble-result .prediction { font-size: 1.5rem; letter-spacing: 2px; }
   .benchmark-wrap { margin: 10px 0; }
 }
+
+/* Modelos Individuais (cards) */
+.modelos-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1rem;
+}
+
+.modelo-card {
+  background: #1a1c22;
+  padding: 1rem;
+  border-radius: 10px;
+  box-shadow: 0px 0px 4px #0003;
+  border: 1px solid var(--border);
+}
+
+.modelo-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: .5rem;
+  gap: .5rem;
+}
+
+.modelo-icon {
+  font-size: 1.6rem;
+}
+
+.modelo-nome { margin: 0; font-size: 1rem; }
+
+.modelo-pred {
+  font-size: 1.3rem;
+  margin: .5rem 0;
+  font-weight: 600;
+  font-family: 'Courier New', monospace;
+}
+
+.modelo-metrics {
+  display: flex;
+  flex-direction: column;
+  gap: .25rem;
+  font-size: .9rem;
+}
+
+.metric { opacity: .8; }
