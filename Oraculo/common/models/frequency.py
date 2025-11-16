@@ -1,5 +1,12 @@
 import pandas as pd
 from collections import defaultdict
+from typing import Dict
+
+try:
+    from ...core.gaussian_baseline import GaussianBaseline
+    _GAUSS_AVAILABLE = True
+except Exception:
+    _GAUSS_AVAILABLE = False
 
 
 def calculate_frequency_by_column(df: pd.DataFrame) -> dict:
@@ -29,6 +36,29 @@ def normalize_frequency(freq_dict: dict) -> dict:
         }
 
     return norm_dict
+
+
+def apply_gaussian_prior_supersete(norm_freq: dict, gaussian: 'GaussianBaseline') -> dict:
+    """
+    Repondera a frequência relativa por coluna (SuperSete) usando densidade Gaussiana da baseline.
+    Espera `gaussian.density_col` preenchido por coluna (0..6) e dígitos (0..9).
+    Retorna novo dicionário de frequências relativas reponderadas e renormalizadas por coluna.
+    """
+    if not _GAUSS_AVAILABLE or gaussian is None or not getattr(gaussian, 'density_col', None):
+        return norm_freq
+
+    out: Dict[str, Dict[int, float]] = {}
+    # As chaves de norm_freq são nomes de colunas; mapeamos por índice
+    columns = list(norm_freq.keys())
+    for idx, col in enumerate(columns):
+        digit_probs = norm_freq[col]
+        # Aplica densidade por dígito
+        reweighted = {d: float(digit_probs.get(d, 0.0)) * float(gaussian.density_col[idx].get(d, 1.0)) for d in digit_probs}
+        s = sum(reweighted.values())
+        if s > 0:
+            reweighted = {d: v / s for d, v in reweighted.items()}
+        out[col] = reweighted
+    return out
 
 
 if __name__ == '__main__':

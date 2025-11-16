@@ -1,11 +1,17 @@
 import pandas as pd
 import os
 import numpy as np
-from typing import List, Dict, Tuple, Any
+from typing import List, Dict, Any
 from collections import Counter, defaultdict
 import random
 import time
 import logging
+
+try:
+    from ...core.gaussian_baseline import GaussianBaseline
+    _GAUSS_AVAILABLE = True
+except Exception:
+    _GAUSS_AVAILABLE = False
 
 # Configuração de logging
 logger = logging.getLogger(__name__)
@@ -43,7 +49,7 @@ class MonteCarloLotofacilSimulator:
         # Reduce strategies for FAST_CI
         fast_ci = os.environ.get('FAST_CI', '').strip()
         if fast_ci == '1':
-            self.sampling_strategies = ['frequency_weighted', 'uniform']  # Only 2 fastest strategies
+            self.sampling_strategies = ['frequency_weighted', 'gaussian_prior', 'uniform']
         else:
             self.sampling_strategies = [
                 'uniform',
@@ -51,13 +57,33 @@ class MonteCarloLotofacilSimulator:
                 'inverse_frequency',
                 'recency_weighted',
                 'pattern_based',
-                'gaussian_kernel'
+                'gaussian_kernel',
+                'gaussian_prior'
             ]
+        self.gaussian_density: Dict[int, float] = {}
     
     def load_historical_data(self, historical_games: List[List[int]]):
         """Load historical data for analysis."""
         self.historical_data = historical_games
         self._analyze_patterns()
+        self._init_gaussian_prior()
+
+    @staticmethod
+    def _normalize_weights(weights: List[float]) -> np.ndarray:
+        """Normaliza pesos com robustez a NaN/Inf/total zero, retornando distribuição uniforme se necessário."""
+        arr = np.array(weights, dtype=float)
+        arr[~np.isfinite(arr)] = 0.0
+        total = float(np.sum(arr))
+        if not np.isfinite(total) or total <= 0.0:
+            return np.ones_like(arr, dtype=float) / len(arr)
+        arr = arr / total
+        arr = np.nan_to_num(arr, nan=0.0, posinf=0.0, neginf=0.0)
+        # Garante soma positiva
+        s = float(np.sum(arr))
+        if s <= 0.0:
+            return np.ones_like(arr, dtype=float) / len(arr)
+        # Re-normaliza após correções
+        return arr / s
     
     def set_historical_data(self, historical_games: List[List[int]]):
         """Alias para load_historical_data para compatibilidade."""
@@ -113,6 +139,25 @@ class MonteCarloLotofacilSimulator:
             self.consecutive_stats.append(consecutive_count)
         
         self.avg_consecutive = np.mean(self.consecutive_stats)
+
+    def _init_gaussian_prior(self):
+        """Inicializa o prior Gaussiano baseado no histórico e faixa de números."""
+        if not _GAUSS_AVAILABLE or not self.historical_data:
+            self.gaussian_density = {}
+            return
+        try:
+            gb = GaussianBaseline('Generic', (min(self.numbers_range), max(self.numbers_range)), self.combination_size)
+            gb.fit(self.historical_data)
+            dens = {}
+            for n in self.numbers_range:
+                dens[n] = float(gb.density_for(int(n)))
+            # Normaliza para média 1 para não distorcer escalas
+            mean_d = sum(dens.values()) / max(1, len(dens))
+            if mean_d > 0:
+                dens = {k: (v / mean_d) for k, v in dens.items()}
+            self.gaussian_density = dens
+        except Exception:
+            self.gaussian_density = {}
     
     def sample_uniform(self) -> List[int]:
         """Sample using uniform distribution."""
@@ -124,12 +169,11 @@ class MonteCarloLotofacilSimulator:
             return self.sample_uniform()
         
         weights = [self.number_frequencies.get(num, 1) for num in self.numbers_range]
-        selected = np.random.choice(
-            self.numbers_range, 
-            size=self.combination_size, 
-            replace=False, 
-            p=np.array(weights) / sum(weights)
-        )
+        # Aplica prior Gaussiano, se disponível
+        if self.gaussian_density:
+            weights = [w * self.gaussian_density.get(num, 1.0) for w, num in zip(weights, self.numbers_range)]
+        p = self._normalize_weights(weights)
+        selected = np.random.choice(self.numbers_range, size=self.combination_size, replace=False, p=p)
         return sorted(selected.tolist())
     
     def sample_inverse_frequency(self) -> List[int]:
@@ -139,12 +183,10 @@ class MonteCarloLotofacilSimulator:
         
         max_freq = max(self.number_frequencies.values()) if self.number_frequencies else 1
         inv_weights = [max_freq - self.number_frequencies.get(num, 0) + 1 for num in self.numbers_range]
-        selected = np.random.choice(
-            self.numbers_range,
-            size=self.combination_size,
-            replace=False,
-            p=np.array(inv_weights) / sum(inv_weights)
-        )
+        if self.gaussian_density:
+            inv_weights = [w * self.gaussian_density.get(num, 1.0) for w, num in zip(inv_weights, self.numbers_range)]
+        p = self._normalize_weights(inv_weights)
+        selected = np.random.choice(self.numbers_range, size=self.combination_size, replace=False, p=p)
         return sorted(selected.tolist())
     
     def sample_recency_weighted(self) -> List[int]:
@@ -153,12 +195,10 @@ class MonteCarloLotofacilSimulator:
             return self.sample_uniform()
         
         weights = [self.recency_weights.get(num, 0.001) for num in self.numbers_range]
-        selected = np.random.choice(
-            self.numbers_range,
-            size=self.combination_size,
-            replace=False,
-            p=np.array(weights) / sum(weights)
-        )
+        if self.gaussian_density:
+            weights = [w * self.gaussian_density.get(num, 1.0) for w, num in zip(weights, self.numbers_range)]
+        p = self._normalize_weights(weights)
+        selected = np.random.choice(self.numbers_range, size=self.combination_size, replace=False, p=p)
         return sorted(selected.tolist())
     
     def sample_pattern_based(self) -> List[int]:
@@ -230,6 +270,15 @@ class MonteCarloLotofacilSimulator:
                     selected_numbers.append(random.choice(remaining))
         
         return sorted(selected_numbers)
+
+    def sample_gaussian_prior(self) -> List[int]:
+        """Sample usando prior Gaussiano por número (histórico -> densidade)."""
+        if not self.gaussian_density:
+            return self.sample_uniform()
+        weights = [self.gaussian_density.get(num, 1.0) for num in self.numbers_range]
+        p = self._normalize_weights(weights)
+        selected = np.random.choice(self.numbers_range, size=self.combination_size, replace=False, p=p)
+        return sorted(selected.tolist())
     
     def run_monte_carlo_simulation(self, strategy: str = 'frequency_weighted') -> Dict:
         """

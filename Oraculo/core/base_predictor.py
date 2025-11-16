@@ -19,6 +19,7 @@ import os
 import time
 import logging
 from .parallel_engine import get_parallel_engine, ParallelConfig
+from .gaussian_baseline import GaussianBaseline
 
 # Configuração de logging
 logger = logging.getLogger(__name__)
@@ -136,6 +137,7 @@ class BaseLotteryPredictor(ABC):
             }
         self.results = {}
         self.ensemble_confidence = 0.0
+        self.gaussian: Optional[GaussianBaseline] = None
 
         # Configuração de paralelização
         self.parallel_engine = get_parallel_engine()
@@ -285,6 +287,22 @@ class BaseLotteryPredictor(ABC):
         
         # Create frequency matrix for ensemble
         frequency_matrix = np.zeros(self.config.total_numbers + 1)  # +1 for 1-based indexing
+
+        # Gaussian prior: densidade por número (normalizada para média 1)
+        density_map = None
+        try:
+            if getattr(self, 'gaussian', None) is not None:
+                # Aplica apenas a jogos de números simples (não por coluna)
+                if self.config.name.lower() != 'supersete':
+                    density_map = {}
+                    for n in range(self.config.min_number, self.config.max_number + 1):
+                        density_map[n] = float(self.gaussian.density_for(n))
+                    mean_d = sum(density_map.values()) / max(1, len(density_map))
+                    if mean_d > 0:
+                        for k in list(density_map.keys()):
+                            density_map[k] /= mean_d
+        except Exception as e:
+            logger.warning(f"Falha ao aplicar prior Gaussiano no ensemble: {e}")
         
         for i, prediction in enumerate(predictions):
             weight = weights[i]
@@ -293,7 +311,10 @@ class BaseLotteryPredictor(ABC):
             
             for num in prediction:
                 if self.config.min_number <= num <= self.config.max_number:
-                    frequency_matrix[num] += combined_weight
+                    if density_map is not None:
+                        frequency_matrix[num] += combined_weight * density_map.get(int(num), 1.0)
+                    else:
+                        frequency_matrix[num] += combined_weight
         
         # Select top numbers based on weighted frequency
         top_indices = np.argsort(frequency_matrix)[-self.config.numbers_per_game:]
@@ -390,6 +411,12 @@ class BaseLotteryPredictor(ABC):
         if not data:
             print("❌ Nenhum dado disponível para análise.")
             return {}
+
+        # Inicializa baseline gaussiana (não bloqueia em caso de falha)
+        try:
+            self._init_gaussian_baseline(data)
+        except Exception as e:
+            logger.warning(f"Gaussian baseline não inicializada: {e}")
         
         # Run all models
         model_results = self.run_all_models(data)
@@ -408,6 +435,23 @@ class BaseLotteryPredictor(ABC):
             self.display_summary(combined_results)
         
         return combined_results
+
+    def _init_gaussian_baseline(self, history: List[List[int]]):
+        """Configura `self.gaussian` e ajusta ao histórico com base no jogo."""
+        game = self.config.name.lower()
+        if game == 'supersete':
+            gb = GaussianBaseline('SuperSete', (0, 9), 1)
+            gb.fit(history)
+        elif 'milionaria' in game or '+milionaria' in game or 'mais milionaria' in game:
+            gb = GaussianBaseline('Milionaria', (1, 50), 6, has_bonus=True, bonus_count=2, bonus_range=(1, 6))
+            gb.fit(history, bonus_history=None)
+        else:
+            gb = GaussianBaseline(self.config.name, self.config.number_range, self.config.numbers_per_game,
+                                  has_bonus=self.config.has_bonus_numbers,
+                                  bonus_count=self.config.bonus_count,
+                                  bonus_range=self.config.bonus_range)
+            gb.fit(history)
+        self.gaussian = gb
     
     def display_summary(self, results: Dict[str, Any]):
         """Display summary of prediction results."""
