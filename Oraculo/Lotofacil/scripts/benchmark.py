@@ -292,7 +292,11 @@ def _calcular_faixas_acertos_lotofacil(df):
 def _gerar_relatorio_markdown_lotofacil(resumo, faixas_acertos, df_full):
     """Gera o relatório markdown com as estatísticas."""
     melhor_modelo = resumo.loc[resumo["media_acertos"].idxmax()]
-    
+
+    md_dir = os.path.dirname(SUMMARY_MD)
+    if md_dir:
+        os.makedirs(md_dir, exist_ok=True)
+
     with open(SUMMARY_MD, "w") as f:
         f.write("# 🎯 Benchmark Summary - Lotofácil\n\n")
         f.write(f"**Período analisado:** Últimos {N_VALID} concursos\n")
