@@ -58,6 +58,9 @@ jobs:
 
       - name: Checkout repositório
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+        with:
+          ref: main
+          fetch-depth: 0
 
       - name: Configurar Python
         uses: actions/setup-python@39cd14951b08e74b54015e9e001cdefcf80e669f # v5.1.1
@@ -85,6 +88,12 @@ jobs:
         run: |
           echo "🌐 Gerando dashboard HTML..."
           python scripts/generate_html.py
+          echo "🔍 Verificando presença dos cards de modelos..."
+          if grep -q "modelos-container" index.html; then
+            echo "✅ Cards de 'Modelos Individuais' presentes."
+          else
+            echo "⚠️ Cards não encontrados em index.html (verifique generate_html.py)."
+          fi
           echo "✅ HTML gerado com sucesso!"
 
       - name: ⚖️ Verificar/criar pesos dos modelos
