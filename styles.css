@@ -173,6 +173,7 @@ main { padding: 20px 0 60px; }
   padding: 0 0 12px 16px;
   margin-bottom: 16px;
   border-radius: 8px 8px 0 0;
+  border-left: 4px solid var(--border);
 }
 
 .benchmark-header .card-title {
@@ -387,22 +388,37 @@ main { padding: 20px 0 60px; }
 [data-game="lotofacil"] .benchmark-chart-wrapper {
   border-color: #c2318f20;
 }
+[data-game="lotofacil"] .benchmark-header { border-left-color: #c2318f; }
+[data-game="lotofacil"] .benchmark-icon { color: #c2318f; }
+[data-game="lotofacil"] .empty-icon { color: #d14ba3; }
 
 [data-game="supersete"] .benchmark-chart-wrapper {
   border-color: #a8cf4520;
 }
+[data-game="supersete"] .benchmark-header { border-left-color: #a8cf45; }
+[data-game="supersete"] .benchmark-icon { color: #a8cf45; }
+[data-game="supersete"] .empty-icon { color: #b6d65c; }
 
 [data-game="megasena"] .benchmark-chart-wrapper {
   border-color: #009e4c20;
 }
+[data-game="megasena"] .benchmark-header { border-left-color: #009e4c; }
+[data-game="megasena"] .benchmark-icon { color: #009e4c; }
+[data-game="megasena"] .empty-icon { color: #1fb160; }
 
 [data-game="quina"] .benchmark-chart-wrapper {
   border-color: #42338b20;
 }
+[data-game="quina"] .benchmark-header { border-left-color: #42338b; }
+[data-game="quina"] .benchmark-icon { color: #42338b; }
+[data-game="quina"] .empty-icon { color: #5a4ca0; }
 
 [data-game="milionaria"] .benchmark-chart-wrapper {
   border-color: #2e307a20;
 }
+[data-game="milionaria"] .benchmark-header { border-left-color: #2e307a; }
+[data-game="milionaria"] .benchmark-icon { color: #2e307a; }
+[data-game="milionaria"] .empty-icon { color: #454891; }
 
 /* Responsividade adicional para benchmark */
 @media (max-width: 1024px) {
@@ -482,6 +498,7 @@ main { padding: 20px 0 60px; }
   border-radius: 10px;
   box-shadow: 0px 0px 4px #0003;
   border: 1px solid var(--border);
+  border-left: 4px solid var(--tipo-cor, var(--border));
 }
 
 .modelo-header {
@@ -491,9 +508,7 @@ main { padding: 20px 0 60px; }
   gap: .5rem;
 }
 
-.modelo-icon {
-  font-size: 1.6rem;
-}
+.modelo-icon { font-size: 1.6rem; color: var(--tipo-cor, currentColor); }
 
 .modelo-nome { margin: 0; font-size: 1rem; }
 
@@ -512,3 +527,29 @@ main { padding: 20px 0 60px; }
 }
 
 .metric { opacity: .8; }
+
+/* Cores por tipo de modelo (via classes) */
+.tipo-bayes { --tipo-cor: #7f3fbf; }
+.tipo-monte { --tipo-cor: #3fbf7f; }
+.tipo-markov { --tipo-cor: #bfbf3f; }
+.tipo-galton { --tipo-cor: #3f7fbf; }
+.tipo-ml { --tipo-cor: #bf6f3f; }
+.tipo-gen { --tipo-cor: #bf3f8f; }
+.tipo-pois { --tipo-cor: #3f9fbf; }
+.tipo-outro { --tipo-cor: #888; }
+
+/* Ranking tabela: posição com faixa na cor do jogo */
+.ranking-table td.pos {
+  white-space: nowrap;
+  border-left: 3px solid var(--border);
+}
+.ranking-table td.model { text-align: left; }
+
+[data-game="lotofacil"] .ranking-table td.pos { border-left-color: #c2318f; }
+[data-game="supersete"] .ranking-table td.pos { border-left-color: #a8cf45; }
+[data-game="megasena"] .ranking-table td.pos { border-left-color: #009e4c; }
+[data-game="quina"] .ranking-table td.pos { border-left-color: #42338b; }
+[data-game="milionaria"] .ranking-table td.pos { border-left-color: #2e307a; }
+
+/* Interações */
+details.card > summary.card-title { cursor: pointer; }

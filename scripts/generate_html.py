@@ -4,6 +4,7 @@ import pandas as pd
 import json
 from typing import Optional
 from datetime import datetime
+import math
 
 # Configuração dos relatórios por jogo (ids em slug, títulos para exibição)
 jogos = {
@@ -86,20 +87,20 @@ def _df_de_arquivo(path: Path) -> pd.DataFrame:
 def classificar_modelo(modelo: str):
   modelo = str(modelo).lower()
   if "bayes" in modelo:
-    return "🔮", "#7f3fbf"
+    return "🔮", "tipo-bayes"
   if "monte" in modelo:
-    return "🎲", "#3fbf7f"
+    return "🎲", "tipo-monte"
   if "markov" in modelo:
-    return "🔗", "#bfbf3f"
+    return "🔗", "tipo-markov"
   if "gauss" in modelo or "galton" in modelo or "zscore" in modelo:
-    return "📘", "#3f7fbf"
+    return "📘", "tipo-galton"
   if "ml" in modelo or "neural" in modelo or "ensemble" in modelo:
-    return "🤖", "#bf6f3f"
+    return "🤖", "tipo-ml"
   if "gen" in modelo or "genetic" in modelo or "evol" in modelo:
-    return "🧬", "#bf3f8f"
+    return "🧬", "tipo-gen"
   if "poisson" in modelo or "freq" in modelo:
-    return "📊", "#3f9fbf"
-  return "📐", "#888"
+    return "📊", "tipo-pois"
+  return "📐", "tipo-outro"
 
 
 def gerar_modelos_individuais(df: pd.DataFrame) -> str:
@@ -144,13 +145,13 @@ def gerar_modelos_individuais(df: pd.DataFrame) -> str:
     except Exception:
       dens_fmt = "--"
 
-    # Get icon + color
-    tipo_icon, tipo_cor = classificar_modelo(modelo)
+    # Get icon + tipo class
+    tipo_icon, tipo_class = classificar_modelo(modelo)
 
     card = f"""
-    <div class='modelo-card' style='border-left: 4px solid {tipo_cor}'>
-        <div class='modelo-header'>
-            <span class='modelo-icon' style='color:{tipo_cor}'>{tipo_icon}</span>
+    <div class='modelo-card {tipo_class}'>
+      <div class='modelo-header'>
+        <span class='modelo-icon'>{tipo_icon}</span>
             <h4 class='modelo-nome'>{modelo}</h4>
         </div>
         <div class='modelo-body'>
@@ -383,116 +384,10 @@ def gerar_conteudo_jogo(slug: str, cfg: dict) -> str:
   # Tabela de palpites
   html.append(gerar_tabela_previsoes(prediction_dir))
 
-  # Backtest / Acertos reais (se existir) - Versão melhorada
+  # Nova sessão de Análise de Performance (ranking + detalhes por modelo)
   try:
-    # Resolve caminhos relativos ao diretório raiz do projeto
-    current_dir = Path.cwd()
-    if current_dir.name == 'scripts':
-      project_root = current_dir.parent  # Estamos em /scripts, volta para raiz
-    else:
-      project_root = current_dir  # Já estamos na raiz
-    base = project_root / cfg["predictions"].parents[0]  # Oraculo/Jogo
-    summary_md = base / "docs" / "benchmark_summary.md"
-    result_csv = base / "validation" / "benchmark_results.csv"
-    chart_html = base / "docs" / "benchmark.html"
-    chart_png = base / "docs" / "charts" / "benchmark_summary.png"
-    
-    # Obter cores do jogo
-    game_colors = get_game_colors(slug)
-    
-    if summary_md.exists() or result_csv.exists() or chart_html.exists() or chart_png.exists():
-      html.append(f"""
-      <div class='card benchmark-card' data-game='{slug}'>
-        <div class='benchmark-header' style='border-left: 4px solid {game_colors["primary"]}'>
-          <h3 class='card-title'>
-            <span class='benchmark-icon' style='color: {game_colors["primary"]}'>📈</span>
-            Análise de Performance
-          </h3>
-          <p class='benchmark-subtitle'>Backtest em dados históricos reais</p>
-        </div>
-      """)
-      
-      # Sumário do benchmark com melhor formatação e embedding do gráfico interativo
-      # Preferir: HTML interativo (chart_html) + tabela de resultados (result_csv)
-      # Fallback: summary_md ou imagem estática
-      # 1) Chart interativo
-      if chart_html.exists():
-        try:
-          benchmark_content = chart_html.read_text(encoding='utf-8')
-          styled_content = f"""
-          <div class='benchmark-chart-container' data-game='{slug}'>
-            <div class='chart-header'>
-              <h4 style='color: {game_colors['primary']}'>📊 Gráfico Interativo</h4>
-              <span class='chart-info'>Interaja com o gráfico: zoom, pan e tooltip.</span>
-            </div>
-            <div class='benchmark-chart-wrapper' style='--game-primary: {game_colors['primary']}; --game-secondary: {game_colors['secondary']};'>
-              {benchmark_content}
-            </div>
-          </div>
-          """
-          html.append(styled_content)
-        except Exception:
-          pass
-
-      # 2) Tabela de resultados (CSV de benchmark)
-      if result_csv.exists():
-        try:
-          df_res = pd.read_csv(result_csv)
-          # Limitar e formatar para exibição
-          preview = df_res.head(200)
-          tabela_bench = preview.to_html(index=False, classes='table table-striped')
-          html.append(f"<div class='card'><h3 class='card-title'>Tabela de Benchmark (Top 200)</h3><div class='table-wrap'>{tabela_bench}</div></div>")
-        except Exception:
-          # fallback para summary_md
-          if summary_md.exists():
-            try:
-              md_text = summary_md.read_text(encoding='utf-8')
-              html.append(f"<div class='benchmark-summary'><pre class='md-content'>{md_text}</pre></div>")
-            except Exception:
-              pass
-      else:
-        # 3) Fallback para markdown summary se não houver CSV
-        if summary_md.exists():
-          try:
-            md_text = summary_md.read_text(encoding='utf-8')
-            html.append(f"<div class='benchmark-summary'><pre class='md-content'>{md_text}</pre></div>")
-          except Exception:
-            pass
-      
-      # Seção de ações com melhor visual
-      actions_html = []
-      if result_csv.exists():
-        rel_csv = result_csv.relative_to(project_root)
-        actions_html.append(f"""
-        <a class='btn btn-download' href='{rel_csv.as_posix()}' download 
-           style='background: linear-gradient(45deg, {game_colors["primary"]}, {game_colors["secondary"]}); color: white;'>
-          📥 Baixar Dados (CSV)
-        </a>
-        """)
-      
-      # Não exibimos ações de download direto na página; usuários podem acessar os artefatos no repositório
-      
-      html.append("</div>")  # Fecha benchmark-card
-      
-    else:
-      # Indica ausência de artefatos de benchmark para dar visibilidade
-      html.append(f"""
-      <div class='card benchmark-card benchmark-empty' data-game='{slug}'>
-        <div class='benchmark-header' style='border-left: 4px solid {game_colors["primary"]}'>
-          <h3 class='card-title'>
-            <span class='benchmark-icon' style='color: {game_colors["primary"]}'>📈</span>
-            Análise de Performance
-          </h3>
-        </div>
-        <div class='benchmark-empty-state'>
-          <div class='empty-icon' style='color: {game_colors["secondary"]}'>📊</div>
-          <p class='empty-message'>Análise de benchmark em preparação</p>
-          <p class='muted'>Os dados de performance histórica serão exibidos aqui após a próxima execução.</p>
-        </div>
-      </div>
-      """)
+    html.append(gerar_sessao_benchmark(slug, cfg))
   except Exception:
-    # Em caso de erro, não mostra a seção
     pass
 
   # Resumo de estratégias (se coluna existir)
@@ -513,6 +408,265 @@ def gerar_conteudo_jogo(slug: str, cfg: dict) -> str:
   html.append("</section>")
   return "".join(html)
 
+
+def _safe_mean(series: pd.Series) -> float:
+  try:
+    return float(series.mean())
+  except Exception:
+    return float('nan')
+
+
+def _safe_std(series: pd.Series) -> float:
+  try:
+    val = float(series.std())
+    if math.isnan(val):
+      return 0.0
+    return val
+  except Exception:
+    return 0.0
+
+
+def _normalize_benchmark_df(df: pd.DataFrame) -> pd.DataFrame:
+  """Normaliza o DataFrame de benchmark para conter colunas padrão:
+  - 'modelo' (fallback de 'model')
+  - 'acertos' (fallback de 'acertos_totais' ou 'hits')
+  - Converte 'acertos' para numérico e remove NaN.
+  """
+  if df is None or df.empty:
+    return pd.DataFrame()
+
+  out = df.copy()
+
+  # Mapeia renomeações em lote para reduzir ramificações
+  rename_map = {}
+  if 'modelo' not in out.columns and 'model' in out.columns:
+    rename_map['model'] = 'modelo'
+
+  if 'acertos' not in out.columns:
+    for cand in ('acertos_totais', 'hits'):
+      if cand in out.columns:
+        rename_map[cand] = 'acertos'
+        break
+
+  if rename_map:
+    out = out.rename(columns=rename_map)
+
+  # Garante tipo numérico
+  if 'acertos' in out.columns:
+    out['acertos'] = pd.to_numeric(out['acertos'], errors='coerce')
+    out = out.dropna(subset=['acertos'])
+
+  return out
+
+
+def gerar_ranking_benchmark(df: pd.DataFrame, colors: dict) -> str:
+  if df is None or df.empty or 'modelo' not in df.columns or 'acertos' not in df.columns:
+    return """
+    <div class='card'>
+      <h3 class='card-title'>🏁 Ranking de Modelos</h3>
+      <p class='muted'>Dados em preparação.</p>
+    </div>
+    """
+
+  grp = df.groupby('modelo', dropna=False)
+  stats = grp['acertos'].agg(['mean', 'std', 'count', 'min', 'max']).reset_index()
+  stats = stats.sort_values('mean', ascending=False).reset_index(drop=True)
+
+  if 'galton_density' in df.columns:
+    dens = grp['galton_density'].mean().reset_index(name='galton_density_mean')
+    stats = stats.merge(dens, on='modelo', how='left')
+  else:
+    stats['galton_density_mean'] = None
+
+  # Monta tabela HTML com cabeçalho fixo e estilos existentes
+  header = (
+    "<thead><tr>"
+    "<th>Posição</th>"
+    "<th>Modelo</th>"
+    "<th>Média</th>"
+    "<th>±DP</th>"
+    "<th>n</th>"
+    "<th>Mín</th>"
+    "<th>Máx</th>"
+    "<th>Galton Density</th>"
+    "</tr></thead>"
+  )
+
+  rows = []
+  for i, row in stats.iterrows():
+    pos = i + 1
+    medal = '🥇' if pos == 1 else ('🥈' if pos == 2 else ('🥉' if pos == 3 else str(pos)))
+    nome = row['modelo']
+    mean_acc = 0.0 if pd.isna(row['mean']) else float(row['mean'])
+    std_acc = 0.0 if pd.isna(row['std']) else float(row['std'])
+    cnt = int(row['count']) if not pd.isna(row['count']) else 0
+    min_acc = 0.0 if pd.isna(row['min']) else float(row['min'])
+    max_acc = 0.0 if pd.isna(row['max']) else float(row['max'])
+    dens_mean = row.get('galton_density_mean', None)
+    dens_str = f"{dens_mean:.4f}" if dens_mean is not None and not pd.isna(dens_mean) else "—"
+    rows.append(
+      f"<tr>"
+      f"<td class='pos'>{medal}</td>"
+      f"<td class='model'><strong>{nome}</strong></td>"
+      f"<td>{mean_acc:.2f}</td>"
+      f"<td>{std_acc:.2f}</td>"
+      f"<td>{cnt}</td>"
+      f"<td>{min_acc:.2f}</td>"
+      f"<td>{max_acc:.2f}</td>"
+      f"<td>{dens_str}</td>"
+      f"</tr>"
+    )
+
+  table_html = f"<div class='table-wrap'><table class='table ranking-table'>{header}<tbody>{''.join(rows)}</tbody></table></div>"
+
+  return f"""
+  <div class='card'>
+    <h3 class='card-title'>🏁 Ranking de Modelos</h3>
+    {table_html}
+  </div>
+  """
+
+
+def gerar_detalhes_benchmark(df: pd.DataFrame, modelo: str, colors: dict) -> str:
+  try:
+    df_m = df[df['modelo'] == modelo].copy()
+    if df_m.empty:
+      return ""
+
+    # Eixos do gráfico (concursos x acertos)
+    if 'concurso' in df_m.columns:
+      x_vals = df_m['concurso'].astype(str).tolist()
+    else:
+      x_vals = list(range(1, len(df_m) + 1))
+    y_vals = df_m['acertos'].tolist()
+
+    # Métricas
+    mean_acc = _safe_mean(df_m['acertos'])
+    std_acc = _safe_std(df_m['acertos'])
+    best = float(df_m['acertos'].max())
+    worst = float(df_m['acertos'].min())
+    n = int(df_m.shape[0])
+
+    dens_mean = None
+    if 'galton_density' in df_m.columns:
+      dens_mean = _safe_mean(df_m['galton_density'])
+
+    # Z-score médio da performance (em relação ao global dos acertos)
+    if 'acertos' in df.columns and df['acertos'].std() not in (0, None) and not pd.isna(df['acertos'].std()):
+      global_mean = float(df['acertos'].mean())
+      global_std = float(df['acertos'].std())
+      if global_std == 0 or pd.isna(global_std):
+        z_mean = 0.0
+      else:
+        z_vals = (df_m['acertos'] - global_mean) / global_std
+        z_mean = _safe_mean(z_vals)
+    else:
+      z_mean = 0.0
+
+    x_json = json.dumps(x_vals)
+    y_json = json.dumps(y_vals)
+    color = colors.get('primary', '#2FD39A')
+
+    dens_html = f"<span class='metric'>📈 Galton Density (média): {dens_mean:.4f}</span>" if dens_mean is not None and not pd.isna(dens_mean) else ""
+
+    return f"""
+    <details class='card'>
+      <summary class='card-title'>📘 {modelo} — Ver detalhes</summary>
+      <div class='benchmark-model'>
+        <div class='modelo-metrics'>
+          <span class='metric'>📊 Média de acertos: {mean_acc:.2f}</span>
+          <span class='metric'>📉 Desvio-padrão: {std_acc:.2f}</span>
+          <span class='metric'>🎯 Melhor/Pior: {best:.2f} / {worst:.2f}</span>
+          <span class='metric'>🧮 Amostra (n): {n}</span>
+          <span class='metric'>📈 Z-Score médio: {z_mean:.2f}</span>
+          {dens_html}
+        </div>
+        <div class='benchmark-chart-wrapper'>
+          <div class='plotly-model' data-x='{x_json}' data-y='{y_json}' data-color='{color}'></div>
+        </div>
+      </div>
+      <div class='table-wrap'>
+        {df_m.head(300).to_html(index=False, classes='table')}
+      </div>
+    </details>
+    """
+  except Exception:
+    return ""
+
+
+def gerar_sessao_benchmark(slug: str, cfg: dict) -> str:
+  # Resolve caminhos relativos ao diretório raiz do projeto
+  current_dir = Path.cwd()
+  if current_dir.name == 'scripts':
+    project_root = current_dir.parent
+  else:
+    project_root = current_dir
+
+  base = project_root / cfg['predictions'].parents[0]  # Oraculo/Jogo
+  result_csv = base / 'validation' / 'benchmark_results.csv'
+  game_colors = get_game_colors(slug)
+
+  if not result_csv.exists():
+    return f"""
+    <div class='card benchmark-card benchmark-empty' data-game='{slug}'>
+      <div class='benchmark-header'>
+        <h3 class='card-title'>
+          <span class='benchmark-icon'>📈</span>
+          Análise de Performance
+        </h3>
+      </div>
+      <div class='benchmark-empty-state'>
+        <div class='empty-icon'>📊</div>
+        <p class='empty-message'>Análise de benchmark em preparação</p>
+        <p class='muted'>Os dados de performance histórica serão exibidos aqui após a próxima execução.</p>
+      </div>
+    </div>
+    """
+
+  try:
+    df_bench_raw = pd.read_csv(result_csv)
+  except Exception:
+    return f"""
+    <div class='card'>
+      <h3 class='card-title'>📈 Análise de Performance</h3>
+      <p class='muted'>Não foi possível carregar os dados de benchmark.</p>
+    </div>
+    """
+
+  # Normaliza colunas do benchmark para formato padrão
+  df_bench = _normalize_benchmark_df(df_bench_raw)
+
+  # Ranking geral
+  ranking_html = gerar_ranking_benchmark(df_bench, game_colors)
+
+  # Detalhes por modelo (ordenar pelo ranking)
+  models_order = []
+  try:
+    order_df = df_bench.groupby('modelo')['acertos'].mean().sort_values(ascending=False).reset_index()
+    models_order = order_df['modelo'].tolist()
+  except Exception:
+    models_order = sorted(df_bench['modelo'].dropna().unique().tolist()) if 'modelo' in df_bench.columns else []
+
+  detalhes_blocks = []
+  for m in models_order:
+    detalhes_blocks.append(gerar_detalhes_benchmark(df_bench, m, game_colors))
+
+  detalhes_html = "\n".join(block for block in detalhes_blocks if block)
+
+  return f"""
+  <div class='card benchmark-card' data-game='{slug}'>
+    <div class='benchmark-header'>
+      <h3 class='card-title'>
+        <span class='benchmark-icon'>📈</span>
+        Análise de Performance
+      </h3>
+      <p class='benchmark-subtitle'>Backtest em dados históricos reais</p>
+    </div>
+    {ranking_html}
+    {detalhes_html}
+  </div>
+  """
+
 # Coleta conteúdo por aba
 abas_html = "\n".join([
   gerar_conteudo_jogo(slug, cfg) for slug, cfg in jogos.items()
@@ -529,6 +683,7 @@ html_template = Template("""
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css" />
+  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
 </head>
 <body>
   <header class="site-header">
@@ -587,38 +742,39 @@ html_template = Template("""
       plotlyDivs.forEach(div => {
         if (window.Plotly && div.layout) {
           try {
-            // Atualizar cores do layout
-            const update = {
-              'paper_bgcolor': 'rgba(0,0,0,0)',
-              'plot_bgcolor': 'rgba(0,0,0,0)',
-              'font.color': '#e8eef5',
+            const palette = [colors.primary, colors.accent, colors.secondary];
+
+            // Atualizar cores do layout e colorway
+            const layoutUpdate = {
+              paper_bgcolor: 'rgba(0,0,0,0)',
+              plot_bgcolor: 'rgba(0,0,0,0)',
+              font: { color: '#e8eef5' },
+              colorway: palette,
               'xaxis.gridcolor': colors.primary + '20',
               'yaxis.gridcolor': colors.primary + '20',
               'xaxis.zerolinecolor': colors.primary + '40',
               'yaxis.zerolinecolor': colors.primary + '40'
             };
 
-            // Atualizar cores das séries de dados
-            const dataUpdate = div.data?.map(trace => ({
-              ...trace,
-              marker: {
-                ...trace.marker,
-                color: trace.marker?.color || colors.primary,
-                line: {
-                  ...trace.marker?.line,
-                  color: colors.secondary
+            // Atualizar cores de cada trace, forçando paleta do jogo
+            if (Array.isArray(div.data)) {
+              div.data.forEach((t, i) => {
+                const c = palette[i % palette.length];
+                const update = {};
+                // Linhas e marcadores
+                update['line.color'] = c;
+                update['marker.color'] = c;
+                // Heatmaps: aplicar colorscale coerente com a paleta
+                if (t.type === 'heatmap' || t.type === 'contour') {
+                  update['colorscale'] = [[0, colors.accent], [0.5, colors.secondary], [1, colors.primary]];
+                  update['reversescale'] = false;
+                  update['showscale'] = true;
                 }
-              },
-              line: {
-                ...trace.line,
-                color: colors.primary
-              }
-            }));
-
-            if (dataUpdate) {
-              window.Plotly.restyle(div, dataUpdate);
+                window.Plotly.restyle(div, update, [i]);
+              });
             }
-            window.Plotly.relayout(div, update);
+
+            window.Plotly.relayout(div, layoutUpdate);
           } catch (e) {
             console.log('Could not update chart colors:', e);
           }
@@ -702,6 +858,31 @@ html_template = Template("""
           applyGameColorsToCharts(activeTab.dataset.target);
         }
       }, 500);
+
+      // Renderizar gráficos de desempenho por modelo (Plotly)
+      const plotDivs = document.querySelectorAll('.plotly-model');
+      plotDivs.forEach(div => {
+        try {
+          const x = JSON.parse(div.dataset.x || '[]');
+          const y = JSON.parse(div.dataset.y || '[]');
+          const color = div.dataset.color || '#2FD39A';
+          if (window.Plotly && Array.isArray(x) && Array.isArray(y) && x.length === y.length && x.length > 0) {
+            const data = [{ x, y, mode: 'lines+markers', line: { color }, marker: { color } }];
+            const layout = {
+              margin: { t: 10, r: 10, b: 40, l: 40 },
+              paper_bgcolor: 'rgba(0,0,0,0)',
+              plot_bgcolor: 'rgba(0,0,0,0)',
+              font: { color: '#e8eef5' },
+              xaxis: { automargin: true, gridcolor: color + '33' },
+              yaxis: { automargin: true, gridcolor: color + '33' }
+            };
+            const config = { displayModeBar: false, responsive: true };
+            window.Plotly.newPlot(div, data, layout, config);
+          }
+        } catch (e) {
+          console.log('Plotly render error:', e);
+        }
+      });
     });
   </script>
 </body>
