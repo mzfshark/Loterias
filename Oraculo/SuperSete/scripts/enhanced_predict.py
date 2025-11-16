@@ -11,9 +11,10 @@ Author: Enhanced AI System
 import sys
 import os
 import signal
+import math
 import pandas as pd
 import numpy as np
-from typing import Dict, List, Any, Optional
+from typing import Dict, List, Any, Optional, Tuple
 
 # Add project root to path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..')))
@@ -21,6 +22,13 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../.
 from Oraculo.core.base_predictor import BaseLotteryPredictor
 from Oraculo.core.lottery_configs import SUPERSETE_CONFIG
 from Oraculo.core.model_adapter import ModelAdapter
+from Oraculo.core.metrics_engine import (
+    safe_probs,
+    normalized_entropy,
+    rolling_stability,
+    volatility_chunks,
+    dynamic_confidence,
+)
 
 
 class EnhancedSuperSetePredictor(BaseLotteryPredictor):
@@ -58,7 +66,7 @@ class EnhancedSuperSetePredictor(BaseLotteryPredictor):
             pass
 
     def _merge_auto_weights(self):
-        import json, os
+        import json
         base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
         path = os.path.join(base_dir, 'models', 'weights.auto.json')
         try:
@@ -106,6 +114,90 @@ class EnhancedSuperSetePredictor(BaseLotteryPredictor):
                 continue
         
         return validated_games
+
+    # ===== Confiança dinâmica (por dígitos 0-9 agregados nas 7 colunas) =====
+    def _digit_counts_from_history(self, data: List[List[int]], limit: Optional[int] = None) -> List[int]:
+        if limit is not None:
+            subset = data[:max(0, int(limit))]
+        else:
+            subset = data
+        counts = [0] * 10
+        for game in subset:
+            for d in game[:7]:
+                try:
+                    di = int(d)
+                except Exception:
+                    continue
+                if 0 <= di <= 9:
+                    counts[di] += 1
+        return counts
+
+    def _calc_stability_volatility(self, data: List[List[int]]) -> Tuple[float, float]:
+        n = len(data)
+        if n < 40:
+            return 0.7, 0.2
+        w = min(200, n // 2)
+        counts_a = self._digit_counts_from_history(data, limit=w)
+        counts_b = self._digit_counts_from_history(data[w: 2 * w])
+        stab = rolling_stability(counts_a, counts_b)
+        k = min(4, max(1, n // 60))
+        if k <= 1:
+            vol = 0.2
+        else:
+            chunk_size = n // k
+            mats = []
+            for i in range(k):
+                start = i * chunk_size
+                end = (i + 1) * chunk_size if i < k - 1 else n
+                mats.append(self._digit_counts_from_history(data[start:end]))
+            vol = volatility_chunks(mats)
+        return float(stab), float(vol)
+
+    def run_complete_analysis(self) -> Dict[str, Any]:
+        print(f"\n🧮 Confiança dinâmica ativada - {self.config.name}")
+        data = self.load_data()
+        if not data:
+            print("❌ Nenhum dado disponível para análise.")
+            return {}
+        try:
+            self._init_gaussian_baseline(data)
+        except Exception:
+            pass
+
+        model_results = self.run_all_models(data)
+        if not model_results:
+            return {}
+
+        counts_recent = self._digit_counts_from_history(data, limit=min(300, len(data)))
+        probs_all = safe_probs(counts_recent, alpha=0.5)  # tamanho 10, dígitos 0..9
+        stab, vol = self._calc_stability_volatility(data)
+
+        for m, res in list(model_results.items()):
+            try:
+                pred_digits = res.get('prediction', []) or []  # 7 dígitos 0..9
+                base_conf = float(res.get('confidence', 0.5))
+                # Mapear para 1..10 para o helper de confiança
+                pred_map = [int(d) + 1 for d in pred_digits if 0 <= int(d) <= 9]
+                idx = [int(d) for d in pred_digits if 0 <= int(d) <= 9]  # índices 0..9
+                h_norm = normalized_entropy(probs_all[idx]) if idx else normalized_entropy(probs_all)
+                new_conf = dynamic_confidence(base_conf, pred_map, probs_all, stab, vol)
+                res['confidence'] = float(new_conf)
+                res['metrics'] = {
+                    'entropy_norm_pred': float(h_norm),
+                    'stability': float(stab),
+                    'volatility': float(vol),
+                }
+                model_results[m] = res
+            except Exception:
+                pass
+
+        combined_results = self.combine_predictions(model_results)
+        if combined_results:
+            from datetime import datetime
+            ts = datetime.now().strftime('%Y-%m-%d')
+            self.save_predictions(combined_results, timestamp=ts)
+            self.display_summary(combined_results)
+        return combined_results
     
     def _run_model(self, model_name: str, data: List[List[int]]) -> Optional[Dict[str, Any]]:
         """Run a specific adapted model for SuperSete."""
@@ -400,7 +492,7 @@ class EnhancedSuperSetePredictor(BaseLotteryPredictor):
             if col_values:
                 lambda_val = max(0.01, min(9.0, float(np.mean(col_values))))
                 k = np.arange(10)
-                pmf = np.exp(-lambda_val) * (lambda_val ** k) / np.maximum(1, np.array([np.math.factorial(int(x)) for x in k]))
+                pmf = np.exp(-lambda_val) * (lambda_val ** k) / np.maximum(1, np.array([math.factorial(int(x)) for x in k]))
                 pmf /= pmf.sum()  # truncada e normalizada
                 entropy = -np.sum(pmf * np.log(pmf + 1e-12))
                 entropies.append(float(entropy))

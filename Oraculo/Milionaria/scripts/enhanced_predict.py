@@ -30,6 +30,13 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../.
 from Oraculo.core.base_predictor import BaseLotteryPredictor
 from Oraculo.core.lottery_configs import MILIONARIA_CONFIG
 from Oraculo.core.model_adapter import ModelAdapter
+from Oraculo.core.metrics_engine import (
+    safe_probs,
+    normalized_entropy,
+    rolling_stability,
+    volatility_chunks,
+    dynamic_confidence,
+)
 
 
 class EnhancedMilionariaPredictor(BaseLotteryPredictor):
@@ -64,7 +71,7 @@ class EnhancedMilionariaPredictor(BaseLotteryPredictor):
             pass
 
     def _merge_auto_weights(self):
-        import json, os
+        import json
         base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
         path = os.path.join(base_dir, 'models', 'weights.auto.json')
         try:
@@ -170,26 +177,90 @@ class EnhancedMilionariaPredictor(BaseLotteryPredictor):
     def display_summary(self, results: Dict[str, Any]):
         """Override to display +Milionaria specific results."""
         print(f"\n{'='*80}")
-        print(f"🎯 RESUMO DA ANÁLISE - {self.config.name.upper()}")
-        print(f"{'='*80}")
-        
-        ensemble_pred = results.get('ensemble_prediction', [])
-        ensemble_conf = results.get('ensemble_confidence', 0.0)
-        
-        print(f"🏆 Predição Final do Ensemble (Números): {ensemble_pred}")
-        print(f"🍀 Trevos Preditos: {self._predict_clovers([])}")  # Simple approach for display
-        print(f"📊 Confiança do Ensemble: {ensemble_conf:.1%}")
-        
-        model_results = results.get('model_results', {})
-        print(f"\n📋 Modelos Executados: {len(model_results)}")
-        
-        for model_name, result in model_results.items():
-            prediction = result.get('prediction', [])
-            clovers = result.get('clovers', [])
-            confidence = result.get('confidence', 0.0)
-            print(f"   • {model_name.upper()}: {prediction} + Trevos: {clovers} (Conf: {confidence:.1%})")
-        
-        print(f"\n{'='*80}")
+
+    # ===== Confiança dinâmica baseada no histórico (números principais) =====
+    def _counts_from_history(self, data: List[List[int]], limit: Optional[int] = None) -> List[int]:
+        max_n = self.config.total_numbers
+        if limit is not None:
+            subset = data[:max(0, int(limit))]
+        else:
+            subset = data
+        counts = [0] * max_n
+        for game in subset:
+            for n in game:
+                n = int(n)
+                if self.config.min_number <= n <= self.config.max_number:
+                    counts[n - self.config.min_number] += 1
+        return counts
+
+    def _calc_stability_volatility(self, data: List[List[int]]) -> Tuple[float, float]:
+        n = len(data)
+        if n < 40:
+            return 0.7, 0.2
+        w = min(200, n // 2)
+        counts_a = self._counts_from_history(data, limit=w)
+        counts_b = self._counts_from_history(data[w: 2 * w])
+        stab = rolling_stability(counts_a, counts_b)
+        k = min(4, max(1, n // 60))
+        if k <= 1:
+            vol = 0.2
+        else:
+            chunk_size = n // k
+            mats = []
+            for i in range(k):
+                start = i * chunk_size
+                end = (i + 1) * chunk_size if i < k - 1 else n
+                mats.append(self._counts_from_history(data[start:end]))
+            vol = volatility_chunks(mats)
+        return float(stab), float(vol)
+
+    def run_complete_analysis(self) -> Dict[str, Any]:
+        print(f"\n🧮 Confiança dinâmica ativada - {self.config.name}")
+        data = self.load_data()
+        if not data:
+            print("❌ Nenhum dado disponível para análise.")
+            return {}
+        try:
+            self._init_gaussian_baseline(data)
+        except Exception:
+            pass
+
+        model_results = self.run_all_models(data)
+        if not model_results:
+            return {}
+
+        counts_recent = self._counts_from_history(data, limit=min(300, len(data)))
+        probs_all = safe_probs(counts_recent, alpha=0.5)
+        stab, vol = self._calc_stability_volatility(data)
+
+        for m, res in list(model_results.items()):
+            try:
+                pred = res.get('prediction', []) or []
+                base_conf = float(res.get('confidence', 0.5))
+                idx = []
+                for n in pred:
+                    n = int(n)
+                    if self.config.min_number <= n <= self.config.max_number:
+                        idx.append(n - self.config.min_number)
+                h_norm = normalized_entropy(probs_all[idx]) if idx else normalized_entropy(probs_all)
+                new_conf = dynamic_confidence(base_conf, pred, probs_all, stab, vol)
+                res['confidence'] = float(new_conf)
+                res['metrics'] = {
+                    'entropy_norm_pred': float(h_norm),
+                    'stability': float(stab),
+                    'volatility': float(vol),
+                }
+                model_results[m] = res
+            except Exception:
+                pass
+
+        combined_results = self.combine_predictions(model_results)
+        if combined_results:
+            from datetime import datetime
+            ts = datetime.now().strftime('%Y-%m-%d')
+            self.save_predictions(combined_results, timestamp=ts)
+            self.display_summary(combined_results)
+        return combined_results
 
 
 def main():

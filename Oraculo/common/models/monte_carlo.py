@@ -44,6 +44,15 @@ class MonteCarloLotofacilSimulator:
         self.combination_size = 15
         self.historical_data = []
         self.parallel_engine = None
+        # Limites globais por ambiente (caps)
+        try:
+            self.max_seconds = float(os.environ.get('MC_MAX_SECONDS', '0') or 0)
+        except Exception:
+            self.max_seconds = 0.0
+        try:
+            self.max_iters = int(os.environ.get('MC_MAX_ITERS', '0') or 0)
+        except Exception:
+            self.max_iters = 0
         
         # Statistical models for sampling
         # Reduce strategies for FAST_CI
@@ -313,14 +322,21 @@ class MonteCarloLotofacilSimulator:
         
         sampling_method = getattr(self, f'sample_{strategy}')
         
-        # Run simulations
+        # Run simulations com caps globais (tempo/iterações)
         all_simulations = []
         number_appearance_count = Counter()
+        start_time = time.time()
+        sim_runs = 0
         
         if self.verbose:
             print(f"🎲 Executando {self.n_simulations} simulações Monte Carlo ({strategy})...")
         
         for i in range(self.n_simulations):
+            # Caps: tempo e iterações
+            if self.max_seconds and (time.time() - start_time) >= self.max_seconds:
+                break
+            if self.max_iters and sim_runs >= self.max_iters:
+                break
             if self.verbose and self.n_simulations >= 10 and i % max(1, (self.n_simulations // 10)) == 0:
                 print(f"  Progresso: {i/self.n_simulations*100:.0f}%")
             
@@ -330,10 +346,11 @@ class MonteCarloLotofacilSimulator:
             # Count appearances
             for num in simulation:
                 number_appearance_count[num] += 1
+            sim_runs += 1
         
         # Calculate statistics
         appearance_probabilities = {
-            num: count / self.n_simulations 
+            num: (count / max(1, sim_runs)) 
             for num, count in number_appearance_count.items()
         }
         
@@ -358,7 +375,7 @@ class MonteCarloLotofacilSimulator:
             'confidence': confidence,
             'probability_variance': prob_variance,
             'strategy_used': strategy,
-            'n_simulations': self.n_simulations,
+            'n_simulations': sim_runs,
             'top_numbers': most_frequent[:self.combination_size]
         }
     

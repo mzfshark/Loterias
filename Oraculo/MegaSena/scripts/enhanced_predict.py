@@ -21,7 +21,7 @@ Author: Enhanced AI System
 import sys
 import os
 import pandas as pd
-from typing import Dict, List, Any, Optional
+from typing import Dict, List, Any, Optional, Tuple
 
 # Add project root to path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..')))
@@ -29,6 +29,13 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../.
 from Oraculo.core.base_predictor import BaseLotteryPredictor
 from Oraculo.core.lottery_configs import MEGASENA_CONFIG
 from Oraculo.core.model_adapter import ModelAdapter
+from Oraculo.core.metrics_engine import (
+    safe_probs,
+    normalized_entropy,
+    rolling_stability,
+    volatility_chunks,
+    dynamic_confidence,
+)
 
 
 class EnhancedMegaSenaPredictor(BaseLotteryPredictor):
@@ -63,7 +70,7 @@ class EnhancedMegaSenaPredictor(BaseLotteryPredictor):
             pass
 
     def _merge_auto_weights(self):
-        import json, os
+        import json
         base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
         path = os.path.join(base_dir, 'models', 'weights.auto.json')
         try:
@@ -132,6 +139,98 @@ class EnhancedMegaSenaPredictor(BaseLotteryPredictor):
             return self.adapter.adapt_beam_search_model(data)
         else:
             return None
+
+    # ===== Confiança dinâmica baseada no histórico =====
+    def _counts_from_history(self, data: List[List[int]], limit: Optional[int] = None) -> List[int]:
+        max_n = 60
+        if limit is not None:
+            subset = data[:max(0, int(limit))]
+        else:
+            subset = data
+        counts = [0] * max_n
+        for game in subset:
+            for n in game:
+                if 1 <= int(n) <= max_n:
+                    counts[int(n) - 1] += 1
+        return counts
+
+    def _calc_stability_volatility(self, data: List[List[int]]) -> Tuple[float, float]:
+        n = len(data)
+        if n < 40:
+            return 0.7, 0.2  # defaults para pouco histórico
+        w = min(200, n // 2)
+        counts_a = self._counts_from_history(data, limit=w)
+        counts_b = self._counts_from_history(data[w: 2 * w])
+        stab = rolling_stability(counts_a, counts_b)
+        # Volatilidade por chunks (até 4 janelas iguais)
+        k = min(4, max(1, n // 60))
+        if k <= 1:
+            vol = 0.2
+        else:
+            chunk_size = n // k
+            mats = []
+            for i in range(k):
+                start = i * chunk_size
+                end = (i + 1) * chunk_size if i < k - 1 else n
+                mats.append(self._counts_from_history(data[start:end]))
+            vol = volatility_chunks(mats)
+        return float(stab), float(vol)
+
+    def run_complete_analysis(self) -> Dict[str, Any]:
+        print(f"\n🧮 Confiança dinâmica ativada - {self.config.name}")
+        # Carrega e prepara histórico
+        data = self.load_data()
+        if not data:
+            print("❌ Nenhum dado disponível para análise.")
+            return {}
+        # Baseline Gaussiana
+        try:
+            self._init_gaussian_baseline(data)
+        except Exception:
+            pass
+
+        # Executa modelos
+        model_results = self.run_all_models(data)
+        if not model_results:
+            return {}
+
+        # Métricas históricas globais
+        counts_recent = self._counts_from_history(data, limit=min(300, len(data)))
+        probs_all = safe_probs(counts_recent, alpha=0.5)
+        stab, vol = self._calc_stability_volatility(data)
+
+        # Recalibra confiança por modelo
+        for m, res in list(model_results.items()):
+            try:
+                pred = res.get('prediction', []) or []
+                base_conf = float(res.get('confidence', 0.5))
+                # entropia normalizada dos números previstos com base nas probs históricas
+                idx = [int(n) - 1 for n in pred if 1 <= int(n) <= len(probs_all)]
+                if idx:
+                    h_norm = normalized_entropy(probs_all[idx])
+                else:
+                    h_norm = normalized_entropy(probs_all)
+                new_conf = dynamic_confidence(base_conf, pred, probs_all, stab, vol)
+                res['confidence'] = float(new_conf)
+                # Anexa métricas para inspeção futura
+                res['metrics'] = {
+                    'entropy_norm_pred': float(h_norm),
+                    'stability': float(stab),
+                    'volatility': float(vol),
+                }
+                model_results[m] = res
+            except Exception:
+                # mantém confiança original em caso de falha
+                pass
+
+        # Combina e salva
+        combined_results = self.combine_predictions(model_results)
+        if combined_results:
+            from datetime import datetime
+            ts = datetime.now().strftime('%Y-%m-%d')
+            self.save_predictions(combined_results, timestamp=ts)
+            self.display_summary(combined_results)
+        return combined_results
 
 
 def main():
