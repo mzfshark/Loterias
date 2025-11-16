@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from scipy import stats
+import math
 from collections import Counter
 from typing import Dict, List, Tuple
 
@@ -70,25 +70,30 @@ class BayesianLotofacilPredictor:
         return probabilities
 
     def calculate_credible_intervals(self, confidence: float = 0.95) -> Dict[int, Tuple[float, float]]:
-        """
-        Calculate credible intervals for each number's probability.
+        """Calcula intervalos de credibilidade aproximados para cada número.
 
-        Args:
-            confidence: Confidence level for the interval
-
-        Returns:
-            Dictionary mapping each number to its credible interval
+        Usa aproximação normal da Beta (adequada quando alpha,beta > ~1). Evita dependência SciPy.
+        Para casos extremos (alpha ou beta muito pequenos), aplica ajuste simples com multiplicador conservador.
         """
-        intervals = {}
-        alpha_level = (1 - confidence) / 2
+        intervals: Dict[int, Tuple[float, float]] = {}
+        z = 1.96 if abs(confidence - 0.95) < 1e-6 else 1.0 * math.sqrt(2)  # fallback grosseiro para outros níveis
 
         for number in self.numbers_range:
             alpha = self.priors[number]['alpha']
             beta = self.priors[number]['beta']
+            total = alpha + beta
+            # Média e variância da Beta
+            mean = alpha / total
+            var = (alpha * beta) / (total * total * (total + 1.0))
+            std = math.sqrt(max(var, 1e-12))
 
-            lower = stats.beta.ppf(alpha_level, alpha, beta)
-            upper = stats.beta.ppf(1 - alpha_level, alpha, beta)
+            # Ajuste conservador para bordas (quando parâmetros pequenos)
+            adj = 1.0
+            if alpha < 1.5 or beta < 1.5:
+                adj = 1.25
 
+            lower = max(0.0, mean - z * std * adj)
+            upper = min(1.0, mean + z * std * adj)
             intervals[number] = (lower, upper)
 
         return intervals
@@ -151,17 +156,12 @@ class BayesianLotofacilPredictor:
         Returns:
             Log marginal likelihood
         """
-        from scipy.special import loggamma
-
+        # Usa math.lgamma para evitar SciPy; soma log-evidências parciais
         log_evidence = 0.0
-
         for number in self.numbers_range:
             alpha = self.priors[number]['alpha']
             beta = self.priors[number]['beta']
-
-            # Beta function for normalization
-            log_evidence += loggamma(alpha) + loggamma(beta) - loggamma(alpha + beta)
-
+            log_evidence += math.lgamma(alpha) + math.lgamma(beta) - math.lgamma(alpha + beta)
         return log_evidence
 
     def predict_with_uncertainty(self) -> Dict:

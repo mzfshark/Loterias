@@ -3,57 +3,43 @@
   "timestamp": "2025-11-16",
   "ensemble_prediction": [
     3,
+    6,
     7,
     9,
     13,
-    15,
-    17
+    15
   ],
-  "ensemble_confidence": 0.25928319426087704,
-  "ensemble_galton_zscore": 0.3517632353407243,
-  "ensemble_galton_density": 0.4711218559872196,
+  "ensemble_confidence": 0.274616340962552,
+  "ensemble_galton_zscore": 0.5611461135197269,
+  "ensemble_galton_density": 0.41552812130726563,
   "models": [
-    {
-      "modelo": "time_series",
-      "jogo": [
-        1,
-        3,
-        7,
-        15,
-        23,
-        44
-      ],
-      "confidence": 0.95,
-      "galton_zscore": 1.1892947480567344,
-      "galton_density": 0.2827952780999449
-    },
-    {
-      "modelo": "beam_search",
-      "jogo": [
-        1,
-        2,
-        3,
-        6,
-        7,
-        11
-      ],
-      "confidence": 0.27037985745586623,
-      "galton_zscore": 0.5611461135197269,
-      "galton_density": 0.2923208768489922
-    },
     {
       "modelo": "markov",
       "jogo": [
-        1,
         2,
         3,
         4,
         6,
+        7,
         8
       ],
-      "confidence": 0.24145660091798227,
-      "galton_zscore": 0.35176323534072435,
-      "galton_density": 0.2692868088835389
+      "confidence": 0.25512219030378647,
+      "galton_zscore": -0.06700252101728076,
+      "galton_density": 0.3464259174109057
+    },
+    {
+      "modelo": "neural_ensemble",
+      "jogo": [
+        1,
+        3,
+        6,
+        7,
+        16,
+        23
+      ],
+      "confidence": 0.5483859338801306,
+      "galton_zscore": 1.398677626235737,
+      "galton_density": 0.227201543419991
     },
     {
       "modelo": "bayesian",
@@ -70,6 +56,48 @@
       "galton_density": 0.11601407406008314
     },
     {
+      "modelo": "beam_search",
+      "jogo": [
+        1,
+        3,
+        6,
+        7,
+        12,
+        13
+      ],
+      "confidence": 0.2590603471740866,
+      "galton_zscore": 0.7705289916987295,
+      "galton_density": 0.31535494481444554
+    },
+    {
+      "modelo": "time_series",
+      "jogo": [
+        1,
+        3,
+        7,
+        15,
+        23,
+        44
+      ],
+      "confidence": 0.95,
+      "galton_zscore": 1.1892947480567344,
+      "galton_density": 0.2827952780999449
+    },
+    {
+      "modelo": "mutation",
+      "jogo": [
+        2,
+        6,
+        16,
+        31,
+        36,
+        48
+      ],
+      "confidence": 0.24765701401979273,
+      "galton_zscore": 0.1423803571617218,
+      "galton_density": 0.2908321827309518
+    },
+    {
       "modelo": "poisson",
       "jogo": [
         3,
@@ -84,18 +112,18 @@
       "galton_density": 0.4711218559872196
     },
     {
-      "modelo": "mutation",
+      "modelo": "monte_carlo",
       "jogo": [
-        5,
+        1,
         6,
-        20,
-        22,
-        33,
-        45
+        7,
+        9,
+        16,
+        21
       ],
-      "confidence": 0.2379545766354101,
-      "galton_zscore": 0.3517632353407243,
-      "galton_density": 0.3138662506964051
+      "confidence": 0.12683302201194901,
+      "galton_zscore": 1.1892947480567344,
+      "galton_density": 0.2827952780999449
     }
   ]
 }

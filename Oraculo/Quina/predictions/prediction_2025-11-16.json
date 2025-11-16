@@ -2,15 +2,15 @@
   "lottery": "Quina",
   "timestamp": "2025-11-16",
   "ensemble_prediction": [
-    6,
-    19,
-    43,
-    59,
-    64
+    5,
+    9,
+    13,
+    15,
+    19
   ],
-  "ensemble_confidence": 0.5584398779140024,
-  "ensemble_galton_zscore": -0.036734465328442115,
-  "ensemble_galton_density": 0.01982425458310081,
+  "ensemble_confidence": 0.5403712417307208,
+  "ensemble_galton_zscore": 0.8399117581028547,
+  "ensemble_galton_density": 0.01305474355953756,
   "models": [
     {
       "modelo": "bayesian",
@@ -26,30 +26,43 @@
       "galton_density": 0.0021401994696206364
     },
     {
+      "modelo": "markov",
+      "jogo": [
+        1,
+        5,
+        7,
+        8,
+        12
+      ],
+      "confidence": 0.41185640096105247,
+      "galton_zscore": -0.24593413228363792,
+      "galton_density": 0.013295444104042157
+    },
+    {
+      "modelo": "mutation",
+      "jogo": [
+        4,
+        19,
+        28,
+        29,
+        54
+      ],
+      "confidence": 0.4091686386066853,
+      "galton_zscore": 0.8299498692002262,
+      "galton_density": 0.012085792182391
+    },
+    {
       "modelo": "beam_search",
       "jogo": [
         2,
         4,
         5,
-        9,
-        10
-      ],
-      "confidence": 0.47082260013089644,
-      "galton_zscore": 1.118844647376449,
-      "galton_density": 0.009488449984817368
-    },
-    {
-      "modelo": "markov",
-      "jogo": [
-        2,
-        5,
         7,
-        11,
-        12
+        9
       ],
-      "confidence": 0.41321024370590076,
-      "galton_zscore": -0.056658243133698896,
-      "galton_density": 0.01506569341553314
+      "confidence": 0.4764981551006069,
+      "galton_zscore": 0.7701785357844559,
+      "galton_density": 0.00985640308142183
     },
     {
       "modelo": "poisson",
@@ -65,17 +78,17 @@
       "galton_density": 0.01982425458310081
     },
     {
-      "modelo": "mutation",
+      "modelo": "monte_carlo",
       "jogo": [
-        4,
-        38,
-        48,
-        53,
-        60
+        1,
+        8,
+        10,
+        16,
+        22
       ],
-      "confidence": 0.40683662641551505,
-      "galton_zscore": 0.7203690912713141,
-      "galton_density": 0.008680936830814048
+      "confidence": 0.19304822661320195,
+      "galton_zscore": -0.09650579874421235,
+      "galton_density": 0.01098585034914237
     },
     {
       "modelo": "time_series",
@@ -89,6 +102,19 @@
       "confidence": 0.95,
       "galton_zscore": 1.308120536526388,
       "galton_density": 0.010844871184164839
+    },
+    {
+      "modelo": "neural_ensemble",
+      "jogo": [
+        4,
+        5,
+        9,
+        13,
+        15
+      ],
+      "confidence": 0.95,
+      "galton_zscore": 1.4874345367736987,
+      "galton_density": 0.009109304922493795
     }
   ]
 }
