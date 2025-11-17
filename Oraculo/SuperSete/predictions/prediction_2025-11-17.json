@@ -1,0 +1,138 @@
+{
+  "lottery": "SuperSete",
+  "timestamp": "2025-11-17",
+  "ensemble_prediction": [
+    5,
+    4,
+    9,
+    7,
+    8,
+    7,
+    6
+  ],
+  "ensemble_confidence": 0.7,
+  "ensemble_galton_zscore": 0.19880625496868673,
+  "ensemble_galton_density": 0.037651969790409925,
+  "models": [
+    {
+      "modelo": "beam_search",
+      "jogo": [
+        7,
+        0,
+        3,
+        2,
+        8,
+        7,
+        4
+      ],
+      "confidence": 0.1,
+      "galton_zscore": -0.05827079887013274,
+      "galton_density": 0.038976752434633784
+    },
+    {
+      "modelo": "time_series",
+      "jogo": [
+        2,
+        9,
+        9,
+        7,
+        6,
+        6,
+        6
+      ],
+      "confidence": 0.1,
+      "galton_zscore": 0.02742155240947375,
+      "galton_density": 0.03939350854546598
+    },
+    {
+      "modelo": "neural_ensemble",
+      "jogo": [
+        5,
+        6,
+        5,
+        4,
+        5,
+        5,
+        5
+      ],
+      "confidence": 0.1,
+      "galton_zscore": 0.11311390368908017,
+      "galton_density": 0.030825864306848645
+    },
+    {
+      "modelo": "bayesian",
+      "jogo": [
+        1,
+        4,
+        9,
+        7,
+        8,
+        7,
+        9
+      ],
+      "confidence": 0.1,
+      "galton_zscore": 0.21594472522460803,
+      "galton_density": 0.0369138787804704
+    },
+    {
+      "modelo": "markov",
+      "jogo": [
+        5,
+        4,
+        7,
+        7,
+        2,
+        9,
+        6
+      ],
+      "confidence": 0.1,
+      "galton_zscore": 0.09597543343315894,
+      "galton_density": 0.040365350310840854
+    },
+    {
+      "modelo": "mutation",
+      "jogo": [
+        2,
+        2,
+        9,
+        8,
+        4,
+        7,
+        6
+      ],
+      "confidence": 0.1,
+      "galton_zscore": -0.28107091219710967,
+      "galton_density": 0.03492536005136061
+    },
+    {
+      "modelo": "poisson",
+      "jogo": [
+        5,
+        3,
+        2,
+        3,
+        6,
+        5,
+        8
+      ],
+      "confidence": 0.1,
+      "galton_zscore": -0.3839017337326375,
+      "galton_density": 0.03601333335216894
+    },
+    {
+      "modelo": "monte_carlo",
+      "jogo": [
+        7,
+        7,
+        7,
+        6,
+        4,
+        9,
+        4
+      ],
+      "confidence": 0.1,
+      "galton_zscore": 0.37019095752789966,
+      "galton_density": 0.03719550223634989
+    }
+  ]
+}
