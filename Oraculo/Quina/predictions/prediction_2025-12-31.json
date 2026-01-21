@@ -1,0 +1,94 @@
+{
+  "lottery": "Quina",
+  "timestamp": "2025-12-31",
+  "ensemble_prediction": [
+    6,
+    12,
+    19,
+    74,
+    79
+  ],
+  "ensemble_confidence": 0.5534262031706937,
+  "ensemble_galton_zscore": 0.030428766945064654,
+  "ensemble_galton_density": 0.01977693521133625,
+  "models": [
+    {
+      "modelo": "bayesian",
+      "jogo": [
+        4,
+        26,
+        31,
+        49,
+        52
+      ],
+      "confidence": 0.6232762255688767,
+      "galton_zscore": 2.2759475684420813,
+      "galton_density": 0.002086481812376536
+    },
+    {
+      "modelo": "beam_search",
+      "jogo": [
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "confidence": 0.4688641174541579,
+      "galton_zscore": 0.64645604877168,
+      "galton_density": 0.011333903408583774
+    },
+    {
+      "modelo": "markov",
+      "jogo": [
+        8,
+        10,
+        13,
+        14,
+        16
+      ],
+      "confidence": 0.3982803668385869,
+      "galton_zscore": 0.5967764292695333,
+      "galton_density": 0.013994688295491223
+    },
+    {
+      "modelo": "poisson",
+      "jogo": [
+        6,
+        12,
+        19,
+        74,
+        79
+      ],
+      "confidence": 0.43939149410062234,
+      "galton_zscore": 0.030428766945064654,
+      "galton_density": 0.01977693521133625
+    },
+    {
+      "modelo": "mutation",
+      "jogo": [
+        27,
+        31,
+        39,
+        44,
+        80
+      ],
+      "confidence": 0.4009808649231889,
+      "galton_zscore": 0.6961356682738261,
+      "galton_density": 0.009560291788005878
+    },
+    {
+      "modelo": "time_series",
+      "jogo": [
+        4,
+        5,
+        15,
+        45,
+        54
+      ],
+      "confidence": 0.95,
+      "galton_zscore": 1.3022270262000122,
+      "galton_density": 0.010784504964793983
+    }
+  ]
+}

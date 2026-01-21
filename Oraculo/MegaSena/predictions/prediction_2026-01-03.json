@@ -1,0 +1,101 @@
+{
+  "lottery": "MegaSena",
+  "timestamp": "2026-01-03",
+  "ensemble_prediction": [
+    1,
+    2,
+    6,
+    24,
+    29,
+    41
+  ],
+  "ensemble_confidence": 0.46295209564268924,
+  "ensemble_galton_zscore": -0.01021994955813262,
+  "ensemble_galton_density": 0.02337932424688109,
+  "models": [
+    {
+      "modelo": "bayesian",
+      "jogo": [
+        5,
+        10,
+        33,
+        34,
+        37,
+        53
+      ],
+      "confidence": 0.3673550479717018,
+      "galton_zscore": 1.921350516928937,
+      "galton_density": 0.005545742165235626
+    },
+    {
+      "modelo": "markov",
+      "jogo": [
+        1,
+        13,
+        14,
+        17,
+        18,
+        20
+      ],
+      "confidence": 0.3844253189797884,
+      "galton_zscore": -0.12263939469759172,
+      "galton_density": 0.019525976841195603
+    },
+    {
+      "modelo": "mutation",
+      "jogo": [
+        6,
+        7,
+        31,
+        35,
+        50,
+        57
+      ],
+      "confidence": 0.38990888220346115,
+      "galton_zscore": -0.4701176796741016,
+      "galton_density": 0.017401506008426937
+    },
+    {
+      "modelo": "beam_search",
+      "jogo": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        10
+      ],
+      "confidence": 0.45000868740045796,
+      "galton_zscore": 0.8686957124412747,
+      "galton_density": 0.015075266456101808
+    },
+    {
+      "modelo": "poisson",
+      "jogo": [
+        2,
+        6,
+        8,
+        24,
+        25,
+        29
+      ],
+      "confidence": 0.428063481202195,
+      "galton_zscore": -0.0715396469069285,
+      "galton_density": 0.024359928972040923
+    },
+    {
+      "modelo": "time_series",
+      "jogo": [
+        1,
+        4,
+        5,
+        38,
+        41,
+        47
+      ],
+      "confidence": 0.95,
+      "galton_zscore": 0.5416573265810302,
+      "galton_density": 0.014936391241515473
+    }
+  ]
+}
