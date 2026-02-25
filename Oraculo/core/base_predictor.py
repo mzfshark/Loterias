@@ -1,0 +1,537 @@
+#!/usr/bin/env python3
+"""
+Base Lottery Predictor Class - Core Architecture for Modular Lottery System
+
+This module provides the foundational architecture for lottery prediction systems
+that can be adapted to different lottery formats (Lotofacil, MegaSena, Quina, etc.)
+
+Author: Enhanced AI System
+"""
+
+from abc import ABC, abstractmethod
+from typing import Dict, List, Any, Optional, Tuple
+import pandas as pd
+import numpy as np
+import json
+from datetime import datetime
+from pathlib import Path
+import os
+import time
+import logging
+from .parallel_engine import get_parallel_engine, ParallelConfig
+from .gaussian_baseline import GaussianBaseline
+
+# Configuração de logging
+logger = logging.getLogger(__name__)
+
+
+class ModelRunner:
+    """Wrapper serializável para execução de modelos em paralelo"""
+    
+    def __init__(self, predictor_instance, model_name: str):
+        self.predictor_instance = predictor_instance
+        self.model_name = model_name
+    
+    def __call__(self, data):
+        """Executa o modelo específico"""
+        return self.predictor_instance._run_model(self.model_name, data)
+
+
+class LotteryConfig:
+    """Configuration class for different lottery types."""
+    
+    def __init__(self, 
+                 name: str,
+                 numbers_per_game: int,
+                 number_range: Tuple[int, int],
+                 data_path: str,
+                 predictions_path: str,
+                 has_bonus_numbers: bool = False,
+                 bonus_count: int = 0,
+                 bonus_range: Tuple[int, int] = (0, 0)):
+        """
+        Initialize lottery configuration.
+        
+        Args:
+            name: Name of the lottery game
+            numbers_per_game: How many numbers to select per game
+            number_range: (min, max) range for main numbers
+            data_path: Path to historical data CSV
+            predictions_path: Path to save predictions
+            has_bonus_numbers: Whether this lottery has bonus numbers
+            bonus_count: Number of bonus numbers to select
+            bonus_range: (min, max) range for bonus numbers
+        """
+        self.name = name
+        self.numbers_per_game = numbers_per_game
+        self.number_range = number_range
+        self.data_path = data_path
+        self.predictions_path = predictions_path
+        self.has_bonus_numbers = has_bonus_numbers
+        self.bonus_count = bonus_count
+        self.bonus_range = bonus_range
+        
+        # Derived properties
+        self.min_number = number_range[0]
+        self.max_number = number_range[1]
+        self.total_numbers = number_range[1] - number_range[0] + 1
+        
+    def get_number_list(self) -> List[int]:
+        """Get list of all possible main numbers."""
+        return list(range(self.min_number, self.max_number + 1))
+    
+    def get_bonus_list(self) -> List[int]:
+        """Get list of all possible bonus numbers."""
+        if not self.has_bonus_numbers:
+            return []
+        return list(range(self.bonus_range[0], self.bonus_range[1] + 1))
+    
+    def validate_game(self, game: List[int], bonus: List[int] = None) -> bool:
+        """Validate if a game follows the lottery rules."""
+        # Check main numbers
+        if len(game) != self.numbers_per_game:
+            return False
+        if not all(self.min_number <= num <= self.max_number for num in game):
+            return False
+        if len(set(game)) != len(game):  # Check for duplicates
+            return False
+            
+        # Check bonus numbers
+        if self.has_bonus_numbers:
+            if bonus is None or len(bonus) != self.bonus_count:
+                return False
+            if not all(self.bonus_range[0] <= num <= self.bonus_range[1] for num in bonus):
+                return False
+            if len(set(bonus)) != len(bonus):  # Check for duplicates
+                return False
+        
+        return True
+
+
+class BaseLotteryPredictor(ABC):
+    """Abstract base class for lottery predictors."""
+    
+    def __init__(self, config: LotteryConfig):
+        """
+        Initialize base predictor.
+        
+        Args:
+            config: Lottery configuration object
+        """
+        self.config = config
+        # Inicializa modelos com base em um registry por jogo (pesos/ativação)
+        try:
+            from .model_registry import get_models_for
+            self.models = get_models_for(self.config.name.lower())
+        except Exception:
+            # Fallback seguro
+            self.models = {
+                'bayesian': {'weight': 0.20, 'enabled': True},
+                'neural_ensemble': {'weight': 0.18, 'enabled': True},
+                'monte_carlo': {'weight': 0.15, 'enabled': True},
+                'time_series': {'weight': 0.15, 'enabled': True},
+                'beam_search': {'weight': 0.10, 'enabled': True},
+                'markov': {'weight': 0.08, 'enabled': True},
+                'poisson': {'weight': 0.07, 'enabled': True},
+                'mutation': {'weight': 0.07, 'enabled': True}
+            }
+        self.results = {}
+        self.ensemble_confidence = 0.0
+        self.gaussian: Optional[GaussianBaseline] = None
+
+        # Configuração de paralelização
+        self.parallel_engine = get_parallel_engine()
+        self.use_parallel = ParallelConfig.is_parallel_enabled()
+        
+        # Modo rápido para CI: desabilita modelos mais pesados por padrão
+        try:
+            fast_ci = os.environ.get('FAST_CI', '').strip()
+            if fast_ci == '1':
+                for heavy in ('monte_carlo', 'neural_ensemble'):
+                    if heavy in self.models:
+                        self.models[heavy]['enabled'] = False
+                logger.info("⚡ Modo FAST_CI ativo: modelos pesados desativados (monte_carlo, neural_ensemble).")
+            else:
+                logger.info(f"🔍 Modo completo: todos os modelos habilitados (FAST_CI={fast_ci})")
+        except Exception:
+            pass
+            
+        if self.use_parallel:
+            logger.info(f"🚀 Paralelização habilitada: {self.parallel_engine.max_workers} workers")
+        else:
+            logger.info("🔧 Execução sequencial ativada")
+        
+    def load_data(self) -> List[List[int]]:
+        """Load historical lottery data from CSV file."""
+        try:
+            df = pd.read_csv(self.config.data_path)
+            return self._parse_data(df)
+        except FileNotFoundError:
+            print(f"⚠️ Data file not found: {self.config.data_path}")
+            return self._generate_synthetic_data()
+    
+    @abstractmethod
+    def _parse_data(self, df: pd.DataFrame) -> List[List[int]]:
+        """Parse lottery data from DataFrame. Must be implemented by subclasses."""
+        raise NotImplementedError()
+    
+    def _generate_synthetic_data(self, n_games: int = 100) -> List[List[int]]:
+        """Generate synthetic data for testing when real data is not available."""
+        print(f"🧪 Generating {n_games} synthetic games for {self.config.name}")
+        np.random.seed(42)
+        games = []
+        
+        for _ in range(n_games):
+            game = sorted(np.random.choice(
+                self.config.get_number_list(), 
+                size=self.config.numbers_per_game, 
+                replace=False
+            ))
+            games.append(game)
+        
+        return games
+    
+    def run_all_models(self, data: List[List[int]]) -> Dict[str, Any]:
+        """Run all enabled prediction models with optional parallelization."""
+        logger.info(f"🧠 Executando todos os modelos probabilísticos para {self.config.name}...")
+        
+        if not self.use_parallel:
+            return self._run_models_sequential(data)
+        
+        return self._run_models_parallel(data)
+    
+    def _run_models_parallel(self, data: List[List[int]]) -> Dict[str, Any]:
+        """Executa modelos em paralelo"""
+        logger.info("🚀 Executando modelos em paralelo...")
+        
+        # Prepara funções de predição para cada modelo habilitado
+        model_functions = {}
+        
+        for model_name, model_config in self.models.items():
+            if model_config['enabled']:
+                # Usa função estática que pode ser serializada
+                model_functions[model_name] = ModelRunner(self, model_name)
+        
+        if not model_functions:
+            logger.warning("⚠️ Nenhum modelo habilitado para execução")
+            return {}
+        
+        # Callback para progresso
+        def progress_callback(model_name: str, result: Any, completed: int, total: int):
+            if result:
+                prediction = result.get('prediction', [])
+                logger.info(f"   ✅ {model_name}: {prediction} ({completed}/{total})")
+            else:
+                logger.warning(f"   ⚠️ {model_name}: sem resultado ({completed}/{total})")
+        
+        # Executa em paralelo
+        start_time = time.time()
+        results = self.parallel_engine.parallel_predict(
+            models=model_functions,
+            data=data,
+            progress_callback=progress_callback
+        )
+        
+        # Filtra resultados válidos
+        valid_results = {k: v for k, v in results.items() if v is not None}
+        
+        elapsed = time.time() - start_time
+        logger.info(f"🎯 Modelos paralelos concluídos em {elapsed:.2f}s: "
+                   f"{len(valid_results)}/{len(model_functions)} sucessos")
+        
+        return valid_results
+    
+    def _run_models_sequential(self, data: List[List[int]]) -> Dict[str, Any]:
+        """Execução sequencial original (fallback)"""
+        logger.info("🔄 Executando modelos sequencialmente...")
+        
+        model_results = {}
+        
+        # Run each model if available and enabled
+        for model_name, model_config in self.models.items():
+            if model_config['enabled']:
+                try:
+                    result = self._run_model(model_name, data)
+                    if result:
+                        model_results[model_name] = result
+                        logger.info(f"   ✅ {model_name}: {result.get('prediction', [])}")
+                except Exception as e:
+                    logger.error(f"   ❌ {model_name} erro: {e}")
+                    self.models[model_name]['enabled'] = False
+        
+        return model_results
+    
+    @abstractmethod
+    def _run_model(self, model_name: str, data: List[List[int]]) -> Optional[Dict[str, Any]]:
+        """Run a specific model. Must be implemented by subclasses."""
+        raise NotImplementedError()
+    
+    def combine_predictions(self, model_results: Dict[str, Any]) -> Dict[str, Any]:
+        """Combine predictions from multiple models using weighted ensemble."""
+        if not model_results:
+            return {}
+        
+        # Get all predictions
+        predictions = []
+        weights = []
+        confidences = []
+        
+        for model_name, result in model_results.items():
+            if 'prediction' in result and self.models[model_name]['enabled']:
+                predictions.append(result['prediction'])
+                weights.append(self.models[model_name]['weight'])
+                confidences.append(result.get('confidence', 0.5))
+        
+        if not predictions:
+            return {}
+        
+        # Create frequency matrix for ensemble
+        frequency_matrix = np.zeros(self.config.total_numbers + 1)  # +1 for 1-based indexing
+
+        # Gaussian prior: densidade por número (normalizada para média 1)
+        density_map = None
+        try:
+            if getattr(self, 'gaussian', None) is not None:
+                # Aplica apenas a jogos de números simples (não por coluna)
+                if self.config.name.lower() != 'supersete':
+                    density_map = {}
+                    for n in range(self.config.min_number, self.config.max_number + 1):
+                        density_map[n] = float(self.gaussian.density_for(n))
+                    mean_d = sum(density_map.values()) / max(1, len(density_map))
+                    if mean_d > 0:
+                        for k in list(density_map.keys()):
+                            density_map[k] /= mean_d
+        except Exception as e:
+            logger.warning(f"Falha ao aplicar prior Gaussiano no ensemble: {e}")
+        
+        for i, prediction in enumerate(predictions):
+            weight = weights[i]
+            confidence = confidences[i]
+            combined_weight = weight * confidence
+            
+            for num in prediction:
+                if self.config.min_number <= num <= self.config.max_number:
+                    if density_map is not None:
+                        frequency_matrix[num] += combined_weight * density_map.get(int(num), 1.0)
+                    else:
+                        frequency_matrix[num] += combined_weight
+        
+        # Select top numbers based on weighted frequency
+        top_indices = np.argsort(frequency_matrix)[-self.config.numbers_per_game:]
+        ensemble_prediction = sorted([int(idx) for idx in top_indices if idx >= self.config.min_number])
+        
+        # Calculate ensemble confidence
+        total_weight = sum(weights)
+        weighted_confidence = sum(w * c for w, c in zip(weights, confidences)) / total_weight if total_weight > 0 else 0.5
+        
+        return {
+            'ensemble_prediction': ensemble_prediction,
+            'ensemble_confidence': weighted_confidence,
+            'model_results': model_results,
+            'individual_predictions': predictions
+        }
+    
+    
+    
+    def _serialize_prediction(self, prediction: List[Any]) -> List[int]:
+        """Convert prediction to JSON-serializable format."""
+        if not prediction:
+            return []
+        
+        serialized = []
+        for item in prediction:
+            if hasattr(item, 'item'):  # numpy types
+                serialized.append(int(item.item()))
+            elif isinstance(item, (int, np.integer)):
+                serialized.append(int(item))
+            elif isinstance(item, (float, np.floating)):
+                serialized.append(int(item))
+            else:
+                try:
+                    serialized.append(int(item))
+                except (ValueError, TypeError):
+                    serialized.append(0)  # fallback
+        
+        return serialized
+    
+    def run_complete_analysis(self) -> Dict[str, Any]:
+        """Run complete prediction analysis."""
+        print(f"🚀 Iniciando análise completa para {self.config.name}...")
+        
+        # Load data
+        data = self.load_data()
+        print(f"📊 Dados carregados: {len(data)} jogos históricos")
+        
+        if not data:
+            print("❌ Nenhum dado disponível para análise.")
+            return {}
+
+        # Inicializa baseline gaussiana (não bloqueia em caso de falha)
+        try:
+            self._init_gaussian_baseline(data)
+        except Exception as e:
+            logger.warning(f"Gaussian baseline não inicializada: {e}")
+        
+        # Run all models
+        model_results = self.run_all_models(data)
+        
+        # Combine predictions
+        combined_results = self.combine_predictions(model_results)
+        
+        # Save results
+        if combined_results:
+            json_path, csv_path = self.save_predictions(combined_results)
+            print(f"💾 Predições salvas:")
+            print(f"   📄 JSON: {json_path}")
+            print(f"   📊 CSV: {csv_path}")
+            
+            # Display summary
+            self.display_summary(combined_results)
+        
+        return combined_results
+
+    def _init_gaussian_baseline(self, history: List[List[int]]):
+        """Configura `self.gaussian` e ajusta ao histórico com base no jogo."""
+        game = self.config.name.lower()
+        if game == 'supersete':
+            gb = GaussianBaseline('SuperSete', (0, 9), 1)
+            gb.fit(history)
+        elif 'milionaria' in game or '+milionaria' in game or 'mais milionaria' in game:
+            gb = GaussianBaseline('Milionaria', (1, 50), 6, has_bonus=True, bonus_count=2, bonus_range=(1, 6))
+            gb.fit(history, bonus_history=None)
+        else:
+            gb = GaussianBaseline(self.config.name, self.config.number_range, self.config.numbers_per_game,
+                                  has_bonus=self.config.has_bonus_numbers,
+                                  bonus_count=self.config.bonus_count,
+                                  bonus_range=self.config.bonus_range)
+            gb.fit(history)
+        self.gaussian = gb
+    
+    def display_summary(self, results: Dict[str, Any]):
+        """Display summary of prediction results."""
+        print(f"\n{'='*80}")
+        print(f"🎯 RESUMO DA ANÁLISE - {self.config.name.upper()}")
+        print(f"{'='*80}")
+        
+        ensemble_pred = results.get('ensemble_prediction', [])
+        ensemble_conf = results.get('ensemble_confidence', 0.0)
+        
+        print(f"🏆 Predição Final do Ensemble: {ensemble_pred}")
+        print(f"📊 Confiança do Ensemble: {ensemble_conf:.1%}")
+        
+        model_results = results.get('model_results', {})
+        print(f"\n📋 Modelos Executados: {len(model_results)}")
+        
+        for model_name, result in model_results.items():
+            prediction = result.get('prediction', [])
+            confidence = result.get('confidence', 0.0)
+            print(f"   • {model_name.upper()}: {prediction} (Conf: {confidence:.1%})")
+        
+        print(f"\n{'='*80}")
+
+    def _compute_galton_metrics(self, prediction: List[int]) -> Tuple[Optional[float], Optional[float]]:
+        """Calcula métricas de Galton (z-score médio e densidade média) para uma predição.
+
+        - Para jogos padrão (não SuperSete): usa `z_for`/`density_for` por número e retorna a média.
+        - Para SuperSete: usa métricas por coluna (`z_for_col`/`density_for_col`) posição a posição.
+        """
+        try:
+            if not prediction or self.gaussian is None:
+                return None, None
+
+            game = self.config.name.lower()
+
+            # SuperSete: 7 colunas, dígitos 0..9
+            if game == 'supersete':
+                if len(prediction) < 7:
+                    return None, None
+                z_vals: List[float] = []
+                d_vals: List[float] = []
+                for col, digit in enumerate(prediction[:7]):
+                    try:
+                        d_int = int(digit)
+                    except Exception:
+                        d_int = 0
+                    z_vals.append(float(self.gaussian.z_for_col(col, d_int)))
+                    d_vals.append(float(self.gaussian.density_for_col(col, d_int)))
+                if not z_vals:
+                    return None, None
+                return (sum(z_vals) / len(z_vals), sum(d_vals) / len(d_vals))
+
+            # Jogos de números (inclui +Milionária principais)
+            z_vals: List[float] = []
+            d_vals: List[float] = []
+            for n in prediction:
+                try:
+                    ni = int(n)
+                except Exception:
+                    continue
+                z_vals.append(float(self.gaussian.z_for(ni)))
+                d_vals.append(float(self.gaussian.density_for(ni)))
+            if not z_vals:
+                return None, None
+            return (sum(z_vals) / len(z_vals), sum(d_vals) / len(d_vals))
+        except Exception:
+            return None, None
+
+    def save_predictions(self, results: Dict[str, Any], timestamp: str = None) -> Tuple[str, str]:
+        """Save predictions to JSON and CSV files, incluindo métricas de Galton quando disponíveis."""
+        if timestamp is None:
+            timestamp = datetime.now().strftime("%Y-%m-%d")
+
+        # Ensure predictions directory exists
+        predictions_dir = Path(self.config.predictions_path)
+        predictions_dir.mkdir(parents=True, exist_ok=True)
+
+        # Prepare data for saving
+        ensemble_pred = self._serialize_prediction(results.get('ensemble_prediction', []))
+        ensemble_conf = float(results.get('ensemble_confidence', 0.0))
+        ens_z, ens_d = self._compute_galton_metrics(ensemble_pred)
+
+        save_data = {
+            'lottery': self.config.name,
+            'timestamp': timestamp,
+            'ensemble_prediction': ensemble_pred,
+            'ensemble_confidence': ensemble_conf,
+            # Campos opcionais para o ensemble (não usados pela UI atual, mas úteis)
+            'ensemble_galton_zscore': ens_z,
+            'ensemble_galton_density': ens_d,
+            'models': []
+        }
+
+        # Add individual model results
+        for model_name, result in results.get('model_results', {}).items():
+            pred_list = self._serialize_prediction(result.get('prediction', []))
+            conf_val = float(result.get('confidence', 0.0))
+            z_val, d_val = self._compute_galton_metrics(pred_list)
+            save_data['models'].append({
+                'modelo': model_name,
+                'jogo': pred_list,
+                'confidence': conf_val,
+                'galton_zscore': z_val,
+                'galton_density': d_val
+            })
+
+        # Save JSON
+        json_path = predictions_dir / f"prediction_{timestamp}.json"
+        with open(json_path, 'w', encoding='utf-8') as f:
+            json.dump(save_data, f, ensure_ascii=False, indent=2)
+
+        # Save CSV
+        csv_data = []
+        for model_data in save_data['models']:
+            csv_data.append({
+                'lottery': self.config.name,
+                'timestamp': timestamp,
+                'model': model_data['modelo'],
+                'prediction': str(model_data['jogo']),
+                'confidence': model_data['confidence'],
+                'galton_zscore': model_data.get('galton_zscore', None),
+                'galton_density': model_data.get('galton_density', None)
+            })
+
+        csv_df = pd.DataFrame(csv_data)
+        csv_path = predictions_dir / f"prediction_{timestamp}.csv"
+        csv_df.to_csv(csv_path, index=False)
+
+        return str(json_path), str(csv_path)

@@ -1,0 +1,607 @@
+import pandas as pd
+import os
+import numpy as np
+from typing import List, Dict, Any
+from collections import Counter, defaultdict
+import random
+import time
+import logging
+
+try:
+    from ...core.gaussian_baseline import GaussianBaseline
+    _GAUSS_AVAILABLE = True
+except Exception:
+    _GAUSS_AVAILABLE = False
+
+# Configuração de logging
+logger = logging.getLogger(__name__)
+
+
+class MonteCarloLotofacilSimulator:
+    """
+    Advanced Monte Carlo simulation for Lotofacil prediction with multiple sampling strategies.
+    """
+    
+    def __init__(self, n_simulations: int = None, verbose: bool = False):
+        """
+        Initialize Monte Carlo simulator.
+        
+        Args:
+            n_simulations: Number of Monte Carlo simulations to run
+        """
+        # Apply FAST_CI protection and set reasonable defaults
+        if n_simulations is None:
+            fast_ci = os.environ.get('FAST_CI', '').strip()
+            if fast_ci == '1':
+                n_simulations = 100  # Very fast for CI
+            else:
+                n_simulations = 1000  # Reasonable default for local runs
+        
+        self.n_simulations = min(n_simulations, 10000)  # Cap at 10k max
+        # Controla verbosidade de logs (progresso de simulação, etc.)
+        self.verbose = verbose
+        self.numbers_range = list(range(1, 26))
+        self.combination_size = 15
+        self.historical_data = []
+        self.parallel_engine = None
+        # Limites globais por ambiente (caps)
+        try:
+            self.max_seconds = float(os.environ.get('MC_MAX_SECONDS', '0') or 0)
+        except Exception:
+            self.max_seconds = 0.0
+        try:
+            self.max_iters = int(os.environ.get('MC_MAX_ITERS', '0') or 0)
+        except Exception:
+            self.max_iters = 0
+        
+        # Statistical models for sampling
+        # Reduce strategies for FAST_CI
+        fast_ci = os.environ.get('FAST_CI', '').strip()
+        if fast_ci == '1':
+            self.sampling_strategies = ['frequency_weighted', 'gaussian_prior', 'uniform']
+        else:
+            self.sampling_strategies = [
+                'uniform',
+                'frequency_weighted',
+                'inverse_frequency',
+                'recency_weighted',
+                'pattern_based',
+                'gaussian_kernel',
+                'gaussian_prior'
+            ]
+        self.gaussian_density: Dict[int, float] = {}
+    
+    def load_historical_data(self, historical_games: List[List[int]]):
+        """Load historical data for analysis."""
+        self.historical_data = historical_games
+        self._analyze_patterns()
+        self._init_gaussian_prior()
+
+    @staticmethod
+    def _normalize_weights(weights: List[float]) -> np.ndarray:
+        """Normaliza pesos com robustez a NaN/Inf/total zero, retornando distribuição uniforme se necessário."""
+        arr = np.array(weights, dtype=float)
+        arr[~np.isfinite(arr)] = 0.0
+        total = float(np.sum(arr))
+        if not np.isfinite(total) or total <= 0.0:
+            return np.ones_like(arr, dtype=float) / len(arr)
+        arr = arr / total
+        arr = np.nan_to_num(arr, nan=0.0, posinf=0.0, neginf=0.0)
+        # Garante soma positiva
+        s = float(np.sum(arr))
+        if s <= 0.0:
+            return np.ones_like(arr, dtype=float) / len(arr)
+        # Re-normaliza após correções
+        return arr / s
+    
+    def set_historical_data(self, historical_games: List[List[int]]):
+        """Alias para load_historical_data para compatibilidade."""
+        self.load_historical_data(historical_games)
+    
+    def _analyze_patterns(self):
+        """Analyze historical patterns for informed sampling."""
+        if not self.historical_data:
+            return
+        
+        # Calculate frequency statistics
+        all_numbers = [num for game in self.historical_data for num in game]
+        self.number_frequencies = Counter(all_numbers)
+        self.total_numbers = len(all_numbers)
+        
+        # Calculate recency weights
+        self.recency_weights = {}
+        for num in self.numbers_range:
+            # Find the most recent occurrence
+            last_seen = -1
+            for i, game in enumerate(reversed(self.historical_data)):
+                if num in game:
+                    last_seen = i
+                    break
+            self.recency_weights[num] = 1 / (last_seen + 1) if last_seen != -1 else 0.001
+        
+        # Calculate positional patterns
+        self.positional_probs = defaultdict(lambda: defaultdict(int))
+        for game in self.historical_data:
+            sorted_game = sorted(game)
+            for pos, num in enumerate(sorted_game):
+                self.positional_probs[pos][num] += 1
+        
+        # Normalize positional probabilities
+        for pos in self.positional_probs:
+            total = sum(self.positional_probs[pos].values())
+            for num in self.positional_probs[pos]:
+                self.positional_probs[pos][num] /= total
+        
+    # Calculate sum statistics
+        self.game_sums = [sum(game) for game in self.historical_data]
+        self.sum_mean = np.mean(self.game_sums)
+        self.sum_std = np.std(self.game_sums)
+        
+        # Calculate consecutive patterns
+        self.consecutive_stats = []
+        for game in self.historical_data:
+            sorted_game = sorted(game)
+            consecutive_count = 0
+            for i in range(len(sorted_game) - 1):
+                if sorted_game[i+1] - sorted_game[i] == 1:
+                    consecutive_count += 1
+            self.consecutive_stats.append(consecutive_count)
+        
+        self.avg_consecutive = np.mean(self.consecutive_stats)
+
+    def _init_gaussian_prior(self):
+        """Inicializa o prior Gaussiano baseado no histórico e faixa de números."""
+        if not _GAUSS_AVAILABLE or not self.historical_data:
+            self.gaussian_density = {}
+            return
+        try:
+            gb = GaussianBaseline('Generic', (min(self.numbers_range), max(self.numbers_range)), self.combination_size)
+            gb.fit(self.historical_data)
+            dens = {}
+            for n in self.numbers_range:
+                dens[n] = float(gb.density_for(int(n)))
+            # Normaliza para média 1 para não distorcer escalas
+            mean_d = sum(dens.values()) / max(1, len(dens))
+            if mean_d > 0:
+                dens = {k: (v / mean_d) for k, v in dens.items()}
+            self.gaussian_density = dens
+        except Exception:
+            self.gaussian_density = {}
+    
+    def sample_uniform(self) -> List[int]:
+        """Sample using uniform distribution."""
+        return sorted(random.sample(self.numbers_range, self.combination_size))
+    
+    def sample_frequency_weighted(self) -> List[int]:
+        """Sample using frequency-based weights."""
+        if not hasattr(self, 'number_frequencies'):
+            return self.sample_uniform()
+        
+        weights = [self.number_frequencies.get(num, 1) for num in self.numbers_range]
+        # Aplica prior Gaussiano, se disponível
+        if self.gaussian_density:
+            weights = [w * self.gaussian_density.get(num, 1.0) for w, num in zip(weights, self.numbers_range)]
+        p = self._normalize_weights(weights)
+        selected = np.random.choice(self.numbers_range, size=self.combination_size, replace=False, p=p)
+        return sorted(selected.tolist())
+    
+    def sample_inverse_frequency(self) -> List[int]:
+        """Sample using inverse frequency weights (favor less frequent numbers)."""
+        if not hasattr(self, 'number_frequencies'):
+            return self.sample_uniform()
+        
+        max_freq = max(self.number_frequencies.values()) if self.number_frequencies else 1
+        inv_weights = [max_freq - self.number_frequencies.get(num, 0) + 1 for num in self.numbers_range]
+        if self.gaussian_density:
+            inv_weights = [w * self.gaussian_density.get(num, 1.0) for w, num in zip(inv_weights, self.numbers_range)]
+        p = self._normalize_weights(inv_weights)
+        selected = np.random.choice(self.numbers_range, size=self.combination_size, replace=False, p=p)
+        return sorted(selected.tolist())
+    
+    def sample_recency_weighted(self) -> List[int]:
+        """Sample using recency-based weights."""
+        if not hasattr(self, 'recency_weights'):
+            return self.sample_uniform()
+        
+        weights = [self.recency_weights.get(num, 0.001) for num in self.numbers_range]
+        if self.gaussian_density:
+            weights = [w * self.gaussian_density.get(num, 1.0) for w, num in zip(weights, self.numbers_range)]
+        p = self._normalize_weights(weights)
+        selected = np.random.choice(self.numbers_range, size=self.combination_size, replace=False, p=p)
+        return sorted(selected.tolist())
+    
+    def sample_pattern_based(self) -> List[int]:
+        """Sample based on historical patterns (sum, consecutive numbers, etc.)."""
+        if not hasattr(self, 'sum_mean'):
+            return self.sample_uniform()
+        
+        # Generate multiple candidates and select based on pattern similarity
+        candidates = []
+        for _ in range(100):  # Generate 100 candidates
+            candidate = sorted(random.sample(self.numbers_range, self.combination_size))
+            
+            # Calculate pattern scores
+            candidate_sum = sum(candidate)
+            denom = self.sum_std if (isinstance(self.sum_std, (int, float)) and self.sum_std and self.sum_std > 1e-9) else 1.0
+            sum_score = -abs(candidate_sum - self.sum_mean) / denom
+            
+            # Calculate consecutive score
+            consecutive_count = sum(1 for i in range(len(candidate) - 1) 
+                                  if candidate[i+1] - candidate[i] == 1)
+            consecutive_score = -abs(consecutive_count - self.avg_consecutive)
+            
+            # Distribution score (balanced across low, mid, high)
+            low_count = sum(1 for num in candidate if num <= 8)
+            mid_count = sum(1 for num in candidate if 9 <= num <= 17)
+            high_count = sum(1 for num in candidate if num >= 18)
+            balance_score = -abs(low_count - 5) - abs(mid_count - 5) - abs(high_count - 5)
+            
+            total_score = sum_score + consecutive_score + balance_score
+            candidates.append((candidate, total_score))
+        
+        # Select best candidate
+        best_candidate = max(candidates, key=lambda x: x[1])[0]
+        return best_candidate
+    
+    def sample_gaussian_kernel(self) -> List[int]:
+        """Sample using Gaussian kernel density estimation."""
+        if not self.historical_data:
+            return self.sample_uniform()
+        
+        # Use kernel density estimation on historical numbers
+        selected_numbers = []
+        
+        # Limit historical data size to avoid memory issues
+        limited_data = self.historical_data[-500:] if len(self.historical_data) > 500 else self.historical_data
+        
+        # For each position, use KDE to estimate probability density
+        all_games_matrix = np.array([sorted(game) for game in limited_data])
+        low, high = min(self.numbers_range), max(self.numbers_range)
+
+        for i in range(self.combination_size):
+            if i < all_games_matrix.shape[1]:
+                position_data = all_games_matrix[:, i]
+                
+                # Simple Gaussian KDE approximation
+                mean_pos = np.mean(position_data)
+                std_pos = np.std(position_data)
+                # Guardar contra std zero/NaN para evitar laço infinito
+                if not np.isfinite(std_pos) or std_pos <= 1e-9:
+                    remaining = [n for n in self.numbers_range if n not in selected_numbers]
+                    if remaining:
+                        selected_numbers.append(random.choice(remaining))
+                    else:
+                        break
+                else:
+                    # Sample from Gaussian and round to nearest valid number
+                    # Usa faixa correta do jogo
+                    max_attempts = 50
+                    attempt = 0
+                    while True:
+                        val = np.random.normal(mean_pos, std_pos)
+                        sample = int(np.clip(val, low, high))
+                        if sample not in selected_numbers:
+                            selected_numbers.append(sample)
+                            break
+                        attempt += 1
+                        if attempt >= max_attempts:
+                            # Fallback para um restante qualquer
+                            remaining = [n for n in self.numbers_range if n not in selected_numbers]
+                            if remaining:
+                                selected_numbers.append(random.choice(remaining))
+                            break
+            else:
+                # Fallback for additional numbers
+                remaining = [n for n in self.numbers_range if n not in selected_numbers]
+                if remaining:
+                    selected_numbers.append(random.choice(remaining))
+        
+        return sorted(selected_numbers)
+
+    def sample_gaussian_prior(self) -> List[int]:
+        """Sample usando prior Gaussiano por número (histórico -> densidade)."""
+        if not self.gaussian_density:
+            return self.sample_uniform()
+        weights = [self.gaussian_density.get(num, 1.0) for num in self.numbers_range]
+        p = self._normalize_weights(weights)
+        selected = np.random.choice(self.numbers_range, size=self.combination_size, replace=False, p=p)
+        return sorted(selected.tolist())
+    
+    def run_monte_carlo_simulation(self, strategy: str = 'frequency_weighted') -> Dict:
+        """
+        Run Monte Carlo simulation with specified strategy.
+        
+        Args:
+            strategy: Sampling strategy to use
+            
+        Returns:
+            Dictionary containing simulation results
+        """
+        if strategy not in self.sampling_strategies:
+            strategy = 'frequency_weighted'
+        
+        sampling_method = getattr(self, f'sample_{strategy}')
+        
+        # Run simulations com caps globais (tempo/iterações)
+        all_simulations = []
+        number_appearance_count = Counter()
+        start_time = time.time()
+        sim_runs = 0
+        
+        if self.verbose:
+            print(f"🎲 Executando {self.n_simulations} simulações Monte Carlo ({strategy})...")
+        
+        for i in range(self.n_simulations):
+            # Caps: tempo e iterações
+            if self.max_seconds and (time.time() - start_time) >= self.max_seconds:
+                break
+            if self.max_iters and sim_runs >= self.max_iters:
+                break
+            if self.verbose and self.n_simulations >= 10 and i % max(1, (self.n_simulations // 10)) == 0:
+                print(f"  Progresso: {i/self.n_simulations*100:.0f}%")
+            
+            simulation = sampling_method()
+            all_simulations.append(simulation)
+            
+            # Count appearances
+            for num in simulation:
+                number_appearance_count[num] += 1
+            sim_runs += 1
+        
+        # Calculate statistics
+        appearance_probabilities = {
+            num: (count / max(1, sim_runs)) 
+            for num, count in number_appearance_count.items()
+        }
+        
+        # Fill in zeros for numbers that never appeared
+        for num in self.numbers_range:
+            if num not in appearance_probabilities:
+                appearance_probabilities[num] = 0.0
+        
+        # Generate final prediction based on most frequent appearances
+        most_frequent = sorted(appearance_probabilities.items(), 
+                             key=lambda x: x[1], reverse=True)
+        prediction = [num for num, _ in most_frequent[:self.combination_size]]
+        
+        # Calculate confidence metrics
+        top_15_probs = [prob for _, prob in most_frequent[:self.combination_size]]
+        confidence = np.mean(top_15_probs)
+        prob_variance = np.var(top_15_probs)
+        
+        return {
+            'prediction': sorted(prediction),
+            'appearance_probabilities': appearance_probabilities,
+            'confidence': confidence,
+            'probability_variance': prob_variance,
+            'strategy_used': strategy,
+            'n_simulations': sim_runs,
+            'top_numbers': most_frequent[:self.combination_size]
+        }
+    
+    def run_ensemble_simulation(self) -> Dict:
+        """
+        Run ensemble of different Monte Carlo strategies with parallel execution.
+        
+        Returns:
+            Dictionary containing ensemble results
+        """
+        logger.info("🎯 Executando ensemble de simulações Monte Carlo...")
+        
+        # Verificar se paralelização está disponível
+        try:
+            from ...core.parallel_engine import get_parallel_engine
+            # Usar configuração do ambiente (não forçar processos)
+            self.parallel_engine = get_parallel_engine()
+            use_parallel = len(self.sampling_strategies) > 1
+            logger.info(f"🚀 Paralelização {'habilitada' if use_parallel else 'desabilitada'}")
+        except ImportError:
+            use_parallel = False
+            logger.info("🔄 Execução sequencial (parallel_engine não disponível)")
+        
+        if use_parallel:
+            return self._run_ensemble_parallel()
+        else:
+            return self._run_ensemble_sequential()
+    
+    def _run_ensemble_parallel(self) -> Dict:
+        """Executa estratégias Monte Carlo em paralelo"""
+        logger.info("🚀 Executando estratégias Monte Carlo em paralelo...")
+        
+        # Prepara jobs para cada estratégia
+        strategy_jobs = []
+        for strategy in self.sampling_strategies:
+            job = {
+                'name': f'Strategy_{strategy}',
+                'train_func': self._run_strategy_worker,
+                'data': self.historical_data,
+                'params': {
+                    'strategy': strategy,
+                    'n_simulations': self.n_simulations // len(self.sampling_strategies)
+                }
+            }
+            strategy_jobs.append(job)
+        
+        # Callback para progresso
+        def progress_callback(strategy_name: str, result: Any, completed: int, total: int):
+            if result:
+                prediction = result.get('prediction', [])
+                logger.info(f"✅ {strategy_name}: {len(prediction)} números ({completed}/{total})")
+        
+        # Executa em paralelo
+        start_time = time.time()
+        results = self.parallel_engine.parallel_train(
+            training_jobs=strategy_jobs,
+            progress_callback=progress_callback
+        )
+        
+        # Processa resultados
+        strategy_results = {}
+        ensemble_predictions = []
+        
+        for job, result in zip(strategy_jobs, results):
+            if result is not None:
+                strategy_name = job['params']['strategy']
+                strategy_results[strategy_name] = result
+                ensemble_predictions.append(result['prediction'])
+        
+        elapsed = time.time() - start_time
+        logger.info(f"⚡ Estratégias paralelas concluídas em {elapsed:.2f}s")
+        
+        return self._combine_ensemble_results(strategy_results, ensemble_predictions)
+    
+    def _run_ensemble_sequential(self) -> Dict:
+        """Execução sequencial das estratégias (fallback)"""
+        logger.info("🔄 Executando estratégias Monte Carlo sequencialmente...")
+        
+        strategy_results = {}
+        ensemble_predictions = []
+        
+        # Run each strategy
+        for strategy in self.sampling_strategies:
+            logger.info(f"📊 Estratégia: {strategy}")
+            result = self.run_monte_carlo_simulation(strategy)
+            strategy_results[strategy] = result
+            ensemble_predictions.append(result['prediction'])
+        
+        return self._combine_ensemble_results(strategy_results, ensemble_predictions)
+    
+    @staticmethod
+    def _run_strategy_worker(historical_data: List[List[int]], 
+                           strategy: str, n_simulations: int) -> Dict:
+        """Worker para executar uma estratégia Monte Carlo"""
+        # Cria nova instância para evitar conflitos de estado
+        simulator = MonteCarloLotofacilSimulator(n_simulations=n_simulations, verbose=False)
+        simulator.set_historical_data(historical_data)
+        
+        return simulator.run_monte_carlo_simulation(strategy)
+    
+    def _combine_ensemble_results(self, strategy_results: Dict, 
+                                ensemble_predictions: List) -> Dict:
+        """Combina resultados das diferentes estratégias"""
+        # Combine predictions using voting
+        number_votes = Counter()
+        for prediction in ensemble_predictions:
+            for num in prediction:
+                number_votes[num] += 1
+        
+        # Select top numbers based on votes
+        most_voted = sorted(number_votes.items(), key=lambda x: x[1], reverse=True)
+        ensemble_prediction = [num for num, _ in most_voted[:self.combination_size]]
+        
+        # Calculate ensemble confidence
+        total_votes = sum(number_votes.values())
+        ensemble_confidence = sum(votes for _, votes in most_voted[:self.combination_size]) / total_votes
+        
+        return {
+            'ensemble_prediction': sorted(ensemble_prediction),
+            'strategy_results': strategy_results,
+            'ensemble_confidence': ensemble_confidence,
+            'voting_results': most_voted,
+            'strategies_used': self.sampling_strategies
+        }
+    
+    def analyze_convergence(self, strategy: str = 'frequency_weighted', 
+                          step_size: int = 1000) -> Dict:
+        """
+        Analyze convergence of Monte Carlo simulation.
+        
+        Args:
+            strategy: Strategy to analyze
+            step_size: Step size for convergence analysis
+            
+        Returns:
+            Dictionary containing convergence analysis
+        """
+        sampling_method = getattr(self, f'sample_{strategy}')
+        
+        convergence_data = []
+        running_predictions = []
+        
+        current_count = Counter()
+        
+        for i in range(1, self.n_simulations + 1):
+            simulation = sampling_method()
+            for num in simulation:
+                current_count[num] += 1
+            
+            if i % step_size == 0:
+                # Calculate current prediction
+                current_probs = {num: count / i for num, count in current_count.items()}
+                most_frequent = sorted(current_probs.items(), 
+                                     key=lambda x: x[1], reverse=True)
+                current_prediction = [num for num, _ in most_frequent[:self.combination_size]]
+                
+                convergence_data.append({
+                    'simulation_count': i,
+                    'prediction': sorted(current_prediction),
+                    'top_prob': most_frequent[0][1] if most_frequent else 0,
+                    'prob_entropy': -sum(p * np.log(p) for p in current_probs.values() if p > 0)
+                })
+                
+                running_predictions.append(current_prediction)
+        
+        return {
+            'convergence_data': convergence_data,
+            'final_prediction': convergence_data[-1]['prediction'] if convergence_data else [],
+            'strategy_analyzed': strategy
+        }
+
+
+def carregar_dados(path='Oraculo/Lotofacil/data/Lotofacil.csv') -> List[List[int]]:
+    """Load historical Lotofacil data."""
+    df = pd.read_csv(path)
+    colunas = [col for col in df.columns if 'Bola' in col]
+    return df[colunas].values.tolist()
+
+
+def gerar_predicao_monte_carlo(dados: List[List[int]], 
+                             n_simulations: int = 10000,
+                             strategy: str = 'ensemble') -> Dict:
+    """
+    Generate Monte Carlo prediction for Lotofacil.
+    
+    Args:
+        dados: Historical lottery data
+        n_simulations: Number of simulations to run
+        strategy: Strategy to use ('ensemble' or specific strategy name)
+        
+    Returns:
+        Dictionary containing prediction and analysis
+    """
+    simulator = MonteCarloLotofacilSimulator(n_simulations=n_simulations)
+    simulator.load_historical_data(dados)
+    
+    if strategy == 'ensemble':
+        resultado = simulator.run_ensemble_simulation()
+    else:
+        resultado = simulator.run_monte_carlo_simulation(strategy)
+    
+    return resultado
+
+
+if __name__ == '__main__':
+    print("🎲 Executando simulação Monte Carlo avançada para Lotofacil...")
+    
+    # Load data
+    dados = carregar_dados()
+    print(f"📊 Dados carregados: {len(dados)} jogos históricos")
+    
+    # Generate Monte Carlo prediction
+    resultado = gerar_predicao_monte_carlo(dados, n_simulations=5000, strategy='ensemble')
+    
+    print("\n🎯 Predição do Ensemble Monte Carlo:")
+    print(f"Números previstos: {resultado['ensemble_prediction']}")
+    print(f"Confiança do ensemble: {resultado['ensemble_confidence']:.4f}")
+    
+    print("\n📊 Resultados por estratégia:")
+    for strategy, result in resultado['strategy_results'].items():
+        print(f"{strategy:20s}: {result['prediction']} (conf: {result['confidence']:.4f})")
+    
+    print(f"\n🗳️ Top 20 números mais votados:")
+    for i, (num, votes) in enumerate(resultado['voting_results'][:20]):
+        print(f"{i+1:2d}. Número {num:2d}: {votes} votos")
+
+
+# Backwards-compatible canonical alias expected by ModelAdapter
+MonteCarloSimulator = MonteCarloLotofacilSimulator

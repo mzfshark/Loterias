@@ -1,0 +1,80 @@
+{
+  "lottery": "Quina",
+  "timestamp": "2025-10-18",
+  "ensemble_prediction": [
+    4,
+    5,
+    26,
+    49,
+    52
+  ],
+  "ensemble_confidence": 0.8772013047426126,
+  "models": [
+    {
+      "modelo": "bayesian",
+      "jogo": [
+        4,
+        26,
+        31,
+        49,
+        52
+      ],
+      "confidence": 0.95
+    },
+    {
+      "modelo": "beam_search",
+      "jogo": [
+        2,
+        4,
+        5,
+        6,
+        8
+      ],
+      "confidence": 0.7
+    },
+    {
+      "modelo": "markov",
+      "jogo": [
+        5,
+        6,
+        11,
+        13,
+        16
+      ],
+      "confidence": 0.6
+    },
+    {
+      "modelo": "poisson",
+      "jogo": [
+        19,
+        43,
+        59,
+        64,
+        77
+      ],
+      "confidence": 0.65
+    },
+    {
+      "modelo": "mutation",
+      "jogo": [
+        46,
+        52,
+        60,
+        67,
+        73
+      ],
+      "confidence": 0.6
+    },
+    {
+      "modelo": "time_series",
+      "jogo": [
+        4,
+        5,
+        15,
+        45,
+        54
+      ],
+      "confidence": 1.8350408732874892
+    }
+  ]
+}

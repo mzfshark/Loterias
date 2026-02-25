@@ -1,0 +1,87 @@
+{
+  "lottery": "MegaSena",
+  "timestamp": "2025-11-15",
+  "ensemble_prediction": [
+    4,
+    5,
+    6,
+    10,
+    38,
+    47
+  ],
+  "ensemble_confidence": 0.7426619006703649,
+  "models": [
+    {
+      "modelo": "beam_search",
+      "jogo": [
+        2,
+        4,
+        5,
+        7,
+        8,
+        10
+      ],
+      "confidence": 0.7
+    },
+    {
+      "modelo": "markov",
+      "jogo": [
+        6,
+        8,
+        11,
+        15,
+        16,
+        18
+      ],
+      "confidence": 0.6
+    },
+    {
+      "modelo": "mutation",
+      "jogo": [
+        5,
+        11,
+        23,
+        40,
+        47,
+        50
+      ],
+      "confidence": 0.6
+    },
+    {
+      "modelo": "bayesian",
+      "jogo": [
+        5,
+        10,
+        34,
+        37,
+        38,
+        53
+      ],
+      "confidence": 0.57557449774924
+    },
+    {
+      "modelo": "poisson",
+      "jogo": [
+        2,
+        6,
+        24,
+        25,
+        29,
+        49
+      ],
+      "confidence": 0.65
+    },
+    {
+      "modelo": "time_series",
+      "jogo": [
+        1,
+        4,
+        5,
+        38,
+        41,
+        47
+      ],
+      "confidence": 1.6738748998965431
+    }
+  ]
+}

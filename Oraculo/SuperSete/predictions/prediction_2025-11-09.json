@@ -1,0 +1,120 @@
+{
+  "lottery": "SuperSete",
+  "timestamp": "2025-11-09",
+  "ensemble_prediction": [
+    7,
+    2,
+    3,
+    0,
+    7,
+    7,
+    5
+  ],
+  "ensemble_confidence": 0.7,
+  "models": [
+    {
+      "modelo": "time_series",
+      "jogo": [
+        2,
+        9,
+        9,
+        7,
+        6,
+        6,
+        6
+      ],
+      "confidence": 0.55
+    },
+    {
+      "modelo": "bayesian",
+      "jogo": [
+        7,
+        2,
+        3,
+        0,
+        7,
+        4,
+        5
+      ],
+      "confidence": 0.7
+    },
+    {
+      "modelo": "monte_carlo",
+      "jogo": [
+        3,
+        7,
+        2,
+        6,
+        9,
+        7,
+        1
+      ],
+      "confidence": 0.65
+    },
+    {
+      "modelo": "neural_ensemble",
+      "jogo": [
+        5,
+        6,
+        5,
+        4,
+        5,
+        5,
+        5
+      ],
+      "confidence": 0.6
+    },
+    {
+      "modelo": "beam_search",
+      "jogo": [
+        3,
+        7,
+        3,
+        1,
+        8,
+        4,
+        5
+      ],
+      "confidence": 0.6
+    },
+    {
+      "modelo": "markov",
+      "jogo": [
+        0,
+        0,
+        3,
+        0,
+        4,
+        7,
+        4
+      ],
+      "confidence": 0.6
+    },
+    {
+      "modelo": "poisson",
+      "jogo": [
+        6,
+        1,
+        4,
+        6,
+        5,
+        5,
+        5
+      ],
+      "confidence": 0.5
+    },
+    {
+      "modelo": "mutation",
+      "jogo": [
+        2,
+        1,
+        9,
+        8,
+        0,
+        7,
+        6
+      ],
+      "confidence": 0.55
+    }
+  ]
+}

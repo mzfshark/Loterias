@@ -1,0 +1,47 @@
+{
+  "lottery": "Quina",
+  "timestamp": "2025-09-28_18-29-32",
+  "ensemble_prediction": [
+    2,
+    4,
+    6,
+    10,
+    16
+  ],
+  "ensemble_confidence": 0.625,
+  "models": [
+    {
+      "modelo": "beam_search",
+      "jogo": [
+        2,
+        4,
+        5,
+        10,
+        11
+      ],
+      "confidence": 0.7
+    },
+    {
+      "modelo": "markov",
+      "jogo": [
+        2,
+        4,
+        6,
+        10,
+        16
+      ],
+      "confidence": 0.6
+    },
+    {
+      "modelo": "mutation",
+      "jogo": [
+        23,
+        37,
+        48,
+        57,
+        72
+      ],
+      "confidence": 0.6
+    }
+  ]
+}

@@ -1,0 +1,59 @@
+{
+  "lottery": "MegaSena",
+  "timestamp": "2025-11-16",
+  "ensemble_prediction": [
+    2,
+    8,
+    11,
+    14,
+    16,
+    18
+  ],
+  "ensemble_confidence": 0.4073104033492057,
+  "ensemble_galton_zscore": 0.020491975376758804,
+  "ensemble_galton_density": 0.020417375761437498,
+  "models": [
+    {
+      "modelo": "mutation",
+      "jogo": [
+        2,
+        14,
+        17,
+        18,
+        44,
+        55
+      ],
+      "confidence": 0.3906509511698282,
+      "galton_zscore": -0.2971336429630029,
+      "galton_density": 0.016100290956908767
+    },
+    {
+      "modelo": "markov",
+      "jogo": [
+        2,
+        8,
+        11,
+        14,
+        16,
+        18
+      ],
+      "confidence": 0.3908522516656435,
+      "galton_zscore": 0.020491975376758804,
+      "galton_density": 0.020417375761437498
+    },
+    {
+      "modelo": "beam_search",
+      "jogo": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        7
+      ],
+      "confidence": 0.4567855086477999,
+      "galton_zscore": 0.1331978399489323,
+      "galton_density": 0.017225096207020677
+    }
+  ]
+}

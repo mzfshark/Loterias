@@ -1,0 +1,10 @@
+{
+  "bayesian": 0.15,
+  "neural_ensemble": 0.12,
+  "monte_carlo": 0.1,
+  "time_series": 0.14,
+  "beam_search": 0.13,
+  "markov": 0.12,
+  "poisson": 0.12,
+  "mutation": 0.12
+}

@@ -1,0 +1,94 @@
+{
+  "lottery": "SuperSete",
+  "timestamp": "2025-09-29",
+  "ensemble_prediction": [
+    6,
+    0,
+    1,
+    8,
+    4,
+    9,
+    7
+  ],
+  "ensemble_confidence": 0.7,
+  "models": [
+    {
+      "modelo": "bayesian",
+      "jogo": [
+        6,
+        0,
+        1,
+        8,
+        1,
+        9,
+        7
+      ],
+      "confidence": 0.7
+    },
+    {
+      "modelo": "time_series",
+      "jogo": [
+        2,
+        9,
+        9,
+        7,
+        6,
+        6,
+        6
+      ],
+      "confidence": 0.55
+    },
+    {
+      "modelo": "beam_search",
+      "jogo": [
+        7,
+        9,
+        2,
+        2,
+        5,
+        6,
+        4
+      ],
+      "confidence": 0.6
+    },
+    {
+      "modelo": "markov",
+      "jogo": [
+        3,
+        0,
+        3,
+        1,
+        4,
+        7,
+        4
+      ],
+      "confidence": 0.6
+    },
+    {
+      "modelo": "poisson",
+      "jogo": [
+        2,
+        3,
+        4,
+        5,
+        4,
+        5,
+        3
+      ],
+      "confidence": 0.5
+    },
+    {
+      "modelo": "mutation",
+      "jogo": [
+        2,
+        9,
+        9,
+        0,
+        7,
+        7,
+        6
+      ],
+      "confidence": 0.55
+    }
+  ]
+}

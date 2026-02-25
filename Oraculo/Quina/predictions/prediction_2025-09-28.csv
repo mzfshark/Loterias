@@ -1,0 +1,5 @@
+lottery,timestamp,model,prediction,confidence
+Quina,2025-09-28,neural_ensemble,"[1, 2, 3, 4, 5]",1.6666666666666667
+Quina,2025-09-28,beam_search,"[2, 4, 5, 6, 7]",0.7
+Quina,2025-09-28,markov,"[2, 4, 5, 8, 11]",0.6
+Quina,2025-09-28,mutation,"[6, 36, 59, 69, 78]",0.6

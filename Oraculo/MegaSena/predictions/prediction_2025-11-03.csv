@@ -1,0 +1,7 @@
+lottery,timestamp,model,prediction,confidence
+MegaSena,2025-11-03,beam_search,"[2, 4, 5, 7, 8, 10]",0.7
+MegaSena,2025-11-03,markov,"[3, 7, 9, 11, 16, 17]",0.6
+MegaSena,2025-11-03,mutation,"[4, 13, 19, 36, 50, 58]",0.6
+MegaSena,2025-11-03,bayesian,"[5, 10, 34, 37, 38, 53]",0.574597497075305
+MegaSena,2025-11-03,poisson,"[2, 6, 24, 25, 29, 49]",0.65
+MegaSena,2025-11-03,time_series,"[1, 4, 5, 38, 41, 47]",1.6742112777892029

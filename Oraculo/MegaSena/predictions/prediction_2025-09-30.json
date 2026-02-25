@@ -1,0 +1,87 @@
+{
+  "lottery": "MegaSena",
+  "timestamp": "2025-09-30",
+  "ensemble_prediction": [
+    4,
+    5,
+    6,
+    10,
+    37,
+    38
+  ],
+  "ensemble_confidence": 0.7412476377078021,
+  "models": [
+    {
+      "modelo": "mutation",
+      "jogo": [
+        3,
+        25,
+        28,
+        38,
+        42,
+        59
+      ],
+      "confidence": 0.6
+    },
+    {
+      "modelo": "beam_search",
+      "jogo": [
+        2,
+        5,
+        6,
+        8,
+        9,
+        10
+      ],
+      "confidence": 0.7
+    },
+    {
+      "modelo": "markov",
+      "jogo": [
+        4,
+        6,
+        12,
+        18,
+        19,
+        21
+      ],
+      "confidence": 0.6
+    },
+    {
+      "modelo": "bayesian",
+      "jogo": [
+        5,
+        10,
+        34,
+        37,
+        38,
+        53
+      ],
+      "confidence": 0.5718640769935976
+    },
+    {
+      "modelo": "poisson",
+      "jogo": [
+        2,
+        6,
+        24,
+        25,
+        29,
+        36
+      ],
+      "confidence": 0.65
+    },
+    {
+      "modelo": "time_series",
+      "jogo": [
+        1,
+        4,
+        5,
+        38,
+        41,
+        47
+      ],
+      "confidence": 1.674155861057425
+    }
+  ]
+}

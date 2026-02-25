@@ -1,0 +1,63 @@
+{
+  "lottery": "MegaSena",
+  "timestamp": "2025-09-28_23-13-49",
+  "ensemble_prediction": [
+    2,
+    6,
+    24,
+    25,
+    29,
+    36
+  ],
+  "ensemble_confidence": 0.6370967741935483,
+  "models": [
+    {
+      "modelo": "beam_search",
+      "jogo": [
+        4,
+        5,
+        6,
+        9,
+        10,
+        11
+      ],
+      "confidence": 0.7
+    },
+    {
+      "modelo": "markov",
+      "jogo": [
+        2,
+        3,
+        5,
+        7,
+        8,
+        10
+      ],
+      "confidence": 0.6
+    },
+    {
+      "modelo": "poisson",
+      "jogo": [
+        2,
+        6,
+        24,
+        25,
+        29,
+        36
+      ],
+      "confidence": 0.65
+    },
+    {
+      "modelo": "mutation",
+      "jogo": [
+        9,
+        17,
+        22,
+        30,
+        35,
+        57
+      ],
+      "confidence": 0.6
+    }
+  ]
+}

@@ -1,0 +1,4 @@
+lottery,timestamp,model,prediction,confidence
+Milionaria,2025-09-28_18-31-02,beam_search,"[1, 2, 3, 4, 6, 7]",0.7
+Milionaria,2025-09-28_18-31-02,markov,"[1, 2, 3, 4, 6, 8]",0.6
+Milionaria,2025-09-28_18-31-02,mutation,"[6, 16, 25, 26, 44, 46]",0.6
